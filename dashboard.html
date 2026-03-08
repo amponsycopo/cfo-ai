@@ -2463,41 +2463,41 @@ function renderFraudAlerts(r) {
   const totalRisk = alerts.reduce((s, a) => s + (a.amount || 0), 0);
 
   fraudEl.innerHTML = `
-    <div style="background:#1A0A0A;border:1px solid #3A1515;border-radius:12px;overflow:hidden;margin-bottom:12px;">
-      <div style="background:#2D1010;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:12px;overflow:hidden;margin-bottom:12px;">
+      <div style="background:#FEE2E2;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:16px;">🚨</span>
-          <span style="font-size:13px;font-weight:700;color:#E57373;">Fraud Radar — ${alerts.length} Anomali Terdeteksi</span>
+          <span style="font-size:13px;font-weight:700;color:var(--red);">Fraud Radar — ${alerts.length} Anomali Terdeteksi</span>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          ${criticals.length ? `<span style="font-size:10px;font-weight:700;background:#3D1A1A;color:#EF5350;border:1px solid #5A2A2A;border-radius:20px;padding:3px 10px;">🔴 ${criticals.length} KRITIS</span>` : ''}
-          ${warnings.length  ? `<span style="font-size:10px;font-weight:700;background:#3D2F0A;color:#FFB74D;border:1px solid #5A4A1A;border-radius:20px;padding:3px 10px;">⚠️ ${warnings.length} PERHATIAN</span>` : ''}
-          ${totalRisk > 0    ? `<span style="font-size:10px;font-weight:700;background:#1A2A1A;color:#81C784;border:1px solid #2A4A2A;border-radius:20px;padding:3px 10px;">💰 Risiko ${formatRp(totalRisk)}</span>` : ''}
+          ${criticals.length ? `<span style="font-size:10px;font-weight:700;background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);border-radius:20px;padding:3px 10px;">🔴 ${criticals.length} KRITIS</span>` : ''}
+          ${warnings.length  ? `<span style="font-size:10px;font-weight:700;background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border);border-radius:20px;padding:3px 10px;">⚠️ ${warnings.length} PERHATIAN</span>` : ''}
+          ${totalRisk > 0    ? `<span style="font-size:10px;font-weight:700;background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);border-radius:20px;padding:3px 10px;">💰 Risiko ${formatRp(totalRisk)}</span>` : ''}
         </div>
       </div>
-      <div style="padding:12px 16px;font-size:11px;color:#A0785A;">${fraudSummary}</div>
+      <div style="padding:12px 16px;font-size:12px;color:var(--text2);">${fraudSummary}</div>
     </div>
     ${alerts.map(a => {
       const isCrit = a.severity === 'critical';
-      const bg = isCrit ? '#1A0A0A' : '#1A1400';
-      const border = isCrit ? '#3A1515' : '#3A2E0A';
-      const dotColor = isCrit ? '#EF5350' : '#FFB74D';
-      const typeColor = isCrit ? '#E57373' : '#FFB74D';
+      const bg     = isCrit ? 'var(--red-bg)'    : 'var(--orange-bg)';
+      const border = isCrit ? 'var(--red-border)' : 'var(--orange-border)';
+      const dotColor  = isCrit ? 'var(--red)'    : 'var(--orange)';
+      const typeColor = isCrit ? 'var(--red)'    : 'var(--orange)';
       return `
         <div style="padding:14px;border-radius:10px;background:${bg};border:1px solid ${border};margin-bottom:8px;">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
             <div style="display:flex;align-items:center;gap:8px;">
               <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0;margin-top:3px;"></div>
-              <div style="font-size:11px;font-weight:700;color:${typeColor};letter-spacing:0.3px;">${a.type}</div>
+              <div style="font-size:12px;font-weight:700;color:${typeColor};letter-spacing:0.3px;">${a.type}</div>
             </div>
             <div style="display:flex;gap:6px;align-items:center;">
-              ${a.date ? `<span style="font-size:10px;color:var(--ink3);">${a.date}</span>` : ''}
-              ${a.amount ? `<span style="font-size:11px;font-weight:700;color:${dotColor};">${formatRp(a.amount)}</span>` : ''}
+              ${a.date ? `<span style="font-size:11px;color:var(--text3);">${a.date}</span>` : ''}
+              ${a.amount ? `<span style="font-size:12px;font-weight:700;color:${dotColor};">${formatRp(a.amount)}</span>` : ''}
             </div>
           </div>
-          <div style="font-size:12px;color:var(--ink2);margin-bottom:6px;">${a.desc}</div>
-          <div style="font-size:11px;color:var(--ink3);background:var(--surface3);border-radius:6px;padding:7px 10px;">
-            💡 <strong style="color:var(--ink2);">Tindakan:</strong> ${a.action}
+          <div style="font-size:13px;color:var(--text);margin-bottom:8px;">${a.desc}</div>
+          <div style="font-size:12px;color:var(--text2);background:white;border:1px solid ${border};border-radius:6px;padding:8px 12px;">
+            💡 <strong style="color:var(--text);">Tindakan:</strong> ${a.action}
           </div>
         </div>`;
     }).join('')}`;
