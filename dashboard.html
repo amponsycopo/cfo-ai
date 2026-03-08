@@ -1070,6 +1070,21 @@ tbody tr:hover td { background: var(--bg); }
         </div>
       </div>
 
+      <!-- Optional balance sheet upload -->
+      <div id="balance-sheet-section" style="display:none;margin-bottom:12px;padding:14px 16px;background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--blue);">📄 Upload Neraca (Opsional)</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;">Untuk analisis Current Ratio, D/E Ratio, dan Cash Runway yang akurat</div>
+          </div>
+          <button onclick="document.getElementById('balance-sheet-input').click()" style="padding:6px 12px;background:var(--blue);color:white;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;">
+            Upload Neraca
+          </button>
+          <input type="file" id="balance-sheet-input" accept=".xlsx,.xls,.csv" onchange="handleBalanceSheet(event)" style="display:none;">
+        </div>
+        <div id="balance-sheet-status" style="font-size:11px;color:var(--text3);">Belum ada neraca — analisis rasio akan dilewati</div>
+      </div>
+
       <div class="email-section" id="email-section">
         <div class="section-label">Kirim laporan ke email</div>
         <div class="email-row">
@@ -1152,7 +1167,7 @@ tbody tr:hover td { background: var(--bg); }
     </div>
 
     <!-- KPI Cards -->
-    <div class="kpi-grid">
+    <div class="kpi-grid" id="kpi-grid-main">
       <div class="kpi-card">
         <div class="kpi-label">Pendapatan</div>
         <div class="kpi-value green" id="kpi-income">—</div>
@@ -1173,6 +1188,38 @@ tbody tr:hover td { background: var(--bg); }
         <div class="kpi-value" id="kpi-score">—</div>
         <div class="kpi-sub" id="kpi-score-label">—</div>
         <div id="kpi-score-basis" style="font-size:10px;color:#9CA3AF;margin-top:4px;line-height:1.4;display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Accurate-mode extra KPIs (hidden by default) -->
+    <div id="kpi-grid-accurate" style="display:none;margin-top:10px;">
+      <div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:0.5px;margin-bottom:8px;">📊 RASIO KEUANGAN (dari data akuntansi)</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">
+        <div class="kpi-card" style="text-align:center;">
+          <div class="kpi-label">Gross Margin</div>
+          <div class="kpi-value" id="kpi-gross-margin" style="font-size:18px;">—</div>
+          <div class="kpi-sub">Profitabilitas produk</div>
+        </div>
+        <div class="kpi-card" style="text-align:center;">
+          <div class="kpi-label">Operating Margin</div>
+          <div class="kpi-value" id="kpi-op-margin" style="font-size:18px;">—</div>
+          <div class="kpi-sub">Efisiensi operasi</div>
+        </div>
+        <div class="kpi-card" style="text-align:center;">
+          <div class="kpi-label">EBITDA</div>
+          <div class="kpi-value" id="kpi-ebitda" style="font-size:16px;">—</div>
+          <div class="kpi-sub">Performa murni</div>
+        </div>
+        <div class="kpi-card" style="text-align:center;" title="Ideal: >1.5x">
+          <div class="kpi-label">Current Ratio</div>
+          <div class="kpi-value" id="kpi-current-ratio" style="font-size:18px;">—</div>
+          <div class="kpi-sub">Likuiditas jangka pendek</div>
+        </div>
+        <div class="kpi-card" style="text-align:center;" title="Estimasi berapa bulan operasional bisa berjalan">
+          <div class="kpi-label">Cash Runway</div>
+          <div class="kpi-value" id="kpi-cash-runway" style="font-size:18px;">—</div>
+          <div class="kpi-sub">Sisa napas bisnis</div>
+        </div>
       </div>
     </div>
 
@@ -1231,10 +1278,17 @@ tbody tr:hover td { background: var(--bg); }
             Ringkasan Kategori
           </div>
         </div>
-        <div class="txn-wrap">
-          <table class="txn-table" id="mini-table">
-            <tbody></tbody>
-          </table>
+        <div id="category-breakdown-wrap" style="padding:0 4px 4px;">
+          <!-- Top Income -->
+          <div style="margin-bottom:14px;">
+            <div style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:0.5px;padding:0 12px;margin-bottom:6px;">📈 PENDAPATAN / PENJUALAN TERTINGGI</div>
+            <table class="txn-table" id="top-income-table"><tbody></tbody></table>
+          </div>
+          <!-- Top Expense -->
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--red);letter-spacing:0.5px;padding:0 12px;margin-bottom:6px;">📉 PENGELUARAN TERBESAR</div>
+            <table class="txn-table" id="top-expense-table"><tbody></tbody></table>
+          </div>
         </div>
       </div>
     </div>
@@ -1350,6 +1404,8 @@ let groqConfig    = { apiKey: '' };
 let parsedData = null;
 let analysisResult = null;
 let targetEmail = '';
+let accurateData = null;   // parsed Accurate/multi-sheet accounting data
+let balanceSheetData = null; // manually uploaded neraca
 
 // ── Auth ─────────────────────────────────────────────────
 async function initAuth() {
@@ -1495,8 +1551,12 @@ function processFile(file) {
         });
 
         if (wb.SheetNames.length > 1) {
-          // Multi-sheet: show mapping UI
-          showSheetMapper(wb.SheetNames, file.name);
+          // Check if this is Accurate/accounting software format
+          if (isAccurateFormat(wb.SheetNames)) {
+            parseAccurateFile(wb.SheetNames, file.name);
+          } else {
+            showSheetMapper(wb.SheetNames, file.name);
+          }
         } else {
           // Single sheet: langsung preview
           const data = workbookSheets[wb.SheetNames[0]];
@@ -1513,6 +1573,305 @@ function processFile(file) {
 }
 
 // ── Auto-detect sheet role ────────────────────────────────
+
+// ==================== ACCURATE FORMAT PARSER ====================
+
+function isAccurateFormat(sheetNames) {
+  const names = sheetNames.map(s => s.toLowerCase());
+  const hasInvoices = names.some(n => /sales.invoice|invoice|penjualan/.test(n));
+  const hasExpenses = names.some(n => /expense|pengeluaran|biaya/.test(n));
+  const hasJournal  = names.some(n => /journal|jurnal/.test(n));
+  return (hasInvoices && hasExpenses) || hasJournal;
+}
+
+function getSheetData(sheetName) {
+  // case-insensitive sheet lookup
+  const key = Object.keys(workbookSheets).find(k => k.toLowerCase() === sheetName.toLowerCase());
+  return key ? workbookSheets[key] : null;
+}
+
+function sheetToObjects(rows) {
+  if (!rows || rows.length < 2) return [];
+  const headers = rows[0].map(h => String(h||'').toLowerCase().trim().replace(/\s+/g,'_'));
+  return rows.slice(1).filter(r => r.some(c => c !== '')).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : ''; });
+    return obj;
+  });
+}
+
+function parseAccurateFile(sheetNames, filename) {
+  // Parse all relevant sheets
+  const salesRows    = getSheetData('sales_invoices') || getSheetData('invoices') || getSheetData('penjualan');
+  const expenseRows  = getSheetData('expenses') || getSheetData('pengeluaran');
+  const journalRows  = getSheetData('journal_entries') || getSheetData('jurnal');
+  const coaRows      = getSheetData('chart_of_accounts') || getSheetData('akun');
+  const vendorRows   = getSheetData('vendors') || getSheetData('supplier');
+  const customerRows = getSheetData('customers') || getSheetData('pelanggan');
+  const productRows  = getSheetData('products') || getSheetData('produk');
+
+  const sales     = salesRows    ? sheetToObjects(salesRows)    : [];
+  const expenses  = expenseRows  ? sheetToObjects(expenseRows)  : [];
+  const journals  = journalRows  ? sheetToObjects(journalRows)  : [];
+  const coa       = coaRows      ? sheetToObjects(coaRows)      : [];
+  const vendors   = vendorRows   ? sheetToObjects(vendorRows)   : [];
+  const customers = customerRows ? sheetToObjects(customerRows) : [];
+  const products  = productRows  ? sheetToObjects(productRows)  : [];
+
+  // Build lookup maps
+  const coaMap      = {};
+  coa.forEach(a => { coaMap[String(a.account_no||a.kode_akun||'')] = { name: a.account_name||a.nama_akun||'', cat: a.category||a.kategori||'' }; });
+  const vendorMap   = {};
+  vendors.forEach(v => { vendorMap[String(v.vendor_id||v.id||'')] = v.vendor_name||v.nama||''; });
+  const customerMap = {};
+  customers.forEach(c => { customerMap[String(c.customer_id||c.id||'')] = c.customer_name||c.nama||''; });
+  const productMap  = {};
+  products.forEach(p => { productMap[String(p.product_id||p.id||'')] = { name: p.product_name||p.nama||'', price: parseNum(p.price||p.harga||0) }; });
+
+  // ── Revenue Analysis ──────────────────────────────────────
+  const totalRevenue = sales.reduce((s,r) => s + parseNum(r.total_amount||r.total||r.jumlah||0), 0);
+  
+  // Top products by revenue
+  const productRevenue = {};
+  sales.forEach(r => {
+    const pid = String(r.product_id||r.produk_id||'');
+    const name = productMap[pid]?.name || pid || 'Unknown';
+    const amt = parseNum(r.total_amount||r.total||0);
+    productRevenue[name] = (productRevenue[name]||0) + amt;
+  });
+  const topProducts = Object.entries(productRevenue)
+    .sort((a,b) => b[1]-a[1]).slice(0,5)
+    .map(([name,val]) => ({ name, val, pct: totalRevenue>0?Math.round(val/totalRevenue*100):0 }));
+
+  // Top customers
+  const customerRevenue = {};
+  sales.forEach(r => {
+    const cid = String(r.customer_id||r.pelanggan_id||'');
+    const name = customerMap[cid] || cid || 'Unknown';
+    const amt = parseNum(r.total_amount||r.total||0);
+    customerRevenue[name] = (customerRevenue[name]||0) + amt;
+  });
+  const topCustomers = Object.entries(customerRevenue)
+    .sort((a,b) => b[1]-a[1]).slice(0,5)
+    .map(([name,val]) => ({ name, val, pct: totalRevenue>0?Math.round(val/totalRevenue*100):0 }));
+
+  // Sales rep performance
+  const repRevenue = {};
+  sales.forEach(r => {
+    const rep = String(r.sales_rep||r.sales||'Unknown');
+    repRevenue[rep] = (repRevenue[rep]||0) + parseNum(r.total_amount||r.total||0);
+  });
+  const topReps = Object.entries(repRevenue).sort((a,b) => b[1]-a[1]).slice(0,5)
+    .map(([name,val]) => ({ name, val }));
+
+  // ── Expense Analysis ─────────────────────────────────────
+  const totalExpense = expenses.reduce((s,r) => s + parseNum(r.amount||r.jumlah||0), 0);
+
+  // Expense by account/category
+  const expByAccount = {};
+  expenses.forEach(r => {
+    const acc = String(r.expense_account||r.akun||'');
+    const name = coaMap[acc]?.name || acc || 'Lainnya';
+    expByAccount[name] = (expByAccount[name]||0) + parseNum(r.amount||r.jumlah||0);
+  });
+  const topExpenses = Object.entries(expByAccount)
+    .sort((a,b) => b[1]-a[1]).slice(0,5)
+    .map(([name,val]) => ({ name, val, pct: totalExpense>0?Math.round(val/totalExpense*100):0 }));
+
+  // Top vendors by spend
+  const vendorSpend = {};
+  expenses.forEach(r => {
+    const vid = String(r.vendor_id||r.supplier_id||'');
+    const name = vendorMap[vid] || vid || 'Unknown';
+    vendorSpend[name] = (vendorSpend[name]||0) + parseNum(r.amount||r.jumlah||0);
+  });
+  const topVendors = Object.entries(vendorSpend)
+    .sort((a,b) => b[1]-a[1]).slice(0,5)
+    .map(([name,val]) => ({ name, val }));
+
+  // ── Key Ratios ────────────────────────────────────────────
+  const grossProfit   = totalRevenue - totalExpense;
+  const grossMargin   = totalRevenue > 0 ? (grossProfit / totalRevenue * 100) : 0;
+
+  // COGS specifically
+  const cogsAcc = Object.entries(expByAccount).find(([k]) => /cogs|cost.of.goods|hpp|pokok/.test(k.toLowerCase()));
+  const cogs    = cogsAcc ? cogsAcc[1] : 0;
+  const opex    = totalExpense - cogs;
+  const ebitda  = grossProfit - opex;
+  const opMargin = totalRevenue > 0 ? (ebitda / totalRevenue * 100) : 0;
+
+  // Monthly trend from sales
+  const monthlyRevenue = {};
+  const monthlyExpense = {};
+  sales.forEach(r => {
+    const d = String(r.date||r.tanggal||'');
+    const m = d.substring(0,7);
+    if (m) monthlyRevenue[m] = (monthlyRevenue[m]||0) + parseNum(r.total_amount||r.total||0);
+  });
+  expenses.forEach(r => {
+    const d = String(r.date||r.tanggal||'');
+    const m = d.substring(0,7);
+    if (m) monthlyExpense[m] = (monthlyExpense[m]||0) + parseNum(r.amount||r.jumlah||0);
+  });
+  const allMonths = [...new Set([...Object.keys(monthlyRevenue), ...Object.keys(monthlyExpense)])].sort();
+  const monthlyData = allMonths.map(m => ({
+    month: m.substring(0,7),
+    income: Math.round(monthlyRevenue[m]||0),
+    expense: Math.round(monthlyExpense[m]||0)
+  }));
+
+  // Burn rate & runway
+  const recentMonths = allMonths.slice(-6);
+  const avgBurnRate = recentMonths.length > 0
+    ? recentMonths.reduce((s,m) => s + (monthlyExpense[m]||0), 0) / recentMonths.length
+    : totalExpense / 12;
+  const avgRevenue = recentMonths.length > 0
+    ? recentMonths.reduce((s,m) => s + (monthlyRevenue[m]||0), 0) / recentMonths.length
+    : totalRevenue / 12;
+
+  // ── Balance Sheet from Journal Entries ───────────────────
+  const balances = {};
+  journals.forEach(j => {
+    const acc = String(j.account_no||j.kode_akun||'');
+    const debit  = parseNum(j.debit||0);
+    const credit = parseNum(j.credit||j.kredit||0);
+    balances[acc] = (balances[acc]||0) + debit - credit;
+  });
+
+  const bsAssets      = Object.entries(balances).filter(([k]) => coaMap[k]?.cat === 'Asset');
+  const bsLiabilities = Object.entries(balances).filter(([k]) => coaMap[k]?.cat === 'Liability');
+  const bsEquity      = Object.entries(balances).filter(([k]) => coaMap[k]?.cat === 'Equity');
+
+  const totalAssets      = bsAssets.reduce((s,[,v]) => s+v, 0);
+  const totalLiabilities = bsLiabilities.reduce((s,[,v]) => s+v, 0);
+  const totalEquity      = bsEquity.reduce((s,[,v]) => s+v, 0);
+
+  // Cash specifically (account 1000, 1010, 1020)
+  const cashAccounts = bsAssets.filter(([k]) => /^1[012]/.test(k));
+  const totalCash    = Math.abs(cashAccounts.reduce((s,[,v]) => s+v, 0));
+  const ar           = Math.abs(balances['1100']||0); // Accounts Receivable
+  const inventory    = Math.abs(balances['1200']||0);
+  const ap           = Math.abs(balances['2000']||0); // Accounts Payable
+
+  // Current Ratio = (Cash + AR + Inventory) / Current Liabilities
+  const currentAssets = totalCash + ar + inventory;
+  const currentLiab   = ap + Math.abs(balances['2100']||0);
+  const currentRatio  = currentLiab > 0 ? currentAssets / currentLiab : null;
+
+  // Cash Runway
+  const cashRunway = avgBurnRate > 0 ? totalCash / avgBurnRate : null;
+
+  // D/E Ratio
+  const deRatio = Math.abs(totalEquity) > 0 ? Math.abs(totalLiabilities) / Math.abs(totalEquity) : null;
+
+  // ── Fraud Detection on Accounting Data ───────────────────
+  const fraudFlags = [];
+
+  // Large single expenses
+  const avgExp = totalExpense / expenses.length;
+  expenses.forEach(r => {
+    const amt = parseNum(r.amount||r.jumlah||0);
+    if (amt > avgExp * 5 && amt > 50000000) {
+      const vid = String(r.vendor_id||'');
+      fraudFlags.push({
+        severity: 'critical',
+        type: 'Pengeluaran Sangat Besar',
+        desc: `${vendorMap[vid]||vid} — Rp ${amt.toLocaleString('id')} pada ${r.date||''} (${(amt/avgExp).toFixed(1)}x di atas rata-rata)`,
+        amount: amt, date: String(r.date||''),
+        action: 'Verifikasi invoice dan approval chain. Pastikan barang/jasa benar-benar diterima.'
+      });
+    }
+  });
+
+  // Duplicate invoices
+  const invSeen = {};
+  expenses.forEach(r => {
+    const key = `${r.vendor_id}|${r.amount}`;
+    if (invSeen[key]) {
+      fraudFlags.push({
+        severity: 'critical', type: 'Duplicate Expense',
+        desc: `${vendorMap[String(r.vendor_id||'')]||r.vendor_id} — duplikat Rp ${parseNum(r.amount).toLocaleString('id')}`,
+        amount: parseNum(r.amount), date: String(r.date||''),
+        action: 'Cek apakah ada double payment ke vendor ini.'
+      });
+    }
+    invSeen[key] = true;
+  });
+
+  // Store globally
+  accurateData = {
+    mode: 'accurate',
+    totalRevenue: Math.round(totalRevenue),
+    totalExpense: Math.round(totalExpense),
+    grossProfit:  Math.round(grossProfit),
+    grossMargin:  parseFloat(grossMargin.toFixed(1)),
+    cogs:         Math.round(cogs),
+    opex:         Math.round(opex),
+    ebitda:       Math.round(ebitda),
+    opMargin:     parseFloat(opMargin.toFixed(1)),
+    avgBurnRate:  Math.round(avgBurnRate),
+    avgRevenue:   Math.round(avgRevenue),
+    cashRunway:   cashRunway ? parseFloat(cashRunway.toFixed(1)) : null,
+    currentRatio: currentRatio ? parseFloat(currentRatio.toFixed(2)) : null,
+    deRatio:      deRatio ? parseFloat(deRatio.toFixed(2)) : null,
+    totalCash, ar, inventory, ap,
+    totalAssets:  Math.round(totalAssets),
+    totalLiabilities: Math.round(totalLiabilities),
+    totalEquity:  Math.round(totalEquity),
+    topProducts, topCustomers, topReps, topExpenses, topVendors,
+    monthlyData,
+    fraudFlags,
+    balanceSheet: {
+      assets: bsAssets.map(([k,v]) => ({ name: coaMap[k]?.name||k, val: Math.round(v) })),
+      liabilities: bsLiabilities.map(([k,v]) => ({ name: coaMap[k]?.name||k, val: Math.round(v) })),
+      equity: bsEquity.map(([k,v]) => ({ name: coaMap[k]?.name||k, val: Math.round(v) })),
+    }
+  };
+  parsedData = [['mode'],['accurate']]; // signal to analysis
+
+  showAccuratePreview(filename);
+}
+
+function showAccuratePreview(filename) {
+  const d = accurateData;
+  const dz = document.getElementById('dropzone');
+  dz.innerHTML = `
+    <div class="upload-icon">✅</div>
+    <div class="upload-title" style="color:var(--green);">${filename}</div>
+    <div class="upload-sub">Format Accurate terdeteksi · Data akuntansi lengkap · <span onclick="document.getElementById('file-input').click()">Ganti file</span></div>
+    <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+  `;
+
+  document.getElementById('preview-wrap').classList.add('visible');
+  document.getElementById('preview-wrap').innerHTML = `
+    <div style="padding:16px;background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:12px;">📊 Format Accurate Terdeteksi — Data Siap Dianalisis</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
+        <div style="background:white;border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:2px;">Total Revenue</div>
+          <div style="font-size:14px;font-weight:800;color:var(--green);">${formatRp(d.totalRevenue)}</div>
+        </div>
+        <div style="background:white;border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:2px;">Total Expense</div>
+          <div style="font-size:14px;font-weight:800;color:var(--red);">${formatRp(d.totalExpense)}</div>
+        </div>
+        <div style="background:white;border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:2px;">Gross Margin</div>
+          <div style="font-size:14px;font-weight:800;color:var(--blue);">${d.grossMargin}%</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        ${d.currentRatio !== null ? `<div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:10px;color:var(--text3);">Current Ratio</div><div style="font-size:13px;font-weight:700;color:${d.currentRatio>=1.5?'var(--green)':d.currentRatio>=1?'var(--gold)':'var(--red)'};">${d.currentRatio}x</div></div>` : ''}
+        ${d.cashRunway !== null ? `<div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:10px;color:var(--text3);">Cash Runway</div><div style="font-size:13px;font-weight:700;color:${d.cashRunway>=6?'var(--green)':'var(--red)'};">${d.cashRunway} bulan</div></div>` : ''}
+        ${d.deRatio !== null ? `<div style="background:white;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:10px;color:var(--text3);">D/E Ratio</div><div style="font-size:13px;font-weight:700;color:${d.deRatio<=1?'var(--green)':d.deRatio<=2?'var(--gold)':'var(--red)'};">${d.deRatio}x</div></div>` : ''}
+      </div>
+    </div>
+    <div id="preview-stats" class="preview-stats" style="margin-top:12px;"></div>
+    <div class="table-wrap"><table id="preview-table"></table></div>
+  `;
+  document.getElementById('email-section').style.display = 'block';
+}
+
 function detectSheetRole(sheetName) {
   const n = sheetName.toLowerCase();
   if (/sales|revenue|income|penjualan|pendapatan|pemasukan|omzet/.test(n)) return 'income';
@@ -1759,6 +2118,8 @@ function showPreview(data, filename, isMerged) {
 
   document.getElementById('preview-wrap').classList.add('visible');
   document.getElementById('email-section').style.display = 'block';
+  const bsSection = document.getElementById('balance-sheet-section');
+  if (bsSection && !accurateData) bsSection.style.display = 'block';
 
   // Update dropzone
   const dz = document.getElementById('dropzone');
@@ -1851,6 +2212,11 @@ async function analyzeWithGroq(data) {
     throw new Error('NO_CREDITS');
   }
 
+  // ── Accurate mode: use pre-parsed accounting data ─────────
+  if (accurateData) {
+    return await analyzeAccurateWithGroq(accurateData);
+  }
+
   // ── Step 1: Pre-aggregate ALL rows in JavaScript ──────────
   const summary = preAggregate(data);
 
@@ -1890,10 +2256,18 @@ ANOMALI TERDETEKSI OLEH PRE-PROCESSOR:
 ${fraudStr}
 `.trim();
 
+  // Append balance sheet data if uploaded
+  let bsAppend = '';
+  if (balanceSheetData) {
+    const b = balanceSheetData;
+    bsAppend = `\n\nNERACA (diunggah user):\n- Total Aset       : Rp ${Math.round(b.totalAssets).toLocaleString('id')}\n- Total Liabilitas : Rp ${Math.round(b.totalLiab).toLocaleString('id')}\n- Total Ekuitas    : Rp ${Math.round(b.totalEquity).toLocaleString('id')}\n- Kas & Bank       : Rp ${Math.round(b.cash).toLocaleString('id')}\n- Piutang (AR)     : Rp ${Math.round(b.ar).toLocaleString('id')}\n- Current Ratio    : ${b.currentRatio ? b.currentRatio.toFixed(2) + 'x' : 'tidak tersedia'}\n- D/E Ratio        : ${b.deRatio ? b.deRatio.toFixed(2) + 'x' : 'tidak tersedia'}`;
+  }
+
   // ── Step 3: Groq focuses ONLY on insight & reasoning ──────
+  const fullSummary = summaryText + bsAppend;
   const prompt = `Kamu adalah AI CFO senior berpengalaman 20 tahun yang mengaudit bisnis skala menengah-besar di Indonesia. Kamu berbicara langsung kepada owner/CEO bisnis — bukan akuntan. Tugasmu adalah memberikan analisis tajam, jujur, dan actionable seperti seorang CFO sungguhan yang dibayar mahal.
 
-${summaryText}
+${fullSummary}
 
 INSTRUKSI ANALISIS:
 1. INSIGHTS: Berikan 5-6 insight yang benar-benar tajam. Jangan generik. Setiap insight harus:
@@ -2049,7 +2423,11 @@ ATURAN KETAT:
   result.margin       = parseFloat(summary.margin.toFixed(1));
 
   // Pass accurate pre-computed data to result
-  result.categoryBreakdown = summary.categoryBreakdown;
+  result.categoryBreakdown    = summary.categoryBreakdown;
+  result.topIncomeCategories  = summary.topIncomeCategories;
+  result.topExpenseCategories = summary.topExpenseCategories;
+  result.topIncomeTx          = summary.topIncomeTx;
+  result.topExpenseTx         = summary.topExpenseTx;
   result.cfWeeks = summary.cfWeeksData; // override Groq's guessed cfWeeks with real data
 
   // Merge pre-detected anomalies into fraudAlerts if Groq missed any
@@ -2074,6 +2452,216 @@ ATURAN KETAT:
 }
 
 // ── Pre-aggregation engine (runs entirely in browser) ─────────────────
+
+// ==================== ACCURATE MODE ANALYSIS ====================
+async function analyzeAccurateWithGroq(d) {
+  const bsStr = d.currentRatio !== null ? `
+NERACA (dari Journal Entries):
+- Total Aset         : Rp ${d.totalAssets.toLocaleString('id')}
+- Total Liabilitas   : Rp ${d.totalLiabilities.toLocaleString('id')}
+- Total Ekuitas      : Rp ${d.totalEquity.toLocaleString('id')}
+- Kas & Bank         : Rp ${d.totalCash.toLocaleString('id')}
+- Piutang Usaha (AR) : Rp ${d.ar.toLocaleString('id')}
+- Inventori          : Rp ${d.inventory.toLocaleString('id')}
+- Utang Usaha (AP)   : Rp ${d.ap.toLocaleString('id')}
+
+RASIO KEUANGAN:
+- Current Ratio      : ${d.currentRatio}x ${d.currentRatio>=1.5?'(SEHAT)':d.currentRatio>=1?'(CUKUP)':'(BERBAHAYA)'}
+- Cash Runway        : ${d.cashRunway} bulan
+- D/E Ratio          : ${d.deRatio}x` : '';
+
+  const summaryText = `
+DATA AKUNTANSI LENGKAP (Format Accurate Software):
+
+PROFITABILITAS:
+- Total Revenue      : Rp ${d.totalRevenue.toLocaleString('id')}
+- COGS               : Rp ${d.cogs.toLocaleString('id')}
+- Gross Profit       : Rp ${d.grossProfit.toLocaleString('id')}
+- Gross Margin       : ${d.grossMargin}%
+- Total OpEx         : Rp ${d.opex.toLocaleString('id')}
+- EBITDA (est.)      : Rp ${d.ebitda.toLocaleString('id')}
+- Operating Margin   : ${d.opMargin}%
+
+CASHFLOW:
+- Avg Revenue/Bulan  : Rp ${d.avgRevenue.toLocaleString('id')}
+- Avg Burn Rate/Bulan: Rp ${d.avgBurnRate.toLocaleString('id')}
+${bsStr}
+
+TOP 5 PRODUK/LAYANAN (by Revenue):
+${d.topProducts.map((p,i) => `${i+1}. ${p.name}: Rp ${p.val.toLocaleString('id')} (${p.pct}%)`).join('
+')}
+
+TOP 5 CUSTOMER:
+${d.topCustomers.map((c,i) => `${i+1}. ${c.name}: Rp ${c.val.toLocaleString('id')} (${c.pct}%)`).join('
+')}
+
+TOP 5 PENGELUARAN PER KATEGORI:
+${d.topExpenses.map((e,i) => `${i+1}. ${e.name}: Rp ${e.val.toLocaleString('id')} (${e.pct}%)`).join('
+')}
+
+TOP 5 VENDOR (by Spend):
+${d.topVendors.map((v,i) => `${i+1}. ${v.name}: Rp ${v.val.toLocaleString('id')}`).join('
+')}
+
+TREN BULANAN (6 bulan terakhir):
+${d.monthlyData.slice(-6).map(m => `${m.month}: revenue=${m.income.toLocaleString('id')} expense=${m.expense.toLocaleString('id')}`).join('
+')}
+
+ANOMALI TERDETEKSI (pre-processor):
+${d.fraudFlags.length > 0 ? d.fraudFlags.map(f => `[${f.type}] ${f.desc}`).join('
+') : 'Tidak ada anomali signifikan'}
+`.trim();
+
+  const prompt = `Kamu adalah AI CFO senior berpengalaman 20 tahun yang mengaudit perusahaan menengah-besar Indonesia. Data ini berasal dari software akuntansi Accurate — data sangat lengkap dan akurat. Berikan analisis sekelas Big 4 consulting firm.
+
+${summaryText}
+
+Berikan analisis CFO level eksekutif. Return HANYA JSON valid:
+{
+  "totalIncome": ${d.totalRevenue},
+  "totalExpense": ${d.totalExpense},
+  "profit": ${d.grossProfit},
+  "margin": ${d.grossMargin},
+  "opMargin": ${d.opMargin},
+  "ebitda": ${d.ebitda},
+  "currentRatio": ${d.currentRatio},
+  "cashRunway": ${d.cashRunway},
+  "deRatio": ${d.deRatio},
+  "score": 80,
+  "scoreLabel": "Sehat",
+  "scoreBasis": "1 kalimat eksekutif: kenapa skor ini berdasarkan data di atas",
+  "monthlyData": ${JSON.stringify(d.monthlyData.slice(-12))},
+  "cfWeeks": [],
+  "topTransactions": [
+    {"desc": "${d.topProducts[0]?.name||'Produk Utama'}", "amt": ${d.topProducts[0]?.val||0}},
+    {"desc": "${d.topExpenses[0]?.name||'Biaya Utama'}", "amt": ${-(d.topExpenses[0]?.val||0)}}
+  ],
+  "insights": [
+    {
+      "type": "ok",
+      "icon": "✅",
+      "title": "Insight spesifik dengan angka dari data",
+      "text": "Analisis 2-3 kalimat dengan angka nyata. Benchmark industri Indonesia. Implikasi bisnis konkret.",
+      "reason": "Analisis CFO mendalam: implikasi strategis, risiko, atau peluang. Minimal 3 kalimat dengan rekomendasi spesifik."
+    },
+    {
+      "type": "warn",
+      "icon": "⚠️",
+      "title": "Warning dengan angka spesifik",
+      "text": "Masalah konkret dari data.",
+      "reason": "Risiko finansial dan langkah mitigasi konkret."
+    },
+    {
+      "type": "gold",
+      "icon": "💡",
+      "title": "Peluang dengan potensi Rp",
+      "text": "Peluang dari pola data.",
+      "reason": "Cara memanfaatkan peluang ini dengan step konkret."
+    }
+  ],
+  "recs": [
+    {
+      "priority": "critical",
+      "title": "Aksi darurat minggu ini",
+      "desc": "Langkah spesifik dengan target angka",
+      "impact": "Estimasi dampak Rp dalam 3 bulan"
+    },
+    {
+      "priority": "high",
+      "title": "Aksi prioritas bulan ini",
+      "desc": "Langkah konkret",
+      "impact": "Estimasi dampak"
+    },
+    {
+      "priority": "med",
+      "title": "Optimasi 3 bulan",
+      "desc": "Strategi menengah",
+      "impact": "Estimasi dampak"
+    },
+    {
+      "priority": "low",
+      "title": "Quick win",
+      "desc": "Effort rendah, dampak cepat",
+      "impact": "Estimasi dampak"
+    }
+  ],
+  "fraudAlerts": ${JSON.stringify(d.fraudFlags.slice(0,5))},
+  "fraudScore": ${d.fraudFlags.length === 0 ? 95 : d.fraudFlags.some(f=>f.severity==='critical') ? 45 : 70},
+  "fraudSummary": "Ringkasan fraud: berapa anomali, total nilai berisiko, rekomendasi tindak lanjut."
+}
+
+ATURAN:
+- Gunakan data akuntansi ini sepenuhnya — ini bukan estimasi, ini data nyata dari software
+- Setiap insight WAJIB menyebut angka dari data di atas
+- Bandingkan Current Ratio, D/E Ratio dengan benchmark: Current Ratio ideal >1.5, D/E ideal <1
+- Gross Margin dan Operating Margin bandingkan dengan industri relevan
+- Identifikasi customer concentration risk jika top 1 customer >30% revenue
+- Identifikasi apakah burn rate sustainable vs revenue
+- Return HANYA JSON mentah, tidak ada markdown`;
+
+  const res = await fetch(API_BASE + '/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      summaryText: prompt,
+      userId: currentUser.id,
+      userToken: (await supabaseClient.auth.getSession()).data.session?.access_token
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    if (err.code === 'NO_CREDITS') {
+      userCredits = 0; updateCreditsUI();
+      document.getElementById('no-credits-overlay').classList.add('show');
+      throw new Error('NO_CREDITS');
+    }
+    throw new Error(err.error || 'Server error');
+  }
+
+  const json = await res.json();
+  const result = json.result;
+  userCredits = json.creditsRemaining;
+  updateCreditsUI();
+
+  // Enrich result with Accurate-specific data
+  result.totalIncome  = d.totalRevenue;
+  result.totalExpense = d.totalExpense;
+  result.profit       = d.grossProfit;
+  result.margin       = d.grossMargin;
+  result.monthlyData  = d.monthlyData.slice(-12);
+  result.cfWeeks      = d.monthlyData.slice(-6).map((m,i) => ({ week: m.month.substring(5), val: m.income - m.expense }));
+
+  // Accurate-specific extras
+  result.accurateMode     = true;
+  result.opMargin         = d.opMargin;
+  result.ebitda           = d.ebitda;
+  result.currentRatio     = d.currentRatio;
+  result.cashRunway       = d.cashRunway;
+  result.deRatio          = d.deRatio;
+  result.avgBurnRate      = d.avgBurnRate;
+  result.topProducts      = d.topProducts;
+  result.topCustomers     = d.topCustomers;
+  result.topVendors       = d.topVendors;
+  result.topExpenses      = d.topExpenses;
+  result.topReps          = d.topReps;
+  result.balanceSheet     = d.balanceSheet;
+
+  result.topIncomeCategories  = d.topProducts.map(p => ({ desc: p.name, income: p.val }));
+  result.topExpenseCategories = d.topExpenses.map(e => ({ desc: e.name, expense: e.val }));
+  result.topIncomeTx          = result.topIncomeCategories;
+  result.topExpenseTx         = result.topExpenseCategories;
+
+  // Merge fraud flags
+  if (d.fraudFlags.length > 0) {
+    result.fraudAlerts = [...(result.fraudAlerts||[]), ...d.fraudFlags.filter(f =>
+      !(result.fraudAlerts||[]).some(r => r.desc === f.desc)
+    )];
+  }
+
+  return result;
+}
+
 function preAggregate(data) {
   const rows = data.filter(r => r.some(c => c !== ''));
 
@@ -2285,6 +2873,34 @@ function preAggregate(data) {
     .sort((a,b) => Math.abs(b.net) - Math.abs(a.net))
     .slice(0, 10);
 
+  // Top 3 income categories (by income value)
+  const topIncomeCategories = Object.entries(categories)
+    .map(([desc, v]) => ({ desc, income: Math.round(v.income), expense: Math.round(v.expense) }))
+    .filter(c => c.income > 0)
+    .sort((a,b) => b.income - a.income)
+    .slice(0, 3);
+
+  // Top 3 expense categories (by expense value)
+  const topExpenseCategories = Object.entries(categories)
+    .map(([desc, v]) => ({ desc, income: Math.round(v.income), expense: Math.round(v.expense) }))
+    .filter(c => c.expense > 0)
+    .sort((a,b) => b.expense - a.expense)
+    .slice(0, 3);
+
+  // Top 3 individual income transactions
+  const topIncomeTx = txList
+    .filter(t => t.income > 0)
+    .sort((a,b) => b.income - a.income)
+    .slice(0, 3)
+    .map(t => ({ desc: t.vendor || t.desc || t.cat || 'Transaksi', income: t.income }));
+
+  // Top 3 individual expense transactions
+  const topExpenseTx = txList
+    .filter(t => t.expense > 0)
+    .sort((a,b) => b.expense - a.expense)
+    .slice(0, 3)
+    .map(t => ({ desc: t.vendor || t.desc || t.cat || 'Transaksi', expense: t.expense }));
+
   return {
     totalRows: dataRows.length,
     totalIncome: Math.round(totalIncome),
@@ -2294,6 +2910,10 @@ function preAggregate(data) {
     dateRange,
     categories,
     categoryBreakdown,
+    topIncomeCategories,
+    topExpenseCategories,
+    topIncomeTx,
+    topExpenseTx,
     monthly: monthlyArr,
     cfWeeksData,
     anomalies
@@ -2601,6 +3221,66 @@ function parseNumber(val) {
   return isNaN(n) ? null : n;
 }
 
+
+// ==================== BALANCE SHEET UPLOAD ====================
+function handleBalanceSheet(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      // Try to parse balance sheet: look for asset/liability/equity rows
+      const parsed = { assets: {}, liabilities: {}, equity: {} };
+      let currentSection = null;
+      rows.forEach(row => {
+        const label = String(row[0]||'').toLowerCase().trim();
+        const val   = parseNum(row[1]||row[2]||row[3]||0);
+        if (/aset|assets/.test(label))     { currentSection = 'assets'; return; }
+        if (/liabilit|utang|kewajiban/.test(label)) { currentSection = 'liabilities'; return; }
+        if (/ekuitas|equity|modal/.test(label))      { currentSection = 'equity'; return; }
+        if (currentSection && label && val > 0) {
+          parsed[currentSection][String(row[0]).trim()] = val;
+        }
+      });
+
+      const totalAssets = Object.values(parsed.assets).reduce((s,v)=>s+v,0);
+      const totalLiab   = Object.values(parsed.liabilities).reduce((s,v)=>s+v,0);
+      const totalEquity = Object.values(parsed.equity).reduce((s,v)=>s+v,0);
+
+      // Find cash, AR, inventory, AP from common keywords
+      const findVal = (obj, pattern) => {
+        const key = Object.keys(obj).find(k => pattern.test(k.toLowerCase()));
+        return key ? obj[key] : 0;
+      };
+      const cash      = findVal(parsed.assets, /kas|cash|bank/);
+      const ar        = findVal(parsed.assets, /piutang|receivable/);
+      const inventory = findVal(parsed.assets, /inventori|persediaan|inventory/);
+      const ap        = findVal(parsed.liabilities, /utang usaha|payable/);
+      const currentLiab = findVal(parsed.liabilities, /lancar|current/);
+
+      const currentAssets = cash + ar + inventory;
+      const currentRatio  = currentLiab > 0 ? currentAssets / currentLiab : null;
+      const deRatio       = Math.abs(totalEquity) > 0 ? totalLiab / Math.abs(totalEquity) : null;
+
+      balanceSheetData = { totalAssets, totalLiab, totalEquity, cash, ar, inventory, ap, currentRatio, deRatio, raw: parsed };
+
+      document.getElementById('balance-sheet-status').innerHTML =
+        `✅ <strong>${file.name}</strong> berhasil dibaca · ` +
+        (currentRatio ? `Current Ratio: <strong>${currentRatio.toFixed(2)}x</strong> · ` : '') +
+        (deRatio ? `D/E: <strong>${deRatio.toFixed(2)}x</strong>` : '');
+      document.getElementById('balance-sheet-status').style.color = 'var(--green)';
+    } catch(err) {
+      document.getElementById('balance-sheet-status').textContent = '⚠️ Gagal membaca neraca — pastikan format kolom: Nama Akun | Nilai';
+      document.getElementById('balance-sheet-status').style.color = 'var(--warn)';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 // ==================== EXPORT PDF ====================
 function exportPDF() {
   if (!analysisResult) return;
@@ -2737,6 +3417,29 @@ function renderResult(r) {
     if (basisEl) { basisEl.textContent = r.scoreBasis; basisEl.style.display = 'block'; }
   }
 
+  // ── Accurate mode extra KPIs ───────────────────────────────
+  const accurateGrid = document.getElementById('kpi-grid-accurate');
+  if (r.accurateMode && accurateGrid) {
+    accurateGrid.style.display = 'block';
+    const setKpi = (id, val, suffix='', greenAbove=null, redBelow=null) => {
+      const el = document.getElementById(id); if (!el) return;
+      el.textContent = val !== null && val !== undefined ? val + suffix : '—';
+      if (greenAbove !== null) el.className = 'kpi-value ' + (val >= greenAbove ? 'green' : val >= redBelow ? 'gold' : 'warn');
+    };
+    setKpi('kpi-gross-margin', r.margin?.toFixed(1), '%', 30, 15);
+    setKpi('kpi-op-margin',    r.opMargin?.toFixed(1), '%', 20, 10);
+    document.getElementById('kpi-ebitda').textContent = r.ebitda ? formatRp(r.ebitda) : '—';
+    document.getElementById('kpi-ebitda').className = 'kpi-value ' + (r.ebitda > 0 ? 'green' : 'warn');
+    setKpi('kpi-current-ratio', r.currentRatio, 'x', 1.5, 1.0);
+    const crEl = document.getElementById('kpi-cash-runway');
+    if (crEl) {
+      crEl.textContent = r.cashRunway ? r.cashRunway + ' bln' : '—';
+      crEl.className = 'kpi-value ' + (r.cashRunway >= 6 ? 'green' : r.cashRunway >= 3 ? 'gold' : 'warn');
+    }
+  } else if (accurateGrid) {
+    accurateGrid.style.display = 'none';
+  }
+
   document.getElementById('result-sub').innerHTML = `Dianalisis dari file Anda · <span id="result-date">${new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</span>`;
 
   // ── Bar chart (fix: animate after paint) ──────────────────
@@ -2835,25 +3538,59 @@ function renderResult(r) {
 
   // ── Transaksi — dari pre-aggregated categories, income & expense terpisah ──
   const tbody = document.querySelector('#mini-table tbody');
-  const cats = r.categoryBreakdown || [];
-  if (cats.length > 0) {
-    // Use pre-aggregated breakdown passed from preAggregate
-    const sorted = cats.sort((a,b) => Math.abs(b.net) - Math.abs(a.net)).slice(0, 8);
-    tbody.innerHTML = sorted.map(c =>
-      `<tr>
-        <td>${String(c.desc).substring(0,28)}</td>
-        <td class="amount ${c.net>=0?'income':'expense'}">${c.net>=0?'+':''}${formatRp(c.net)}</td>
-      </tr>`
-    ).join('');
-  } else {
-    // Fallback: use topTransactions from Groq
-    tbody.innerHTML = r.topTransactions.map(t =>
-      `<tr>
-        <td>${String(t.desc).substring(0,28)}</td>
-        <td class="amount ${t.amt>=0?'income':'expense'}">${t.amt>=0?'+':''}${formatRp(t.amt)}</td>
-      </tr>`
-    ).join('');
+  // ── Category Breakdown: top income + top expense ─────────
+  function renderTopTable(tableId, items, amtKey, colorClass, emptyMsg) {
+    const el = document.getElementById(tableId);
+    if (!el) return;
+    const tbody = el.querySelector('tbody');
+    if (!items || items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="2" style="color:var(--text3);font-size:12px;padding:10px 12px;">${emptyMsg}</td></tr>`;
+      return;
+    }
+    const total = items.reduce((s,i) => s + (i[amtKey]||0), 0);
+    tbody.innerHTML = items.map((item, idx) => {
+      const val = item[amtKey] || 0;
+      const pct = total > 0 ? Math.round(val / total * 100) : 0;
+      const label = String(item.desc || '—').substring(0, 30);
+      const rank = ['🥇','🥈','🥉'][idx] || `${idx+1}.`;
+      return `<tr>
+        <td style="padding:10px 12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:14px;">${rank}</span>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--text);">${label}</div>
+              <div style="margin-top:3px;height:4px;background:var(--surface2);border-radius:2px;width:120px;">
+                <div style="height:100%;width:${pct}%;background:${colorClass};border-radius:2px;"></div>
+              </div>
+            </div>
+          </div>
+        </td>
+        <td style="text-align:right;padding:10px 12px;font-weight:700;font-size:13px;color:${colorClass};">
+          ${formatRp(val)}<div style="font-size:10px;font-weight:400;color:var(--text3);">${pct}% dari total</div>
+        </td>
+      </tr>`;
+    }).join('');
   }
+
+  // Decide: use category-level or individual transaction level
+  // If categories are too generic (only "Pendapatan"/"Pengeluaran"), use individual txns
+  const incomeItems = r.topIncomeCategories || [];
+  const expenseItems = r.topExpenseCategories || [];
+  const isGenericIncome = incomeItems.length <= 1 || (incomeItems.length > 0 && /^(pendapatan|income|pemasukan)$/i.test(incomeItems[0]?.desc || ''));
+  const isGenericExpense = expenseItems.length <= 1 || (expenseItems.length > 0 && /^(pengeluaran|expense|biaya)$/i.test(expenseItems[0]?.desc || ''));
+
+  renderTopTable(
+    'top-income-table',
+    isGenericIncome ? (r.topIncomeTx || []).map(t => ({desc: t.desc, income: t.income})) : incomeItems,
+    'income', '#10B981',
+    'Tidak ada data pendapatan'
+  );
+  renderTopTable(
+    'top-expense-table',
+    isGenericExpense ? (r.topExpenseTx || []).map(t => ({desc: t.desc, expense: t.expense})) : expenseItems,
+    'expense', '#EF4444',
+    'Tidak ada data pengeluaran'
+  );
 
   // ── Recommendations — dengan konteks data ────────────────
   const recsEl = document.getElementById('recommendations');
