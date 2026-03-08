@@ -3,998 +3,1328 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CFO.ai – Analisis Keuangan Otomatis</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>Mulyani.ai — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0D0F0E;
-    --surface: #141714;
-    --surface2: #1C1F1C;
-    --surface3: #232623;
-    --ink: #F0EDE6;
-    --ink2: #8A9088;
-    --ink3: #4A504A;
-    --accent: #A8D5A2;
-    --accent2: #6BBF65;
-    --accent-dark: #2D5C2A;
-    --warn: #E8845A;
-    --warn-dark: #5C2D14;
-    --gold: #D4B96A;
-    --gold-dark: #5C4A1A;
-    --border: #1E221E;
-    --border2: #252925;
-    --radius: 18px;
-    --radius-sm: 12px;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--ink);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* NOISE TEXTURE */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 0; opacity: 0.4;
-  }
-
-  /* LAYOUT */
-  .app {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 48px 24px 80px;
-    position: relative; z-index: 1;
-  }
-
-  /* HEADER */
-  .header {
-    text-align: center;
-    margin-bottom: 56px;
-    animation: slideDown 0.6s ease;
-  }
-
-  @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes pulse { 0%,100% { opacity: 0.4; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1); } }
-  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-  @keyframes barGrow { from { width: 0; } to { width: var(--w); } }
-
-  .logo {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 40px;
-    padding: 8px 20px 8px 12px;
-    margin-bottom: 28px;
-  }
-
-  .logo-dot {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent2), var(--accent-dark));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px;
-  }
-
-  .logo-name {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800; font-size: 16px;
-    color: var(--ink);
-    letter-spacing: -0.3px;
-  }
-
-  .logo-name span { color: var(--accent2); }
-
-  h1 {
-    font-family: 'Instrument Serif', serif;
-    font-size: clamp(36px, 6vw, 52px);
-    line-height: 1.1;
-    color: var(--ink);
-    margin-bottom: 16px;
-    letter-spacing: -1.5px;
-  }
-
-  h1 em { color: var(--accent2); font-style: italic; }
-
-  .header-sub {
-    font-size: 16px;
-    color: var(--ink2);
-    line-height: 1.6;
-    max-width: 480px;
-    margin: 0 auto 28px;
-  }
-
-  .flow-steps {
-    display: flex; align-items: center; justify-content: center;
-    gap: 8px; flex-wrap: wrap;
-  }
-
-  .flow-step {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12px; font-weight: 500;
-    color: var(--ink2);
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 20px;
-    padding: 5px 12px;
-  }
-
-  .flow-step.done { color: var(--accent2); border-color: var(--accent-dark); background: rgba(107,191,101,0.08); }
-  .flow-step.active { color: var(--ink); border-color: var(--ink3); background: var(--surface3); }
-
-  .flow-arrow { color: var(--ink3); font-size: 12px; }
-
-  /* MAIN CARD */
-  .main-card {
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 24px;
-    overflow: hidden;
-    animation: slideUp 0.6s ease 0.1s both;
-  }
-
-  /* STEP PANELS */
-  .step-panel { display: none; }
-  .step-panel.active { display: block; }
-
-  /* ========== STEP 1: UPLOAD ========== */
-  .upload-zone {
-    padding: 48px 40px;
-  }
-
-  .upload-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700;
-    letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--ink2);
-    margin-bottom: 24px;
-  }
-
-  .upload-dropzone {
-    border: 2px dashed var(--border2);
-    border-radius: var(--radius);
-    padding: 48px 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    position: relative;
-    background: var(--surface2);
-  }
-
-  .upload-dropzone:hover, .upload-dropzone.drag-over {
-    border-color: var(--accent2);
-    background: rgba(107,191,101,0.05);
-  }
-
-  .upload-dropzone input[type=file] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-
-  .upload-icon-wrap {
-    width: 72px; height: 72px; border-radius: 20px;
-    background: var(--surface3);
-    border: 1px solid var(--border2);
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 20px;
-    font-size: 32px;
-    transition: transform 0.2s;
-  }
-
-  .upload-dropzone:hover .upload-icon-wrap { transform: translateY(-4px); }
-
-  .upload-main-text {
-    font-size: 17px; font-weight: 500;
-    color: var(--ink); margin-bottom: 8px;
-  }
-
-  .upload-sub-text {
-    font-size: 13px; color: var(--ink2); line-height: 1.6;
-  }
-
-  .upload-sub-text span { color: var(--accent2); font-weight: 500; }
-
-  .format-chips {
-    display: flex; gap: 8px; justify-content: center; margin-top: 20px; flex-wrap: wrap;
-  }
-
-  .format-chip {
-    padding: 4px 12px; border-radius: 20px;
-    font-size: 11px; font-weight: 600;
-    background: var(--surface3); color: var(--ink2);
-    border: 1px solid var(--border2);
-    letter-spacing: 0.3px;
-  }
-
-  /* PREVIEW TABLE */
-  .preview-wrap {
-    padding: 0 40px 32px;
-    display: none;
-  }
-
-  .preview-wrap.visible { display: block; }
-
-  .preview-label {
-    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
-    text-transform: uppercase; color: var(--ink3);
-    margin-bottom: 12px; margin-top: 24px;
-  }
-
-  .preview-table-wrap {
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    overflow-x: auto;
-  }
-
-  .preview-table {
-    width: 100%; border-collapse: collapse;
-    font-size: 12px;
-  }
-
-  .preview-table th {
-    background: var(--surface2);
-    padding: 10px 14px;
-    text-align: left;
-    color: var(--ink2); font-weight: 600;
-    font-size: 11px; letter-spacing: 0.3px;
-    border-bottom: 1px solid var(--border2);
-    white-space: nowrap;
-  }
-
-  .preview-table td {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    color: var(--ink);
-    white-space: nowrap;
-  }
-
-  .preview-table tr:last-child td { border-bottom: none; }
-  .preview-table tr:hover td { background: var(--surface2); }
-
-  .preview-stats {
-    display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
-  }
-
-  .preview-stat {
-    background: var(--surface2); border: 1px solid var(--border2);
-    border-radius: 10px; padding: 10px 16px;
-    font-size: 12px;
-  }
-
-  .preview-stat strong { color: var(--accent2); font-size: 15px; display: block; margin-bottom: 2px; }
-
-  /* EMAIL INPUT */
-  .email-section {
-    padding: 0 40px 40px;
-  }
-
-  .input-label {
-    font-size: 12px; font-weight: 600; color: var(--ink2);
-    margin-bottom: 8px; display: flex; gap: 6px; align-items: center;
-  }
-
-  .input-group {
-    display: flex; gap: 10px;
-  }
-
-  .email-input {
-    flex: 1; background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-sm);
-    padding: 14px 18px;
-    font-size: 14px; color: var(--ink);
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .email-input:focus { border-color: var(--accent2); }
-  .email-input::placeholder { color: var(--ink3); }
-
-  .btn-analyze {
-    padding: 14px 28px;
-    background: var(--accent2);
-    color: #0D1A0D;
-    border: none; border-radius: var(--radius-sm);
-    font-family: 'Syne', sans-serif;
-    font-size: 14px; font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    letter-spacing: 0.3px;
-  }
-
-  .btn-analyze:hover { background: var(--accent); transform: translateY(-1px); }
-  .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  .emailjs-note {
-    margin-top: 10px;
-    font-size: 11px; color: var(--ink3);
-    display: flex; gap: 6px; align-items: flex-start; line-height: 1.5;
-  }
-
-  /* ========== STEP 2: PROCESSING ========== */
-  .processing-zone {
-    padding: 64px 40px;
-    text-align: center;
-  }
-
-  .processing-ring {
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    border: 3px solid var(--border2);
-    border-top-color: var(--accent2);
-    animation: spin 1s linear infinite;
-    margin: 0 auto 32px;
-  }
-
-  .processing-title {
-    font-family: 'Instrument Serif', serif;
-    font-size: 28px; color: var(--ink);
-    margin-bottom: 12px; letter-spacing: -0.5px;
-  }
-
-  .processing-sub {
-    font-size: 14px; color: var(--ink2);
-    margin-bottom: 40px; line-height: 1.6;
-  }
-
-  .processing-steps {
-    display: flex; flex-direction: column; gap: 0;
-    max-width: 380px; margin: 0 auto;
-    text-align: left;
-  }
-
-  .proc-step {
-    display: flex; align-items: center; gap: 14px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px; color: var(--ink2);
-    transition: color 0.3s;
-  }
-
-  .proc-step:last-child { border-bottom: none; }
-  .proc-step.done { color: var(--accent2); }
-  .proc-step.running { color: var(--ink); }
-
-  .proc-icon {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: var(--surface2); border: 1px solid var(--border2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; flex-shrink: 0;
-    transition: all 0.3s;
-  }
-
-  .proc-step.done .proc-icon { background: rgba(107,191,101,0.15); border-color: var(--accent-dark); }
-  .proc-step.running .proc-icon { border-color: var(--accent2); animation: pulse 1s ease infinite; }
-
-  /* ========== STEP 3: RESULT ========== */
-  .result-zone {
-    padding: 0;
-  }
-
-  .result-header {
-    padding: 32px 40px 24px;
-    border-bottom: 1px solid var(--border2);
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
-  }
-
-  .result-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(107,191,101,0.12);
-    border: 1px solid var(--accent-dark);
-    border-radius: 20px; padding: 5px 14px;
-    font-size: 12px; font-weight: 600; color: var(--accent2);
-    margin-bottom: 12px;
-  }
-
-  .result-title {
-    font-family: 'Instrument Serif', serif;
-    font-size: 28px; letter-spacing: -0.5px;
-    margin-bottom: 6px;
-  }
-
-  .result-sub { font-size: 13px; color: var(--ink2); }
-
-  .result-actions { display: flex; gap: 8px; flex-shrink: 0; }
-
-  .btn-sm {
-    padding: 9px 18px; border-radius: 10px;
-    font-size: 13px; font-weight: 600;
-    cursor: pointer; border: none;
-    font-family: 'Syne', sans-serif;
-    transition: all 0.2s;
-    letter-spacing: 0.3px;
-  }
-
-  .btn-outline {
-    background: transparent; color: var(--ink2);
-    border: 1px solid var(--border2);
-  }
-
-  .btn-outline:hover { background: var(--surface2); color: var(--ink); }
-
-  .btn-green {
-    background: var(--accent2); color: #0D1A0D;
-  }
-
-  .btn-green:hover { background: var(--accent); }
-
-  /* KPI ROW */
-  .kpi-row {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 1px; background: var(--border2);
-    border-bottom: 1px solid var(--border2);
-  }
-
-  .kpi-cell {
-    padding: 20px 24px;
-    background: var(--surface);
-  }
-
-  .kpi-cell-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
-    text-transform: uppercase; color: var(--ink3);
-    margin-bottom: 8px;
-  }
-
-  .kpi-cell-value {
-    font-family: 'Instrument Serif', serif;
-    font-size: 24px; letter-spacing: -0.5px;
-    margin-bottom: 4px;
-  }
-
-  .kpi-cell-value.green { color: var(--accent2); }
-  .kpi-cell-value.warn { color: var(--warn); }
-  .kpi-cell-value.gold { color: var(--gold); }
-
-  .kpi-cell-change { font-size: 11px; color: var(--ink2); }
-  .kpi-cell-change.up { color: var(--accent2); }
-  .kpi-cell-change.down { color: var(--warn); }
-
-  /* REPORT BODY */
-  .report-body {
-    padding: 32px 40px;
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-
-  .report-section {
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-sm);
-    padding: 20px;
-  }
-
-  .report-section.full { grid-column: 1 / -1; }
-
-  .section-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 12px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-    color: var(--ink2); margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-  }
-
-  /* BAR CHART */
-  .mini-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; width: 100%; }
-  .mini-bar-group { flex: 1; display: flex; align-items: flex-end; gap: 2px; }
-  .mini-bar { border-radius: 4px 4px 0 0; min-width: 8px; flex: 1; transition: all 0.3s ease; cursor: pointer; min-height: 4px; }
-  .mini-bar:hover { opacity: 0.7; }
-  .mini-bar.in { background: var(--accent2); }
-  .mini-bar.out { background: var(--warn); opacity: 0.55; }
-  .mini-chart-labels { display: flex; gap: 6px; margin-top: 8px; }
-  .mini-chart-label { flex: 1; font-size: 9px; color: var(--ink3); text-align: center; }
-
-  /* INSIGHT LIST */
-  .insight-list { display: flex; flex-direction: column; gap: 8px; }
-  .insight-item {
-    display: flex; gap: 10px; align-items: flex-start;
-    padding: 12px; border-radius: 10px;
-    font-size: 12px; line-height: 1.5;
-    border: 1px solid transparent;
-  }
-  .insight-item.ok { background: rgba(107,191,101,0.08); border-color: var(--accent-dark); color: var(--accent); }
-  .insight-item.warn { background: rgba(232,132,90,0.08); border-color: var(--warn-dark); color: var(--warn); }
-  .insight-item.gold { background: rgba(212,185,106,0.08); border-color: var(--gold-dark); color: var(--gold); }
-  .insight-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-
-  /* TOP ITEMS TABLE */
-  .mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .mini-table th { color: var(--ink3); font-weight: 600; font-size: 10px; letter-spacing: 0.5px; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border2); }
-  .mini-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--ink2); }
-  .mini-table tr:last-child td { border-bottom: none; }
-  .mini-table .amount { text-align: right; font-weight: 600; }
-  .mini-table .amount.income { color: var(--accent2); }
-  .mini-table .amount.expense { color: var(--warn); }
-
-  /* CASHFLOW BARS */
-  .cf-list { display: flex; flex-direction: column; gap: 6px; }
-  .cf-item { display: flex; align-items: center; gap: 10px; }
-  .cf-label { font-size: 11px; color: var(--ink2); width: 44px; flex-shrink: 0; }
-  .cf-track { flex: 1; height: 8px; background: var(--surface3); border-radius: 10px; overflow: hidden; }
-  .cf-fill { height: 100%; border-radius: 10px; transition: width 0.6s ease; }
-  .cf-fill.pos { background: var(--accent2); }
-  .cf-fill.neg { background: var(--warn); }
-  .cf-fill.proj { background: var(--accent2); opacity: 0.45; }
-  .cf-fill.proj-neg { background: var(--warn); opacity: 0.45; }
-  .cf-val { font-size: 11px; font-weight: 600; width: 72px; text-align: right; flex-shrink: 0; }
-  .cf-val.pos { color: var(--accent2); }
-  .cf-val.neg { color: var(--warn); }
-  .cf-val.proj { color: var(--accent2); opacity: 0.6; }
-  .cf-divider { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
-  .cf-divider-line { flex:1; height:1px; background: var(--border2); }
-  .cf-divider-label { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--ink3); text-transform: uppercase; white-space: nowrap; }
-
-  /* EMAIL STATUS */
-  .email-status {
-    margin: 0 40px 32px;
-    padding: 16px 20px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    display: flex; align-items: center; gap: 12px;
-    animation: fadeIn 0.4s ease;
-  }
-
-  .email-status.sending {
-    background: var(--surface2); border: 1px solid var(--border2); color: var(--ink2);
-  }
-
-  .email-status.sent {
-    background: rgba(107,191,101,0.1); border: 1px solid var(--accent-dark); color: var(--accent2);
-  }
-
-  .email-status.error {
-    background: rgba(232,132,90,0.1); border: 1px solid var(--warn-dark); color: var(--warn);
-  }
-
-  .spin-sm {
-    width: 16px; height: 16px; border-radius: 50%;
-    border: 2px solid var(--border2); border-top-color: var(--accent2);
-    animation: spin 0.8s linear infinite; flex-shrink: 0;
-  }
-
-  /* RESET BUTTON */
-  .reset-wrap {
-    padding: 24px 40px;
-    border-top: 1px solid var(--border2);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-
-  .reset-note { font-size: 12px; color: var(--ink3); }
-
-  /* CREDITS BADGE */
-  .credits-badge {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-    z-index: 100; display: flex; align-items: center; gap: 8px;
-    background: var(--surface2); border: 1px solid var(--border2);
-    border-radius: 20px; padding: 6px 14px;
-    font-size: 12px; color: var(--ink2);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-    transition: all 0.3s;
-  }
-  .credits-badge.warning { border-color: var(--gold); color: var(--gold); }
-  .credits-badge.danger  { border-color: var(--warn); color: var(--warn); }
-  .credits-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); }
-  .credits-dot.warning { background: var(--gold); }
-  .credits-dot.danger  { background: var(--warn); }
-
-  /* NO CREDITS OVERLAY */
-  .no-credits-overlay {
-    display: none; position: fixed; inset: 0; z-index: 300;
-    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
-    align-items: center; justify-content: center;
-  }
-  .no-credits-overlay.show { display: flex; }
-  .no-credits-card {
-    background: var(--surface); border: 1px solid var(--border2);
-    border-radius: 24px; padding: 40px; max-width: 420px; width: 100%;
-    margin: 20px; text-align: center;
-    animation: slideUp 0.3s ease;
-  }
-  .no-credits-icon { font-size: 48px; margin-bottom: 16px; }
-  .no-credits-title {
-    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
-    color: var(--ink); margin-bottom: 8px;
-  }
-  .no-credits-sub { font-size: 13px; color: var(--ink2); line-height: 1.6; margin-bottom: 24px; }
-  .btn-upgrade {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 13px 24px; border-radius: 10px;
-    background: var(--accent2); color: var(--bg);
-    border: none; font-family: 'Syne', sans-serif;
-    font-size: 14px; font-weight: 700; cursor: pointer;
-    transition: opacity 0.2s; text-decoration: none;
-    margin-bottom: 12px; width: 100%; justify-content: center;
-  }
-  .btn-upgrade:hover { opacity: 0.88; }
-  .btn-logout-small {
-    background: none; border: none; color: var(--ink3);
-    font-size: 12px; cursor: pointer; text-decoration: underline;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  /* USER INFO */
-  .user-info-bar {
-    position: fixed; bottom: 20px; left: 20px; z-index: 100;
-    display: flex; align-items: center; gap: 8px;
-    font-size: 11px; color: var(--ink3);
-  }
-  .btn-logout {
-    background: none; border: none; color: var(--ink3);
-    font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif;
-    text-decoration: underline; padding: 0;
-  }
-  .btn-logout:hover { color: var(--warn); }
-
-  /* SETTINGS BUTTON */
-  .settings-btn {
-    position: fixed; top: 20px; right: 20px; z-index: 100;
-    width: 40px; height: 40px; border-radius: 50%;
-    background: var(--surface2); border: 1px solid var(--border2);
-    color: var(--ink2); font-size: 16px;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-  }
-  .settings-btn:hover { background: var(--surface3); color: var(--ink); border-color: var(--accent2); }
-  .settings-btn.active { background: var(--accent-dark); border-color: var(--accent2); color: var(--accent2); }
-
-  /* SETTINGS MODAL */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0; z-index: 200;
-    background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
-    align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface); border: 1px solid var(--border2);
-    border-radius: 20px; padding: 28px;
-    width: 100%; max-width: 460px; margin: 20px;
-    animation: slideUp 0.25s ease;
-  }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .modal-header {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px;
-  }
-  .modal-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--ink); }
-  .modal-close {
-    width: 30px; height: 30px; border-radius: 50%;
-    background: var(--surface2); border: 1px solid var(--border2);
-    color: var(--ink2); font-size: 15px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-  }
-  .modal-close:hover { background: var(--surface3); color: var(--ink); }
-  .modal-section { margin-bottom: 18px; }
-  .modal-section-label {
-    font-size: 10px; font-weight: 700; color: var(--accent2);
-    letter-spacing: 1.5px; margin-bottom: 8px; text-transform: uppercase;
-  }
-  .modal-section-desc { font-size: 11px; color: var(--ink3); margin-top: 5px; line-height: 1.5; }
-  .modal-section-desc a { color: var(--accent2); }
-  .modal-divider { height: 1px; background: var(--border2); margin: 18px 0; }
-  .config-input {
-    width: 100%; background: var(--surface2); border: 1px solid var(--border2);
-    border-radius: 10px; padding: 10px 14px;
-    font-size: 12px; color: var(--ink); font-family: 'DM Sans', sans-serif;
-    outline: none; margin-bottom: 8px; box-sizing: border-box;
-  }
-  .config-input:focus { border-color: var(--accent2); }
-  .config-input::placeholder { color: var(--ink3); }
-  .btn-config-save {
-    width: 100%; padding: 12px; border-radius: 10px;
-    background: var(--accent2); color: var(--bg);
-    border: none; font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
-  }
-  .btn-config-save:hover { opacity: 0.88; }
-  .ai-status-pill {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 10px; color: var(--ink3); background: var(--surface2);
-    border: 1px solid var(--border2); border-radius: 20px; padding: 3px 9px;
-  }
-  .ai-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink3); }
-  .ai-dot.on { background: var(--accent2); }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
-
-  @media (max-width: 600px) {
-    .kpi-row { grid-template-columns: 1fr 1fr; }
-    .report-body { grid-template-columns: 1fr; }
-    .report-section.full { grid-column: 1; }
-    .result-header { flex-direction: column; }
-    .result-actions { width: 100%; }
-    .upload-zone, .email-section, .reset-wrap { padding-left: 20px; padding-right: 20px; }
-    .result-header, .report-body { padding-left: 20px; padding-right: 20px; }
-    .email-status { margin-left: 20px; margin-right: 20px; }
-  }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue: #1B3FE4;
+  --blue-dark: #1230B0;
+  --blue-hover: #1535C8;
+  --blue-light: #EEF1FD;
+  --blue-mid: #C7D2F8;
+  --white: #FFFFFF;
+  --bg: #F4F6FB;
+  --surface: #FFFFFF;
+  --surface2: #F7F8FC;
+  --surface3: #EEF1FD;
+  --border: #E2E6F0;
+  --border2: #D0D6E8;
+  --text: #0D1226;
+  --text2: #4A5270;
+  --text3: #8A93B0;
+  --green: #16A362;
+  --green-bg: #ECFDF5;
+  --green-border: #A7F3D0;
+  --red: #DC2626;
+  --red-bg: #FEF2F2;
+  --red-border: #FECACA;
+  --orange: #D97706;
+  --orange-bg: #FFFBEB;
+  --orange-border: #FDE68A;
+  --shadow: 0 1px 3px rgba(13,18,38,0.08), 0 1px 2px rgba(13,18,38,0.04);
+  --shadow-md: 0 4px 16px rgba(13,18,38,0.1), 0 2px 6px rgba(13,18,38,0.06);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --ink: #0D1226;
+  --ink2: #4A5270;
+  --ink3: #8A93B0;
+  --warn: #DC2626;
+  --gold: #D97706;
+  --accent2: #16A362;
+  --surface3: #EEF1FD;
+  --border2: #D0D6E8;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── NAVBAR ── */
+.navbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-mark {
+  width: 32px; height: 32px;
+  background: var(--blue);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.nav-mark svg { width: 18px; height: 18px; }
+
+.nav-name {
+  font-family: 'Instrument Serif', serif;
+  font-size: 20px;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.credits-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--green-bg);
+  border: 1px solid var(--green-border);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.credits-badge.warning { background: var(--orange-bg); border-color: var(--orange-border); color: var(--orange); }
+.credits-badge.danger  { background: var(--red-bg);    border-color: var(--red-border);    color: var(--red); }
+
+.credits-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.credits-dot.warning { background: var(--orange); }
+.credits-dot.danger  { background: var(--red); }
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.user-pill:hover { background: var(--surface3); }
+
+.user-avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: white;
+}
+
+#user-email-display {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-settings {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: var(--text2);
+}
+.btn-settings:hover { background: var(--surface3); }
+.btn-settings.active { background: var(--blue-light); border-color: var(--blue-mid); color: var(--blue); }
+
+/* ── PROGRESS STEPS ── */
+.steps-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 52px;
+}
+
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 0 0;
+  font-size: 13px;
+  color: var(--text3);
+  font-weight: 500;
+  position: relative;
+}
+
+.flow-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+
+.flow-step-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  background: var(--white);
+}
+
+.flow-step.active {
+  color: var(--blue);
+}
+.flow-step.active .flow-step-num {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+
+.flow-step.done {
+  color: var(--green);
+}
+.flow-step.done .flow-step-num {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+  color: var(--green);
+}
+
+/* ── MAIN CONTENT ── */
+.main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  padding: 20px 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title .icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: var(--blue-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+
+/* ── STEP 1: UPLOAD ── */
+#step1 { display: block; }
+#step2, #step3 { display: none; }
+
+.upload-area {
+  padding: 24px;
+}
+
+.dropzone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 52px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+  background: var(--bg);
+}
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--blue);
+  background: var(--blue-light);
+}
+
+.dropzone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.upload-icon {
+  width: 56px; height: 56px;
+  background: var(--blue-light);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  margin: 0 auto 16px;
+}
+
+.upload-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.upload-sub {
+  font-size: 13px;
+  color: var(--text3);
+  margin-bottom: 16px;
+}
+
+.upload-sub span {
+  color: var(--blue);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.format-chips {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.format-chip {
+  padding: 3px 10px;
+  background: white;
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  letter-spacing: 0.5px;
+}
+
+/* Preview table */
+.preview-wrap { display: none; margin-top: 20px; }
+.preview-wrap.visible { display: block; }
+
+.preview-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.preview-stat {
+  font-size: 12px;
+  color: var(--text3);
+  background: var(--surface2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+.preview-stat strong {
+  color: var(--text);
+  margin-right: 4px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+thead th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text2);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 9px 12px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg); }
+
+/* Email section */
+.email-section {
+  padding: 0 24px 24px;
+  display: none;
+}
+
+.email-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.email-row input {
+  flex: 1;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border2);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.email-row input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(27,63,228,0.07);
+}
+
+.btn-primary {
+  padding: 11px 24px;
+  background: var(--blue);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary:hover { background: var(--blue-hover); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  padding: 9px 16px;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-secondary:hover { background: var(--surface3); }
+
+/* Divider label */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-top: 4px;
+}
+
+/* ── STEP 2: PROCESSING ── */
+.proc-wrap {
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.proc-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.proc-sub {
+  font-size: 14px;
+  color: var(--text3);
+  margin-bottom: 36px;
+}
+
+.proc-spinner {
+  width: 52px; height: 52px;
+  border: 3px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 40px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.proc-steps {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.proc-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text3);
+  transition: all 0.2s;
+}
+
+.proc-step.running {
+  background: var(--blue-light);
+  border-color: var(--blue-mid);
+  color: var(--blue);
+}
+
+.proc-step.done {
+  background: var(--green-bg);
+  border-color: var(--green-border);
+  color: var(--green);
+}
+
+.proc-icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  background: white;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.proc-step.running .proc-icon { border-color: var(--blue-mid); background: white; }
+.proc-step.done .proc-icon { border-color: var(--green-border); background: white; font-weight: 700; color: var(--green); }
+
+/* ── STEP 3: RESULTS ── */
+.result-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.result-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.result-sub {
+  font-size: 13px;
+  color: var(--text3);
+}
+
+.result-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.kpi-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.kpi-value {
+  font-family: 'Instrument Serif', serif;
+  font-size: 26px;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.kpi-value.green { color: var(--green); }
+.kpi-value.red { color: var(--red); }
+.kpi-value.gold { color: var(--orange); }
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--text3);
+}
+
+/* Content grid */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.content-grid.full { grid-template-columns: 1fr; }
+
+/* Bar chart */
+.chart-wrap {
+  padding: 20px 24px 16px;
+}
+
+.mini-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 100px;
+  margin-bottom: 6px;
+}
+
+.mini-bar-group {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 100%;
+}
+
+.mini-bar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.6s ease;
+  min-height: 3px;
+}
+.mini-bar.in  { background: var(--blue); opacity: 0.85; }
+.mini-bar.out { background: var(--red);  opacity: 0.6; }
+
+.mini-chart-labels {
+  display: flex;
+  gap: 6px;
+}
+.mini-chart-label {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text3);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text2);
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 2px;
+}
+
+/* Cashflow */
+.cf-wrap { padding: 16px 24px; }
+
+.cf-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.cf-label {
+  width: 32px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  flex-shrink: 0;
+}
+.cf-track {
+  flex: 1;
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.cf-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.cf-fill.pos  { background: var(--blue); }
+.cf-fill.neg  { background: var(--red); opacity: 0.7; }
+.cf-fill.proj { background: var(--blue); opacity: 0.35; }
+.cf-fill.proj-neg { background: var(--red); opacity: 0.3; }
+
+.cf-val {
+  width: 72px;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.cf-val.pos  { color: var(--blue); }
+.cf-val.neg  { color: var(--red); }
+.cf-val.proj { color: var(--text3); font-style: italic; }
+
+.cf-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+.cf-divider-line { flex: 1; height: 1px; background: var(--border); }
+.cf-divider-label { font-size: 10px; color: var(--text3); white-space: nowrap; font-style: italic; }
+
+/* Insights */
+.insight-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
+
+.insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  flex-direction: column;
+}
+.insight-item.ok   { background: var(--green-bg); border-color: var(--green-border); }
+.insight-item.warn { background: var(--orange-bg); border-color: var(--orange-border); }
+.insight-item.gold { background: #FFFDF0; border-color: #FDE68A; }
+
+.insight-icon { font-size: 16px; }
+
+/* Recommendations */
+.recs-wrap { padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
+
+/* Transactions table */
+.txn-wrap { padding: 16px 24px; }
+.txn-table { width: 100%; border-collapse: collapse; }
+.txn-table td { padding: 8px 0; font-size: 12px; border-bottom: 1px solid var(--border); }
+.txn-table tr:last-child td { border-bottom: none; }
+.txn-table td.amount { text-align: right; font-weight: 600; }
+.txn-table td.amount.income { color: var(--green); }
+.txn-table td.amount.expense { color: var(--red); }
+
+/* Email status */
+.email-status {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+.email-status.sending { background: var(--blue-light); color: var(--blue); }
+.email-status.sent    { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.email-status.error   { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+
+.spin-sm {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(27,63,228,0.2);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* No credits overlay */
+.no-credits-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(13,18,38,0.7);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.no-credits-overlay.show { display: flex; }
+
+.no-credits-box {
+  background: white;
+  border-radius: var(--radius);
+  padding: 36px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.no-credits-icon {
+  font-size: 36px;
+  margin-bottom: 16px;
+}
+
+.no-credits-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 24px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.no-credits-sub {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.btn-wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #25D366;
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.btn-wa:hover { background: #1ebe5b; }
+
+/* Settings modal */
+.settings-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 68px 16px 0;
+}
+.settings-modal.open { display: flex; }
+
+.settings-backdrop {
+  position: absolute;
+  inset: 0;
+}
+
+.settings-box {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  width: 340px;
+  padding: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.settings-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.settings-field {
+  margin-bottom: 12px;
+}
+.settings-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 4px;
+}
+.settings-field input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  outline: none;
+}
+.settings-field input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(27,63,228,0.07);
+}
+
+.ai-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text2);
+  padding: 6px 12px;
+  background: var(--surface2);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.ai-status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text3);
+}
+.ai-status-dot.on { background: var(--green); }
+
+.settings-divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+.btn-logout {
+  width: 100%;
+  padding: 9px;
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.15s, color 0.15s;
+  margin-top: 8px;
+}
+.btn-logout:hover { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+
+/* Fraud section */
+.fraud-wrap { padding: 16px 24px; }
+
+/* Email sent note */
+.email-sent-note {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 6px;
+  padding: 0 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .content-grid { grid-template-columns: 1fr; }
+  .main { padding: 20px 16px; }
+  .navbar { padding: 0 16px; }
+  .steps-bar { padding: 0 16px; gap: 4px; }
+  .flow-step { padding: 0 10px 0 0; font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+}
+
+/* Animations */
+.card { animation: fadeUp 0.3s ease both; }
+.kpi-card { animation: fadeUp 0.3s ease both; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 </style>
 </head>
 <body>
 
-<div class="app">
-
-  <!-- HEADER -->
-  <div class="header">
-    <div class="logo">
-      <div class="logo-dot">💼</div>
-      <div class="logo-name">CFO<span>.ai</span></div>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="nav-mark">
+      <svg viewBox="0 0 18 18" fill="none">
+        <path d="M3 13L7 9L10 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="15" cy="6" r="1.5" fill="white"/>
+      </svg>
     </div>
-    <h1>Upload data,<br>dapatkan <em>laporan CFO</em></h1>
-    <p class="header-sub">Upload file Excel keuangan Anda, AI akan menganalisis dan mengirimkan laporan lengkap ke email dalam hitungan detik.</p>
-    <div style="margin-top:12px;">
-      <span class="ai-status-pill"><span class="ai-dot" id="ai-status-dot"></span><span id="ai-status-label">Mode demo</span></span>
-    </div>
-    <div class="flow-steps">
-      <div class="flow-step active" id="fs-1">📁 Upload File</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step" id="fs-2">🤖 AI Analisis</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step" id="fs-3">📧 Kirim Email</div>
-    </div>
+    <span class="nav-name">Mulyani.ai</span>
   </div>
 
-  <!-- CREDITS BADGE -->
-  <div class="credits-badge" id="credits-badge">
-    <span class="credits-dot" id="credits-dot"></span>
-    <span id="credits-text">Memuat...</span>
-  </div>
-
-  <!-- USER INFO -->
-  <div class="user-info-bar">
-    <span id="user-email-display"></span>
-    <span>·</span>
-    <button class="btn-logout" onclick="doLogout()">Keluar</button>
-  </div>
-
-  <!-- NO CREDITS OVERLAY -->
-  <div class="no-credits-overlay" id="no-credits-overlay">
-    <div class="no-credits-card">
-      <div class="no-credits-icon">🎯</div>
-      <div class="no-credits-title">Kredit Demo Habis</div>
-      <p class="no-credits-sub">
-        Anda telah menggunakan 3 analisis gratis.<br>
-        Hubungi kami untuk mendapatkan akses penuh tanpa batas.
-      </p>
-      <a href="https://wa.me/NOMOR_WA_LO?text=Halo,%20saya%20tertarik%20dengan%20CFO.ai%20full%20access" 
-         target="_blank" class="btn-upgrade">
-        💬 Hubungi via WhatsApp
-      </a>
-      <br>
-      <button class="btn-logout-small" onclick="doLogout()">Keluar dari akun</button>
+  <div class="nav-right">
+    <div class="credits-badge" id="credits-badge">
+      <div class="credits-dot" id="credits-dot"></div>
+      <span id="credits-text">3 analisis tersisa</span>
     </div>
+
+    <div class="user-pill" onclick="toggleSettings()">
+      <div class="user-avatar" id="user-avatar">U</div>
+      <span id="user-email-display">loading...</span>
+    </div>
+
+    <button class="btn-settings" id="settings-btn" onclick="toggleSettings()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 10C9.1 10 10 9.1 10 8C10 6.9 9.1 6 8 6C6.9 6 6 6.9 6 8C6 9.1 6.9 10 8 10Z" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M13 8C13 7.7 12.98 7.4 12.94 7.1L14.5 5.9L12.5 2.5L10.7 3.3C10.3 3 9.8 2.8 9.3 2.6L9 0.8H7L6.7 2.6C6.2 2.8 5.7 3 5.3 3.3L3.5 2.5L1.5 5.9L3.06 7.1C3.02 7.4 3 7.7 3 8C3 8.3 3.02 8.6 3.06 8.9L1.5 10.1L3.5 13.5L5.3 12.7C5.7 13 6.2 13.2 6.7 13.4L7 15.2H9L9.3 13.4C9.8 13.2 10.3 13 10.7 12.7L12.5 13.5L14.5 10.1L12.94 8.9C12.98 8.6 13 8.3 13 8Z" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+    </button>
   </div>
+</nav>
 
-  <!-- SETTINGS BUTTON (fixed) -->
-  <button class="settings-btn" id="settings-btn" onclick="toggleSettings()" title="Konfigurasi API">⚙️</button>
+<!-- STEPS BAR -->
+<div class="steps-bar">
+  <div class="flow-step active" id="fs-1">
+    <div class="flow-step-num">1</div>
+    Upload & Atur
+  </div>
+  <div class="flow-step" id="fs-2" style="margin-left:16px;">
+    <div class="flow-step-num">2</div>
+    Analisis AI
+  </div>
+  <div class="flow-step" id="fs-3" style="margin-left:16px;">
+    <div class="flow-step-num">3</div>
+    Laporan
+  </div>
+</div>
 
-  <!-- SETTINGS MODAL -->
-  <div class="modal-overlay" id="settings-modal" onclick="closeSettingsOnBg(event)">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">⚙️ Konfigurasi</div>
-        <button class="modal-close" onclick="toggleSettings()">✕</button>
-      </div>
+<!-- MAIN -->
+<div class="main">
 
-      <div class="modal-section">
-        <div class="modal-section-label">🤖 Groq AI</div>
-        <input class="config-input" id="cfg-groq-key" placeholder="Groq API Key (gsk_...)" style="font-family:monospace;" />
-        <div class="modal-section-desc">
-          Daftar gratis di <a href="https://console.groq.com" target="_blank">console.groq.com</a> → API Keys → Create API Key.<br>
-          Tanpa API key, app tetap jalan tapi analisis lebih sederhana.
+  <!-- STEP 1 -->
+  <div id="step1" class="step-panel">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="icon">📂</div>
+          Upload File Keuangan
         </div>
       </div>
-
-      <div class="modal-divider"></div>
-
-      <div class="modal-section">
-        <div class="modal-section-label">📧 EmailJS <span style="font-weight:400;color:var(--ink3);text-transform:none;font-size:10px;">(opsional)</span></div>
-        <input class="config-input" id="cfg-pubkey" placeholder="Public Key" />
-        <input class="config-input" id="cfg-service" placeholder="Service ID" />
-        <input class="config-input" id="cfg-template" placeholder="Template ID" />
-        <div class="modal-section-desc">
-          Tanpa EmailJS, laporan tetap tampil di halaman tapi tidak dikirim ke email.
-        </div>
-      </div>
-
-      <button class="btn-config-save" onclick="saveConfig()">Simpan Konfigurasi</button>
-    </div>
-  </div>
-
-    <!-- MAIN CARD -->
-  <div class="main-card">
-
-    <!-- STEP 1: UPLOAD -->
-    <div class="step-panel active" id="step-1">
-      <div class="upload-zone">
-        <div class="upload-title">Langkah 1 — Upload Laporan Keuangan</div>
-        <div class="upload-dropzone" id="dropzone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+      <div class="upload-area">
+        <div class="dropzone" id="dropzone"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)">
           <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)">
-          <div class="upload-icon-wrap">📊</div>
-          <div class="upload-main-text">Drag & drop file keuangan Anda</div>
-          <div class="upload-sub-text">atau <span>klik untuk pilih file</span> dari komputer Anda</div>
+          <div class="upload-icon">📊</div>
+          <div class="upload-title">Drag & drop file keuangan Anda</div>
+          <div class="upload-sub">atau <span onclick="document.getElementById('file-input').click()">klik untuk pilih file</span> dari komputer Anda</div>
           <div class="format-chips">
             <span class="format-chip">XLSX</span>
             <span class="format-chip">XLS</span>
             <span class="format-chip">CSV</span>
           </div>
         </div>
-      </div>
 
-      <!-- PREVIEW -->
-      <div class="preview-wrap" id="preview-wrap">
-        <div class="preview-label">Preview Data</div>
-        <div class="preview-stats" id="preview-stats"></div>
-        <div class="preview-table-wrap">
-          <table class="preview-table" id="preview-table"></table>
+        <div class="preview-wrap" id="preview-wrap">
+          <div class="preview-stats" id="preview-stats"></div>
+          <div class="table-wrap">
+            <table id="preview-table"></table>
+          </div>
         </div>
       </div>
 
-      <!-- EMAIL -->
-      <div class="email-section" id="email-section" style="display:none;">
-        <div class="input-label">📧 Kirim laporan ke email</div>
-        <div class="input-group">
-          <input type="email" class="email-input" id="email-input" placeholder="nama@email.com" />
-          <button class="btn-analyze" id="btn-analyze" onclick="startAnalysis()">Analisis & Kirim →</button>
-        </div>
-        <div class="emailjs-note">
-          ℹ️ Analisis AI menggunakan Groq (gratis). Email dikirim via EmailJS (opsional). Tanpa config = mode demo.
+      <div class="email-section" id="email-section">
+        <div class="section-label">Kirim laporan ke email</div>
+        <div class="email-row">
+          <input type="email" id="email-input" placeholder="nama@bisnis.com">
+          <button class="btn-primary" onclick="startAnalysis()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 1L13 7L7 13M1 7H13" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            Analisis Sekarang
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- STEP 2: PROCESSING -->
-    <div class="step-panel" id="step-2">
-      <div class="processing-zone">
-        <div class="processing-ring"></div>
-        <div class="processing-title">AI sedang menganalisis...</div>
-        <div class="processing-sub" id="proc-sub">Membaca dan memproses data keuangan Anda</div>
-        <div class="processing-steps">
+  <!-- STEP 2 -->
+  <div id="step2" class="step-panel" style="display:none;">
+    <div class="card">
+      <div class="proc-wrap">
+        <div class="proc-title">Menganalisis data Anda</div>
+        <div class="proc-sub" id="proc-sub">Mempersiapkan analisis keuangan...</div>
+        <div class="proc-spinner"></div>
+        <div class="proc-steps">
           <div class="proc-step" id="ps-1">
             <div class="proc-icon">📁</div>
-            <span>Membaca & parsing data Excel</span>
+            Membaca data keuangan
           </div>
           <div class="proc-step" id="ps-2">
             <div class="proc-icon">🔢</div>
-            <span>Menghitung KPI & metrics keuangan</span>
+            Memproses struktur data
           </div>
           <div class="proc-step" id="ps-3">
             <div class="proc-icon">🤖</div>
-            <span>AI menganalisis tren & anomali</span>
+            AI menganalisis tren & anomali
           </div>
           <div class="proc-step" id="ps-4">
             <div class="proc-icon">💡</div>
-            <span>Menghasilkan rekomendasi & insight</span>
+            Menyusun rekomendasi CFO
           </div>
           <div class="proc-step" id="ps-5">
             <div class="proc-icon">📧</div>
-            <span>Mengirim laporan ke email Anda</span>
+            Mengirim laporan ke email
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- STEP 3: RESULT -->
-    <div class="step-panel" id="step-3">
-      <div class="result-zone">
+  <!-- STEP 3 -->
+  <div id="step3" class="step-panel" style="display:none;">
 
-        <div class="result-header">
-          <div>
-            <div class="result-badge">✅ Analisis Selesai</div>
-            <div class="result-title">Laporan Keuangan AI</div>
-            <div class="result-sub" id="result-sub">Dianalisis dari file Anda · <span id="result-date"></span></div>
-          </div>
-          <div class="result-actions">
-            <button class="btn-sm btn-outline" onclick="window.print()">🖨️ Print</button>
-            <button class="btn-sm btn-green" onclick="resendEmail()">📧 Kirim Ulang</button>
+    <div class="result-header">
+      <div>
+        <div class="result-title">Laporan Keuangan AI</div>
+        <div class="result-sub" id="result-sub">Mulyani.ai · Hasil analisis otomatis</div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-secondary" onclick="resendEmail()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M1 2L12 6.5L1 11V7.5L9 6.5L1 5.5V2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          Kirim Ulang
+        </button>
+        <button class="btn-secondary" onclick="resetApp()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M2 6.5C2 4 4 2 6.5 2C9 2 11 4 11 6.5C11 9 9 11 6.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M2 4V6.5H4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Analisis Baru
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Pendapatan</div>
+        <div class="kpi-value green" id="kpi-income">—</div>
+        <div class="kpi-sub">Total pemasukan</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Pengeluaran</div>
+        <div class="kpi-value" style="color:var(--red)" id="kpi-expense">—</div>
+        <div class="kpi-sub">Total biaya</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Laba Bersih</div>
+        <div class="kpi-value" id="kpi-profit">—</div>
+        <div class="kpi-sub" id="kpi-margin">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Skor Kesehatan</div>
+        <div class="kpi-value" id="kpi-score">—</div>
+        <div class="kpi-sub" id="kpi-score-label">—</div>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="content-grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="icon">📈</div>
+            Tren Bulanan
           </div>
         </div>
-
-        <!-- KPI ROW -->
-        <div class="kpi-row">
-          <div class="kpi-cell">
-            <div class="kpi-cell-label">Total Pendapatan</div>
-            <div class="kpi-cell-value green" id="kpi-income">—</div>
-            <div class="kpi-cell-change up" id="kpi-income-change">dari data Anda</div>
-          </div>
-          <div class="kpi-cell">
-            <div class="kpi-cell-label">Total Pengeluaran</div>
-            <div class="kpi-cell-value warn" id="kpi-expense">—</div>
-            <div class="kpi-cell-change" id="kpi-expense-change">dari data Anda</div>
-          </div>
-          <div class="kpi-cell">
-            <div class="kpi-cell-label">Laba Bersih</div>
-            <div class="kpi-cell-value gold" id="kpi-profit">—</div>
-            <div class="kpi-cell-change" id="kpi-margin">margin bersih</div>
-          </div>
-          <div class="kpi-cell">
-            <div class="kpi-cell-label">Skor Kesehatan</div>
-            <div class="kpi-cell-value" id="kpi-score">—</div>
-            <div class="kpi-cell-change" id="kpi-score-label">—</div>
-          </div>
-        </div>
-
-        <!-- EMAIL STATUS -->
-        <div class="email-status sending" id="email-status" style="display:none;">
-          <div class="spin-sm"></div>
-          <span id="email-status-text">Mengirim laporan ke email Anda...</span>
-        </div>
-
-        <!-- REPORT BODY -->
-        <div class="report-body">
-
-          <!-- CHART -->
-          <div class="report-section">
-            <div class="section-title">📊 Pendapatan vs Pengeluaran</div>
-            <div class="mini-chart" id="mini-chart"></div>
-            <div class="mini-chart-labels" id="mini-chart-labels"></div>
-            <div style="display:flex;gap:12px;margin-top:12px;">
-              <span style="font-size:11px;color:var(--ink2);display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:2px;background:var(--accent2);display:inline-block;"></span>Pendapatan</span>
-              <span style="font-size:11px;color:var(--ink2);display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:2px;background:var(--surface3);border:1px solid var(--border2);display:inline-block;"></span>Pengeluaran</span>
+        <div class="chart-wrap">
+          <div class="mini-chart" id="mini-chart"></div>
+          <div class="mini-chart-labels" id="mini-chart-labels"></div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-dot" style="background:var(--blue);opacity:0.85;"></div>
+              Pendapatan
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot" style="background:var(--red);opacity:0.6;"></div>
+              Pengeluaran
             </div>
           </div>
-
-          <!-- CASHFLOW -->
-          <div class="report-section">
-            <div class="section-title">💧 Cashflow Historis & Proyeksi</div>
-            <div class="cf-list" id="cf-list"></div>
-          </div>
-
-          <!-- AI INSIGHTS -->
-          <div class="report-section">
-            <div class="section-title">🤖 AI Insights</div>
-            <div class="insight-list" id="insight-list"></div>
-          </div>
-
-          <!-- TOP TRANSACTIONS -->
-          <div class="report-section">
-            <div class="section-title">📋 Ringkasan Transaksi</div>
-            <table class="mini-table" id="mini-table">
-              <thead><tr><th>DESKRIPSI</th><th>JUMLAH</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-
-          <!-- RECOMMENDATIONS -->
-          <div class="report-section full">
-            <div class="section-title">💡 Rekomendasi AI CFO</div>
-            <div id="recommendations" style="display:flex;flex-direction:column;gap:8px;"></div>
-          </div>
-
-          <!-- FRAUD RADAR -->
-          <div class="report-section full">
-            <div class="section-title" style="color:var(--warn);">🚨 Fraud Radar & Anomali</div>
-            <div id="fraud-section"></div>
-          </div>
-
         </div>
-
-        <div class="reset-wrap">
-          <div class="reset-note" id="email-sent-note">—</div>
-          <button class="btn-sm btn-outline" onclick="resetApp()">← Analisis File Baru</button>
-        </div>
-
       </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="icon">💰</div>
+            Cashflow & Proyeksi
+          </div>
+        </div>
+        <div class="cf-wrap" id="cf-list"></div>
+      </div>
+    </div>
+
+    <!-- Insights & Transactions -->
+    <div class="content-grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="icon">🤖</div>
+            AI Insights
+          </div>
+        </div>
+        <div class="insight-list" id="insight-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="icon">📋</div>
+            Ringkasan Kategori
+          </div>
+        </div>
+        <div class="txn-wrap">
+          <table class="txn-table" id="mini-table">
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="icon">💡</div>
+          Rekomendasi CFO
+        </div>
+      </div>
+      <div class="recs-wrap" id="recommendations"></div>
+    </div>
+
+    <!-- Fraud -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="icon">🚨</div>
+          Fraud Radar
+        </div>
+      </div>
+      <div class="fraud-wrap" id="fraud-section"></div>
+    </div>
+
+    <!-- Email status -->
+    <div class="card" style="padding:20px 24px;">
+      <div class="section-label">Status Pengiriman Laporan</div>
+      <div class="email-status" id="email-status"></div>
+      <div class="email-sent-note" id="email-sent-note">Laporan akan dikirim setelah analisis selesai.</div>
     </div>
 
   </div>
 </div>
+
+<!-- NO CREDITS OVERLAY -->
+<div class="no-credits-overlay" id="no-credits-overlay">
+  <div class="no-credits-box">
+    <div class="no-credits-icon">🔋</div>
+    <div class="no-credits-title">Kredit Habis</div>
+    <div class="no-credits-sub">Kredit demo Anda sudah habis. Hubungi kami via WhatsApp untuk mendapatkan akses penuh ke Mulyani.ai.</div>
+    <a href="https://wa.me/NOMOR_WA_LO?text=Halo%2C%20saya%20ingin%20upgrade%20akses%20Mulyani.ai" class="btn-wa" target="_blank">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+      Chat WhatsApp
+    </a>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="settings-modal" id="settings-modal" onclick="closeSettingsOnBg(event)">
+  <div class="settings-backdrop"></div>
+  <div class="settings-box">
+    <div class="settings-title">⚙️ Pengaturan</div>
+
+    <div class="ai-status-pill">
+      <div class="ai-status-dot" id="ai-status-dot"></div>
+      <span id="ai-status-label">Mode demo</span>
+    </div>
+
+    <div class="settings-field">
+      <label>Groq API Key (opsional)</label>
+      <input type="password" id="cfg-groq-key" placeholder="gsk_...">
+    </div>
+
+    <div class="settings-divider"></div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;font-weight:600;letter-spacing:0.5px;">EMAILJS (opsional)</div>
+
+    <div class="settings-field">
+      <label>Public Key</label>
+      <input type="text" id="cfg-pubkey" placeholder="EmailJS Public Key">
+    </div>
+    <div class="settings-field">
+      <label>Service ID</label>
+      <input type="text" id="cfg-service" placeholder="service_...">
+    </div>
+    <div class="settings-field">
+      <label>Template ID</label>
+      <input type="text" id="cfg-template" placeholder="template_...">
+    </div>
+
+    <button class="btn-primary btn-config-save" style="width:100%;justify-content:center;" onclick="saveConfig()">Simpan</button>
+
+    <div class="settings-divider"></div>
+
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">
+      Login sebagai <strong style="color:var(--text2);" id="settings-email">—</strong>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">Keluar</button>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
 
 <script>
 // ==================== CONFIG ====================
@@ -1047,6 +1377,9 @@ async function initAuth() {
 
     updateCreditsUI();
     document.getElementById('user-email-display').textContent = currentUser.email;
+    document.getElementById('settings-email').textContent = currentUser.email;
+    const avatarEl = document.getElementById('user-avatar');
+    if (avatarEl) avatarEl.textContent = currentUser.email[0].toUpperCase();
     if (userCredits <= 0) document.getElementById('no-credits-overlay').classList.add('show');
 
   } catch(e) {
@@ -1205,9 +1538,9 @@ function showPreview(data, filename) {
   // Update dropzone
   const dz = document.getElementById('dropzone');
   dz.innerHTML = `
-    <div class="upload-icon-wrap">✅</div>
-    <div class="upload-main-text" style="color:var(--accent2);">${filename}</div>
-    <div class="upload-sub-text">${rows.length} baris data berhasil dibaca · <span onclick="document.getElementById('file-input').click()">Ganti file</span></div>
+    <div class="upload-icon">✅</div>
+    <div class="upload-title" style="color:var(--green);">${filename}</div>
+    <div class="upload-sub">${rows.length} baris data berhasil dibaca · <span onclick="document.getElementById('file-input').click()">Ganti file</span></div>
     <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
   `;
 }
@@ -2099,7 +2432,7 @@ function renderResult(r) {
       <div style="font-size:10px;font-weight:700;color:${pColors[rec.priority]};margin-bottom:6px;letter-spacing:0.5px;">${pLabels[rec.priority]}</div>
       <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;">${rec.title}</div>
       <div style="font-size:12px;color:var(--ink2);line-height:1.6;">${rec.desc}</div>
-      ${rec.impact ? `<div style="margin-top:8px;font-size:11px;color:var(--accent2);font-weight:600;">📈 Estimasi dampak: ${rec.impact}</div>` : ''}
+      ${rec.impact ? `<div style="margin-top:8px;font-size:11px;color:var(--green);font-weight:600;">📈 Estimasi dampak: ${rec.impact}</div>` : ''}
     </div>
   `).join('');
 
@@ -2120,7 +2453,7 @@ function renderFraudAlerts(r) {
       <div style="padding:16px;border-radius:12px;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;gap:12px;">
         <div style="font-size:24px;">✅</div>
         <div>
-          <div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:2px;">Tidak Ada Anomali Terdeteksi</div>
+          <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:2px;">Tidak Ada Anomali Terdeteksi</div>
           <div style="font-size:12px;color:var(--ink2);">Data keuangan bersih — tidak ditemukan pola mencurigakan.</div>
         </div>
       </div>`;
@@ -2427,7 +2760,7 @@ async function resendEmail() {
 // ==================== NAVIGATION ====================
 function goToStep(n) {
   document.querySelectorAll('.step-panel').forEach((p, i) => {
-    p.classList.toggle('active', i === n - 1);
+    p.style.display = (i === n - 1) ? 'block' : 'none';
   });
   const fsIds = ['fs-1','fs-2','fs-3'];
   fsIds.forEach((id, i) => {
@@ -2446,9 +2779,9 @@ function resetApp() {
   document.getElementById('email-input').value = '';
   document.getElementById('dropzone').innerHTML = `
     <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)">
-    <div class="upload-icon-wrap">📊</div>
-    <div class="upload-main-text">Drag & drop file keuangan Anda</div>
-    <div class="upload-sub-text">atau <span>klik untuk pilih file</span> dari komputer Anda</div>
+    <div class="upload-icon">📊</div>
+    <div class="upload-title">Drag & drop file keuangan Anda</div>
+    <div class="upload-sub">atau <span>klik untuk pilih file</span> dari komputer Anda</div>
     <div class="format-chips">
       <span class="format-chip">XLSX</span>
       <span class="format-chip">XLS</span>
@@ -2458,11 +2791,6 @@ function resetApp() {
   // Reset proc steps
   ['ps-1','ps-2','ps-3','ps-4','ps-5'].forEach(id => {
     const el = document.getElementById(id);
-    el.classList.remove('done','running');
-    el.querySelector('.proc-icon').textContent = { 'ps-1':'📁','ps-2':'🔢','ps-3':'🤖','ps-4':'💡','ps-5':'📧' }[id];
-  });
-  goToStep(1);
-}
 </script>
 </body>
 </html>
