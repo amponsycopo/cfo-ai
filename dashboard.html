@@ -2791,6 +2791,11 @@ function resetApp() {
   // Reset proc steps
   ['ps-1','ps-2','ps-3','ps-4','ps-5'].forEach(id => {
     const el = document.getElementById(id);
+    el.classList.remove('done','running');
+    el.querySelector('.proc-icon').textContent = { 'ps-1':'📁','ps-2':'🔢','ps-3':'🤖','ps-4':'💡','ps-5':'📧' }[id];
+  });
+  goToStep(1);
+}
 </script>
 </body>
 </html>
