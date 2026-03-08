@@ -283,18 +283,18 @@ const SUPABASE_URL = 'https://pqpvtlfhewutpjwqdyqt.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcHZ0bGZoZXd1dHBqd3FkeXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTM4MzcsImV4cCI6MjA4ODQ4OTgzN30.cW9U7vgHV7OqJ0h3NXkiXgcos25-7y0246LDpjTITK4';
 // ────────────────────────────────────────────────────────
 
-let supabase;
+let _supabaseClient;
 try {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  _supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 } catch(e) {
   console.error('Supabase init failed:', e);
 }
 
 // Kalau sudah login → langsung ke dashboard
 async function checkExistingSession() {
-  if (!supabase) return;
+  if (!_supabaseClient) return;
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await _supabaseClient.auth.getSession();
     if (session) {
       window.location.href = 'dashboard.html';
     }
@@ -329,7 +329,7 @@ function setLoading(btnId, loading, label) {
 
 // ── Login ───────────────────────────────────────────────
 async function doLogin() {
-  if (!supabase) {
+  if (!_supabaseClient) {
     showAlert('masuk', 'Koneksi gagal. Refresh halaman dan coba lagi.');
     return;
   }
@@ -345,7 +345,7 @@ async function doLogin() {
   setLoading('btn-masuk', true, 'Masuk →');
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
     window.location.href = 'dashboard.html';
   } catch(e) {
@@ -367,7 +367,7 @@ async function doForgotPassword() {
     return;
   }
   try {
-    await supabase.auth.resetPasswordForEmail(email, {
+    await _supabaseClient.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin + '/dashboard.html'
     });
     showAlert('masuk', '✅ Link reset password telah dikirim ke ' + email, 'success');
