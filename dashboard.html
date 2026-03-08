@@ -1495,27 +1495,28 @@ PENTING:
 function preAggregate(data) {
   const rows = data.filter(r => r.some(c => c !== ''));
 
-  // Find header row
+  // Find header row — cari row yang punya kolom tanggal + (pendapatan atau pengeluaran atau jumlah)
   let headerRow = 0;
-  for (let i = 0; i < Math.min(10, rows.length); i++) {
+  for (let i = 0; i < Math.min(15, rows.length); i++) {
     const rowStr = rows[i].join(' ').toLowerCase();
-    if (/tanggal|date|tgl/.test(rowStr) && /jumlah|amount|nominal|pendapatan|debit/.test(rowStr)) {
-      headerRow = i; break;
-    }
+    const hasDate   = /tanggal|date|tgl/.test(rowStr);
+    const hasAmount = /jumlah|amount|nominal|pendapatan|pengeluaran|debit|kredit|pemasukan/.test(rowStr);
+    if (hasDate && hasAmount) { headerRow = i; break; }
   }
   const headers = rows[headerRow].map(h => String(h || '').toLowerCase().trim());
   const dataRows = rows.slice(headerRow + 1);
 
-  // Detect column indices
+  // Detect column indices — lebih toleran terhadap variasi nama kolom
   const colIdx = {
     date:    headers.findIndex(h => /tanggal|date|tgl/.test(h)),
     desc:    headers.findIndex(h => /deskripsi|keterangan|desc|nama|uraian/.test(h)),
-    cat:     headers.findIndex(h => /kategori|category|jenis|tipe|type/.test(h)),
-    tipe:    headers.findIndex(h => /^tipe$|^type$|jenis transaksi/.test(h)),
-    income:  headers.findIndex(h => /pendapatan|income|masuk|kredit|pemasukan|revenue|in\b/.test(h)),
-    expense: headers.findIndex(h => /pengeluaran|expense|keluar|debit|biaya|cost|out\b/.test(h)),
-    amount:  headers.findIndex(h => /jumlah|amount|nominal|nilai/.test(h)),
-    flag:    headers.findIndex(h => /flag|status|keterangan/.test(h)),
+    cat:     headers.findIndex(h => /kategori|category|jenis/.test(h) && !/tipe|type/.test(h)),
+    tipe:    headers.findIndex(h => /^tipe$|^type$|jenis transaksi|tipe transaksi/.test(h)),
+    income:  headers.findIndex(h => /pendapatan|pemasukan|income|masuk|kredit|revenue/.test(h)),
+    expense: headers.findIndex(h => /pengeluaran|biaya|expense|keluar|debit|cost/.test(h)),
+    amount:  headers.findIndex(h => /^jumlah$|^amount$|^nominal$|^nilai$/.test(h)),
+    saldo:   headers.findIndex(h => /saldo|balance|sisa/.test(h)),
+    flag:    headers.findIndex(h => /flag|keterangan fraud/.test(h)),
   };
 
   let totalIncome = 0, totalExpense = 0;
@@ -1540,23 +1541,51 @@ function preAggregate(data) {
 
     let income = 0, expense = 0;
 
-    if (colIdx.income >= 0 || colIdx.expense >= 0) {
+    if (colIdx.income >= 0 && colIdx.expense >= 0) {
+      // Format: kolom pendapatan & pengeluaran terpisah (seperti demo Excel ini)
       income  = parseNum(getVal(colIdx.income));
       expense = parseNum(getVal(colIdx.expense));
+    } else if (colIdx.income >= 0 || colIdx.expense >= 0) {
+      // Hanya salah satu kolom ada
+      income  = colIdx.income  >= 0 ? parseNum(getVal(colIdx.income))  : 0;
+      expense = colIdx.expense >= 0 ? parseNum(getVal(colIdx.expense)) : 0;
+      // Kalau masih 0, cek tipe kolom
+      if (income === 0 && expense === 0 && colIdx.amount >= 0) {
+        const amt = parseNum(getVal(colIdx.amount));
+        if (/pendapatan|income|masuk|kredit/.test(tipe)) income = Math.abs(amt);
+        else if (/pengeluaran|expense|keluar|debit|biaya/.test(tipe)) expense = Math.abs(amt);
+      }
     } else if (colIdx.amount >= 0) {
+      // Hanya kolom jumlah — gunakan kolom tipe untuk menentukan arah
       const amt = parseNum(getVal(colIdx.amount));
       if (/pendapatan|income|masuk|kredit/.test(tipe)) income = Math.abs(amt);
-      else if (/pengeluaran|expense|keluar|debit/.test(tipe)) expense = Math.abs(amt);
+      else if (/pengeluaran|expense|keluar|debit|biaya/.test(tipe)) expense = Math.abs(amt);
       else if (amt > 0) income = amt;
       else expense = Math.abs(amt);
     } else {
-      // Last resort: scan all numeric cells
+      // Last resort: scan semua kolom numerik KECUALI saldo/balance
       row.forEach((cell, ci) => {
-        if (ci === colIdx.date) return;
+        if (ci === colIdx.date || ci === colIdx.saldo) return; // skip tanggal & saldo
         const n = parseNum(cell);
         if (Math.abs(n) > 1000) {
-          if (n > 0) income += n;
+          const hdr = headers[ci] || '';
+          if (/pendapatan|income|masuk/.test(hdr)) income += Math.abs(n);
+          else if (/pengeluaran|expense|keluar|biaya/.test(hdr)) expense += Math.abs(n);
+          else if (n > 0) income += n;
           else expense += Math.abs(n);
+        }
+      });
+    }
+
+    // Kalau income & expense masih 0 tapi ada kolom tipe + amount → coba lagi
+    if (income === 0 && expense === 0 && tipe) {
+      // Scan semua angka di row (kecuali saldo)
+      row.forEach((cell, ci) => {
+        if (ci === colIdx.date || ci === colIdx.saldo) return;
+        const n = parseNum(cell);
+        if (n > 1000) {
+          if (/pendapatan|income|masuk|kredit/.test(tipe)) income += n;
+          else if (/pengeluaran|expense|keluar|debit|biaya/.test(tipe)) expense += n;
         }
       });
     }
