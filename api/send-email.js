@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${process.env.RESEND_API_KEY}`
       },
       body: JSON.stringify({
-        from: 'CFO.ai <laporan@cfoai.id>',  // ganti dengan domain lo yang sudah verify di Resend
+        from: 'CFO.ai <onboarding@resend.dev>',  // ganti dengan domain lo yang sudah verify di Resend
         to: [toEmail],
         subject: `Laporan Keuangan CFO.ai — ${date}`,
         html
