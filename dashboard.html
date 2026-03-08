@@ -2358,6 +2358,8 @@ ATURAN KETAT:
 - Jika tidak ada fraud, fraudAlerts = [] dan fraudScore = 90-100
 - fraudScore: 100 = bersih sempurna, 70-99 = perlu perhatian, 40-69 = mencurigakan, 0-39 = kritis
 - DILARANG menggunakan placeholder seperti "Nama kategori" atau "Estimasi" tanpa angka nyata
+- DILARANG membuat rekomendasi tentang topik yang TIDAK ADA datanya di ringkasan (contoh: jangan rekomendasikan "optimasi harga" jika tidak ada data harga, jangan rekomendasikan "kurangi utang" jika tidak ada data utang)
+- Setiap rekomendasi HARUS bisa dijustifikasi langsung dari angka di ringkasan di atas
 - Return HANYA JSON mentah, tidak ada penjelasan, tidak ada markdown backtick`;
 
   // Call Vercel backend (API key hidden server-side)
@@ -2564,6 +2566,7 @@ ATURAN:
 - Gross Margin dan Operating Margin bandingkan dengan industri relevan
 - Identifikasi customer concentration risk jika top 1 customer >30% revenue
 - Identifikasi apakah burn rate sustainable vs revenue
+- DILARANG membuat rekomendasi tentang topik yang tidak ada datanya — setiap insight dan rekomendasi harus bisa dijustifikasi langsung dari angka di atas
 - Return HANYA JSON mentah, tidak ada markdown`;
 
   const res = await fetch(API_BASE + '/api/analyze', {
@@ -3561,8 +3564,8 @@ function renderResult(r) {
 
   // ── Recommendations — dengan konteks data ────────────────
   const recsEl = document.getElementById('recommendations');
-  const pColors = { high: 'var(--warn)', med: 'var(--gold)', low: 'var(--accent2)' };
-  const pLabels = { high: '🔴 Prioritas Tinggi', med: '🟡 Prioritas Sedang', low: '🟢 Quick Win' };
+  const pColors = { critical: 'var(--red)', high: 'var(--warn)', med: 'var(--gold)', low: 'var(--accent2)' };
+  const pLabels = { critical: '🚨 Darurat', high: '🔴 Prioritas Tinggi', med: '🟡 Prioritas Sedang', low: '🟢 Quick Win' };
   recsEl.innerHTML = r.recs.map(rec => `
     <div style="padding:16px;border-radius:12px;background:var(--surface3);border:1px solid var(--border2);">
       <div style="font-size:10px;font-weight:700;color:${pColors[rec.priority]};margin-bottom:6px;letter-spacing:0.5px;">${pLabels[rec.priority]}</div>
