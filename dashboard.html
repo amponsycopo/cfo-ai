@@ -1127,6 +1127,14 @@ tbody tr:hover td { background: var(--bg); }
         <div class="result-sub" id="result-sub">Findible · Hasil analisis otomatis</div>
       </div>
       <div class="result-actions">
+        <button class="btn-secondary" onclick="exportPDF()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M2 1H8L11 4V12H2V1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M8 1V4H11" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M4 7H9M4 9.5H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Export PDF
+        </button>
         <button class="btn-secondary" onclick="resendEmail()">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
             <path d="M1 2L12 6.5L1 11V7.5L9 6.5L1 5.5V2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
@@ -1160,10 +1168,11 @@ tbody tr:hover td { background: var(--bg); }
         <div class="kpi-value" id="kpi-profit">—</div>
         <div class="kpi-sub" id="kpi-margin">—</div>
       </div>
-      <div class="kpi-card">
+      <div class="kpi-card" style="cursor:default;" title="Skor berdasarkan margin, konsistensi cashflow, dan anomali fraud">
         <div class="kpi-label">Skor Kesehatan</div>
         <div class="kpi-value" id="kpi-score">—</div>
         <div class="kpi-sub" id="kpi-score-label">—</div>
+        <div id="kpi-score-basis" style="font-size:10px;color:#9CA3AF;margin-top:4px;line-height:1.4;display:none;"></div>
       </div>
     </div>
 
@@ -1882,11 +1891,36 @@ ${fraudStr}
 `.trim();
 
   // ── Step 3: Groq focuses ONLY on insight & reasoning ──────
-  const prompt = `Kamu adalah AI CFO senior untuk bisnis UMKM Indonesia. Data keuangan sudah diproses — tugasmu HANYA memberikan analisis mendalam, insight, dan deteksi fraud lanjutan.
+  const prompt = `Kamu adalah AI CFO senior berpengalaman 20 tahun yang mengaudit bisnis skala menengah-besar di Indonesia. Kamu berbicara langsung kepada owner/CEO bisnis — bukan akuntan. Tugasmu adalah memberikan analisis tajam, jujur, dan actionable seperti seorang CFO sungguhan yang dibayar mahal.
 
 ${summaryText}
 
-Berikan analisis CFO yang tajam. Return HANYA JSON valid ini:
+INSTRUKSI ANALISIS:
+1. INSIGHTS: Berikan 5-6 insight yang benar-benar tajam. Jangan generik. Setiap insight harus:
+   - Menyebut angka spesifik dari data (bukan placeholder)
+   - Membandingkan dengan benchmark industri Indonesia yang relevan
+   - Menjelaskan implikasi bisnis konkret jika dibiarkan atau jika dioptimalkan
+   - Gunakan bahasa owner, bukan bahasa akuntan
+
+2. REKOMENDASI: Berikan 4 rekomendasi actionable dengan:
+   - Langkah spesifik yang bisa dikerjakan minggu ini / bulan ini
+   - Target angka yang terukur (bukan "tingkatkan revenue" tapi "targetkan revenue +15% = Rp X")
+   - Estimasi dampak finansial dalam 3-6 bulan
+   - Tingkat prioritas: critical/high/med/low
+
+3. FRAUD ANALYSIS: Analisis mendalam setiap anomali yang terdeteksi:
+   - Berikan konteks mengapa ini mencurigakan (pola, timing, jumlah)
+   - Estimasi potensi kerugian jika fraud ini nyata
+   - Langkah investigasi konkret yang harus dilakukan owner
+   - Bedakan antara fraud vs human error vs kebiasaan bisnis yang tidak efisien
+
+4. FINANCIAL HEALTH SCORE: Hitung skor 0-100 berdasarkan:
+   - Margin bersih (benchmark: retail 5-15%, jasa 20-40%, manufaktur 8-15%)
+   - Konsistensi cashflow bulanan
+   - Rasio pengeluaran vs pendapatan
+   - Ada/tidaknya anomali kritis
+
+Return HANYA JSON valid ini (tidak ada teks lain, tidak ada markdown):
 {
   "totalIncome": ${summary.totalIncome},
   "totalExpense": ${summary.totalExpense},
@@ -1894,91 +1928,90 @@ Berikan analisis CFO yang tajam. Return HANYA JSON valid ini:
   "margin": ${summary.margin.toFixed(1)},
   "score": 72,
   "scoreLabel": "Cukup Sehat",
+  "scoreBasis": "Penjelasan singkat 1 kalimat kenapa skor ini — contoh: margin 74% sangat baik tapi ada 3 anomali fraud bernilai Rp X",
   "monthlyData": [
-    {"month": "Okt", "income": 10000000, "expense": 8000000},
-    {"month": "Nov", "income": 11000000, "expense": 8500000},
-    {"month": "Des", "income": 12000000, "expense": 9000000},
-    {"month": "Jan", "income": 13000000, "expense": 9500000},
-    {"month": "Feb", "income": 14000000, "expense": 10000000},
-    {"month": "Mar", "income": 15000000, "expense": 10500000}
+    {"month": "Jan", "income": 10000000, "expense": 8000000}
   ],
   "cfWeeks": [
-    {"week": "W1", "val": 3000000},
-    {"week": "W2", "val": 2500000},
-    {"week": "W3", "val": -200000},
-    {"week": "W4", "val": 3800000},
-    {"week": "W5", "val": 2900000},
-    {"week": "W6", "val": 3100000}
+    {"week": "W1", "val": 3000000}
   ],
   "topTransactions": [
-    {"desc": "Kategori terbesar", "amt": 50000000},
-    {"desc": "Kategori kedua", "amt": -30000000}
+    {"desc": "Nama kategori terbesar", "amt": 50000000},
+    {"desc": "Nama kategori kedua", "amt": -30000000}
   ],
   "insights": [
     {
       "type": "ok",
       "icon": "✅",
-      "title": "Judul insight singkat",
-      "text": "Penjelasan 1-2 kalimat dengan angka spesifik dari data di atas",
-      "reason": "Analisis CFO: kenapa ini penting, benchmark vs industri, implikasi ke bisnis. Gunakan angka nyata."
+      "title": "Judul spesifik dengan angka",
+      "text": "Penjelasan 2-3 kalimat dengan angka nyata dari data. Bandingkan dengan benchmark. Jelaskan artinya untuk bisnis.",
+      "reason": "Analisis CFO mendalam: implikasi strategis, risiko tersembunyi, atau peluang yang belum dimanfaatkan. Minimal 3 kalimat."
     },
     {
       "type": "warn",
       "icon": "⚠️",
-      "title": "Judul warning",
-      "text": "Penjelasan masalah dengan data spesifik",
-      "reason": "Analisis CFO: risiko konkret jika dibiarkan, benchmark industri, tindakan yang diperlukan."
+      "title": "Judul warning spesifik",
+      "text": "Masalah konkret dengan data spesifik dan angka.",
+      "reason": "Risiko finansial jika dibiarkan 3-6 bulan ke depan. Estimasi kerugian potensial. Tindakan yang harus segera dilakukan."
     },
     {
       "type": "gold",
       "icon": "💡",
-      "title": "Judul peluang",
-      "text": "Proyeksi atau peluang dengan angka spesifik",
-      "reason": "Analisis CFO: cara mencapainya, asumsi yang digunakan, timeline realistis."
+      "title": "Peluang dengan potensi Rp spesifik",
+      "text": "Peluang konkret berdasarkan pola data yang terlihat.",
+      "reason": "Cara mencapainya step-by-step. Asumsi yang digunakan. ROI estimasi dalam 6 bulan."
     }
   ],
   "recs": [
     {
-      "priority": "high",
-      "title": "Aksi spesifik minggu ini",
-      "desc": "Langkah konkret dengan target angka terukur",
-      "impact": "Estimasi dampak Rp dalam 3 bulan"
+      "priority": "critical",
+      "title": "Aksi darurat — kerjakan minggu ini",
+      "desc": "Langkah spesifik step-by-step dengan target angka terukur",
+      "impact": "Estimasi dampak Rp dalam 3 bulan jika dilakukan vs tidak dilakukan"
     },
     {
-      "priority": "med",
-      "title": "Aksi bulan ini",
+      "priority": "high",
+      "title": "Aksi prioritas bulan ini",
       "desc": "Langkah konkret dengan target terukur",
       "impact": "Estimasi dampak finansial"
     },
     {
+      "priority": "med",
+      "title": "Optimasi 3 bulan ke depan",
+      "desc": "Strategi menengah dengan milestone jelas",
+      "impact": "Estimasi dampak finansial"
+    },
+    {
       "priority": "low",
-      "title": "Quick win",
-      "desc": "Effort rendah, dampak cepat",
+      "title": "Quick win — effort rendah dampak cepat",
+      "desc": "Bisa dikerjakan sambil lalu, hasil terasa dalam 2-4 minggu",
       "impact": "Estimasi dampak"
     }
   ],
   "fraudAlerts": [
     {
       "severity": "critical",
-      "type": "Tipe anomali",
-      "desc": "Penjelasan detail anomali dengan tanggal dan amount spesifik",
+      "type": "Nama tipe fraud spesifik",
+      "desc": "Penjelasan detail: tanggal, vendor, jumlah, pola yang mencurigakan, kenapa ini red flag",
       "amount": 3500000,
       "date": "15/01/2025",
-      "action": "Langkah investigasi yang harus dilakukan"
+      "potentialLoss": "Estimasi total kerugian jika ini adalah fraud nyata",
+      "action": "Langkah investigasi konkret: siapa yang dihubungi, dokumen apa yang diminta, dalam berapa hari"
     }
   ],
   "fraudScore": 75,
-  "fraudSummary": "Ringkasan temuan fraud dalam 1-2 kalimat dengan total estimasi risiko."
+  "fraudSummary": "Ringkasan eksekutif fraud: berapa anomali ditemukan, total nilai yang berisiko, tingkat keparahan keseluruhan, dan rekomendasi tindak lanjut dalam 1 paragraf."
 }
 
-PENTING:
-- totalIncome, totalExpense, profit HARUS persis sama dengan angka di ringkasan di atas
+ATURAN KETAT:
+- totalIncome, totalExpense, profit HARUS persis sama dengan angka di ringkasan
 - monthlyData HARUS konsisten dengan breakdown bulanan di atas
-- topTransactions = ambil dari kategori terbesar di data
-- fraudAlerts: analisis LANJUTAN dari anomali yang sudah terdeteksi pre-processor + tambahkan yang terlewat
-- Jika tidak ada fraud sama sekali, fraudAlerts = []
-- fraudScore: 100 = bersih, 0 = sangat mencurigakan
-- Return HANYA JSON, tidak ada teks lain`;
+- topTransactions ambil dari kategori terbesar di data nyata
+- fraudAlerts: analisis SETIAP anomali dari pre-processor + tambahkan yang terlewat berdasarkan pattern analysis
+- Jika tidak ada fraud, fraudAlerts = [] dan fraudScore = 90-100
+- fraudScore: 100 = bersih sempurna, 70-99 = perlu perhatian, 40-69 = mencurigakan, 0-39 = kritis
+- DILARANG menggunakan placeholder seperti "Nama kategori" atau "Estimasi" tanpa angka nyata
+- Return HANYA JSON mentah, tidak ada penjelasan, tidak ada markdown backtick`;
 
   // Call Vercel backend (API key hidden server-side)
   const res = await fetch(API_BASE + '/api/analyze', {
@@ -2299,7 +2332,7 @@ function parseDateStr(dateStr) {
 function detectAnomalies(txList, categories) {
   const anomalies = [];
 
-  // 1. Duplicate transactions
+  // ── 1. Duplicate transactions (exact match) ──────────────────────
   const seen = {};
   txList.forEach(tx => {
     const key = `${tx.date}|${tx.desc}|${tx.amount}`;
@@ -2309,103 +2342,173 @@ function detectAnomalies(txList, categories) {
         anomalies.push({
           type: 'Transaksi Duplikat',
           severity: 'critical',
-          desc: `"${tx.desc}" muncul 2x pada ${tx.date} dengan amount yang identik`,
+          desc: `"${tx.desc}" muncul 2x pada ${tx.date} dengan jumlah identik Rp ${Number(tx.amount||0).toLocaleString('id')}`,
           amount: tx.amount,
           date: tx.date,
-          action: 'Verifikasi slip/bukti pembayaran. Kemungkinan double payment — batalkan salah satu.'
+          action: 'Segera verifikasi slip/bukti pembayaran. Kemungkinan double entry atau double payment. Batalkan satu dan minta konfirmasi bank.'
         });
       }
     }
     seen[key] = true;
   });
 
-  // 2. Spike detection — expense category 3x above its own average
+  // ── 2. Near-duplicate (same vendor, same amount ±5%, within 3 days) ──
+  const sorted = [...txList].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const a = sorted[i], b = sorted[i+1];
+    if (!a.expense || !b.expense) continue;
+    const sameVendor = (a.desc||'').toLowerCase() === (b.desc||'').toLowerCase();
+    const similarAmt = Math.abs(a.expense - b.expense) / Math.max(a.expense, b.expense) < 0.05;
+    if (sameVendor && similarAmt && a.expense > 1000000) {
+      anomalies.push({
+        type: 'Near-Duplicate Transaction',
+        severity: 'warning',
+        desc: `"${a.desc}" muncul 2x dalam waktu berdekatan: Rp ${a.expense.toLocaleString('id')} (${a.date}) dan Rp ${b.expense.toLocaleString('id')} (${b.date}) — selisih hanya ${(Math.abs(a.expense-b.expense)/Math.max(a.expense,b.expense)*100).toFixed(1)}%`,
+        amount: a.expense + b.expense,
+        date: a.date,
+        action: 'Bandingkan kedua invoice. Perbedaan kecil pada jumlah bisa indikasi manipulasi invoice untuk menghindari deteksi duplikat.'
+      });
+      i++; // skip next
+    }
+  }
+
+  // ── 3. Spike detection — expense 3x above category average ──────
   const catExpense = {};
-  const catCount   = {};
   txList.forEach(tx => {
     if (tx.expense > 0) {
-      const k = tx.cat || tx.desc;
+      const k = tx.cat || tx.desc || 'Lainnya';
       catExpense[k] = catExpense[k] || [];
       catExpense[k].push({ amt: tx.expense, date: tx.date, desc: tx.desc });
     }
   });
   Object.entries(catExpense).forEach(([cat, txs]) => {
     if (txs.length < 3) return;
-    const avg = txs.reduce((s,t) => s+t.amt, 0) / txs.length;
+    const sorted2 = [...txs].map(t => t.amt).sort((a,b) => a-b);
+    // Use median to avoid skewing average with the spike itself
+    const median = sorted2[Math.floor(sorted2.length/2)];
     txs.forEach(t => {
-      if (t.amt > avg * 3.5 && t.amt > 2000000) {
+      if (t.amt > median * 3 && t.amt > 5000000) {
         anomalies.push({
-          type: 'Spike Pengeluaran',
+          type: 'Spike Pengeluaran Tidak Wajar',
           severity: 'critical',
-          desc: `${cat} pada ${t.date} sebesar Rp ${t.amt.toLocaleString('id')} — ${(t.amt/avg).toFixed(1)}x di atas rata-rata kategori (Rp ${Math.round(avg).toLocaleString('id')})`,
+          desc: `Kategori "${cat}" pada ${t.date}: Rp ${t.amt.toLocaleString('id')} — ${(t.amt/median).toFixed(1)}x di atas median kategori (Rp ${Math.round(median).toLocaleString('id')})`,
           amount: t.amt,
           date: t.date,
-          action: `Minta invoice & bukti penerimaan untuk transaksi ini. Bandingkan dengan pengeluaran ${cat} bulan-bulan sebelumnya.`
+          action: `Minta invoice asli + bukti penerimaan barang/jasa. Tanyakan ke kepala divisi: apakah ada approval untuk pengeluaran luar biasa ini?`
         });
       }
     });
   });
 
-  // 3. Round number pattern — 3+ transactions ending in 000000
-  const roundByDesc = {};
+  // ── 4. Split invoice / structuring (same vendor, multiple transactions same day) ──
+  const vendorDateMap = {};
   txList.forEach(tx => {
-    const key = tx.desc || tx.cat;
-    if (tx.expense > 0 && tx.expense % 500000 === 0 && tx.expense >= 1000000) {
-      roundByDesc[key] = roundByDesc[key] || [];
-      roundByDesc[key].push(tx);
+    if (!tx.expense || tx.expense <= 0) return;
+    const key = `${tx.desc||''}|${tx.date||''}`;
+    vendorDateMap[key] = vendorDateMap[key] || [];
+    vendorDateMap[key].push(tx);
+  });
+  Object.entries(vendorDateMap).forEach(([key, txs]) => {
+    if (txs.length >= 2) {
+      const total = txs.reduce((s,t) => s + t.expense, 0);
+      if (total > 20000000) {
+        const [desc, date] = key.split('|');
+        anomalies.push({
+          type: 'Split Invoice (Pecah Tagihan)',
+          severity: 'critical',
+          desc: `"${desc}" melakukan ${txs.length} transaksi pada ${date} dengan total Rp ${total.toLocaleString('id')}. Nilai individual: ${txs.map(t => 'Rp ' + t.expense.toLocaleString('id')).join(', ')}`,
+          amount: total,
+          date: date,
+          action: 'Indikasi kuat pemecahan tagihan untuk menghindari batas approval. Minta satu invoice konsolidasi dan verifikasi apakah ada approval atasan yang dilewati.'
+        });
+      }
     }
   });
-  Object.entries(roundByDesc).forEach(([desc, txs]) => {
+
+  // ── 5. Round number pattern ──────────────────────────────────────
+  const roundByVendor = {};
+  txList.forEach(tx => {
+    const key = tx.desc || tx.cat || 'Unknown';
+    if (tx.expense > 0 && tx.expense % 1000000 === 0 && tx.expense >= 5000000) {
+      roundByVendor[key] = roundByVendor[key] || [];
+      roundByVendor[key].push(tx);
+    }
+  });
+  Object.entries(roundByVendor).forEach(([desc, txs]) => {
     if (txs.length >= 3) {
       const total = txs.reduce((s,t) => s+t.expense, 0);
       anomalies.push({
         type: 'Round Number Pattern',
         severity: 'warning',
-        desc: `"${desc}" memiliki ${txs.length} transaksi dengan angka bulat sempurna berturut-turut. Total: Rp ${total.toLocaleString('id')}`,
+        desc: `"${desc}" memiliki ${txs.length} transaksi dengan angka bulat sempurna (kelipatan Rp 1jt). Total: Rp ${total.toLocaleString('id')}`,
         amount: total,
         date: txs[0].date,
-        action: 'Minta nota/invoice asli dari supplier. Angka bulat sempurna yang berulang adalah indikator manipulasi atau perkiraan kasar.'
+        action: 'Angka bulat berulang mengindikasikan invoice fiktif atau perkiraan kasar — bukan transaksi nyata. Minta semua nota/invoice asli.'
       });
     }
   });
 
-  // 4. Unknown large vendor — desc/cat never seen before with large amount
-  const knownCats = new Set(Object.keys(categories));
+  // ── 6. Unknown / new vendor with large amount ────────────────────
+  // Build known vendor list from frequent transactions
+  const vendorFreq = {};
+  txList.forEach(tx => { vendorFreq[tx.desc||''] = (vendorFreq[tx.desc||''] || 0) + 1; });
+  const knownVendors = new Set(Object.entries(vendorFreq).filter(([,v]) => v >= 3).map(([k]) => k.toLowerCase()));
   txList.forEach(tx => {
-    if (tx.expense >= 10000000) {
-      const isKnown = [...knownCats].some(k =>
-        k.toLowerCase().includes((tx.cat||'').toLowerCase().substring(0,5)) ||
-        (tx.cat||'').toLowerCase().includes(k.toLowerCase().substring(0,5))
-      );
-      // Flag if desc looks like a company name (has 'CV', 'PT', 'UD')
-      if (/\b(cv|pt|ud|tb|toko)\b/i.test(tx.desc)) {
+    if (tx.expense >= 15000000) {
+      const vendorLower = (tx.desc||'').toLowerCase();
+      const isNew = !knownVendors.has(vendorLower);
+      const isBizEntity = /(cv|pt|ud|tb|toko|vendor|supplier)/i.test(tx.desc||'');
+      if (isNew && isBizEntity) {
         anomalies.push({
-          type: 'Vendor Tidak Dikenal',
+          type: 'Vendor Baru Transaksi Besar',
           severity: 'critical',
-          desc: `"${tx.desc}" — entitas bisnis baru dengan transaksi besar Rp ${tx.expense.toLocaleString('id')} pada ${tx.date}`,
+          desc: `"${tx.desc}" — vendor baru (frekuensi rendah) dengan transaksi besar Rp ${tx.expense.toLocaleString('id')} pada ${tx.date}. Tidak ada rekam jejak transaksi sebelumnya.`,
           amount: tx.expense,
           date: tx.date,
-          action: 'Verifikasi NPWP & legalitas vendor. Pastikan barang/jasa benar-benar diterima. Minta invoice resmi.'
+          action: 'Verifikasi NPWP, akta pendirian, dan rekening bank vendor. Konfirmasi apakah barang/jasa benar-benar diterima. Cek apakah ada hubungan dengan karyawan internal.'
         });
       }
     }
   });
 
-  // 5. Weekend transactions — dd/mm/yyyy
+  // ── 7. Off-hours transactions (10pm - 6am) ───────────────────────
   txList.forEach(tx => {
-    const m = tx.date.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-    if (m) {
-      const d = new Date(`${m[3]}-${m[2]}-${m[1]}`);
-      if (d.getDay() === 0 && tx.expense > 3000000) { // Sunday
+    const tsRaw = tx.rawDate || tx.date || '';
+    const hourMatch = tsRaw.match(/(\d{2}):(\d{2})/);
+    if (hourMatch) {
+      const hour = parseInt(hourMatch[1]);
+      if ((hour >= 22 || hour < 6) && tx.expense > 5000000) {
         anomalies.push({
-          type: 'Transaksi Hari Minggu',
+          type: 'Transaksi Jam Tidak Wajar',
           severity: 'warning',
-          desc: `Pengeluaran Rp ${tx.expense.toLocaleString('id')} untuk "${tx.desc}" pada hari Minggu (${tx.date})`,
+          desc: `Pengeluaran Rp ${tx.expense.toLocaleString('id')} untuk "${tx.desc}" diproses pukul ${hourMatch[0]} (${tx.date}) — di luar jam operasional normal`,
           amount: tx.expense,
           date: tx.date,
-          action: 'Konfirmasi apakah ada operasional di hari Minggu. Jika tidak, transaksi ini perlu klarifikasi.'
+          action: 'Verifikasi siapa yang memproses transaksi ini dan atas otorisasi siapa. Akses sistem keuangan di luar jam kerja adalah red flag keamanan.'
         });
       }
+    }
+  });
+
+  // ── 8. Expense > revenue in a month (cashflow danger) ───────────
+  const monthlyNet = {};
+  txList.forEach(tx => {
+    const m = (tx.date||'').substring(0,7);
+    if (!m) return;
+    monthlyNet[m] = monthlyNet[m] || { income: 0, expense: 0 };
+    monthlyNet[m].income  += tx.income  || 0;
+    monthlyNet[m].expense += tx.expense || 0;
+  });
+  Object.entries(monthlyNet).forEach(([month, v]) => {
+    if (v.income > 0 && v.expense > v.income * 1.3) {
+      anomalies.push({
+        type: 'Pengeluaran Melebihi Pendapatan',
+        severity: 'warning',
+        desc: `Bulan ${month}: pengeluaran Rp ${v.expense.toLocaleString('id')} melebihi pendapatan Rp ${v.income.toLocaleString('id')} sebesar ${((v.expense/v.income-1)*100).toFixed(0)}%`,
+        amount: v.expense - v.income,
+        date: month,
+        action: 'Review semua pengeluaran bulan ini. Identifikasi pos yang bisa ditunda. Pastikan ada cashflow buffer untuk bulan berikutnya.'
+      });
     }
   });
 
@@ -2498,6 +2601,115 @@ function parseNumber(val) {
   return isNaN(n) ? null : n;
 }
 
+// ==================== EXPORT PDF ====================
+function exportPDF() {
+  if (!analysisResult) return;
+  const r = analysisResult;
+  const bizName = document.getElementById('nav-name')?.textContent || 'Bisnis Anda';
+  const date = new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+
+  const fraudRows = (r.fraudAlerts || []).map(f => `
+    <tr>
+      <td><span style="background:${f.severity==='critical'?'#FEE2E2':'#FEF9C3'};color:${f.severity==='critical'?'#DC2626':'#92400E'};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">${f.severity==='critical'?'KRITIS':'PERHATIAN'}</span></td>
+      <td style="font-weight:600;">${f.type||''}</td>
+      <td>${f.desc||''}</td>
+      <td style="text-align:right;font-weight:600;">Rp ${Number(f.amount||0).toLocaleString('id')}</td>
+    </tr>
+    <tr><td colspan="4" style="color:#6B7280;font-size:11px;padding:4px 8px 12px;">→ ${f.action||''}</td></tr>
+  `).join('');
+
+  const insightRows = (r.insights || []).map(i => `
+    <div style="margin-bottom:16px;padding:14px;border-left:4px solid ${i.type==='ok'?'#10B981':i.type==='warn'?'#F59E0B':'#3B82F6'};background:#F9FAFB;border-radius:0 8px 8px 0;">
+      <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${i.icon||''} ${i.title||''}</div>
+      <div style="font-size:12px;color:#374151;margin-bottom:6px;">${i.text||''}</div>
+      <div style="font-size:11px;color:#6B7280;line-height:1.6;">${i.reason||''}</div>
+    </div>
+  `).join('');
+
+  const recRows = (r.recs || []).map((rec, idx) => `
+    <div style="margin-bottom:12px;padding:12px 14px;background:${rec.priority==='critical'?'#FEF2F2':rec.priority==='high'?'#FFF7ED':'#F0FDF4'};border-radius:8px;border:1px solid ${rec.priority==='critical'?'#FECACA':rec.priority==='high'?'#FED7AA':'#BBF7D0'};">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:${rec.priority==='critical'?'#DC2626':rec.priority==='high'?'#EA580C':rec.priority==='med'?'#2563EB':'#16A34A'};color:white;">${(rec.priority||'').toUpperCase()}</span>
+        <span style="font-weight:700;font-size:13px;">${rec.title||''}</span>
+      </div>
+      <div style="font-size:12px;color:#374151;margin-bottom:4px;">${rec.desc||''}</div>
+      <div style="font-size:11px;color:#6B7280;">💰 ${rec.impact||''}</div>
+    </div>
+  `).join('');
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>Laporan Findible — ${bizName}</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color:#111827; background:white; padding:40px; font-size:13px; }
+  .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; padding-bottom:20px; border-bottom:2px solid #1B3FE4; }
+  .brand { font-size:22px; font-weight:800; color:#1B3FE4; }
+  .meta { text-align:right; color:#6B7280; font-size:12px; }
+  h2 { font-size:15px; font-weight:700; color:#1B3FE4; margin:28px 0 14px; padding-bottom:6px; border-bottom:1px solid #E5E7EB; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:8px; }
+  .kpi { background:#F4F6FB; border-radius:10px; padding:14px 16px; }
+  .kpi-label { font-size:11px; color:#6B7280; margin-bottom:4px; }
+  .kpi-value { font-size:18px; font-weight:800; }
+  .kpi-value.green { color:#10B981; }
+  .kpi-value.warn { color:#EF4444; }
+  .score-bar { background:#F4F6FB; border-radius:10px; padding:14px 16px; margin-bottom:8px; }
+  table { width:100%; border-collapse:collapse; margin-bottom:8px; }
+  th { background:#F4F6FB; padding:8px 12px; text-align:left; font-size:11px; font-weight:700; color:#6B7280; }
+  td { padding:8px 12px; border-bottom:1px solid #F3F4F6; font-size:12px; vertical-align:top; }
+  .footer { margin-top:40px; padding-top:16px; border-top:1px solid #E5E7EB; font-size:10px; color:#9CA3AF; text-align:center; }
+  @media print { body { padding:20px; } }
+</style>
+</head><body>
+<div class="header">
+  <div>
+    <div class="brand">Findible</div>
+    <div style="font-size:13px;color:#6B7280;margin-top:4px;">Laporan Analisis Keuangan AI</div>
+  </div>
+  <div class="meta">
+    <div style="font-weight:700;font-size:14px;color:#111827;">${bizName}</div>
+    <div>Dibuat: ${date}</div>
+    <div>Skor Kesehatan: <strong style="color:${r.score>=75?'#10B981':r.score>=55?'#F59E0B':'#EF4444'}">${r.score}/100 — ${r.scoreLabel||''}</strong></div>
+  </div>
+</div>
+
+<h2>📊 Ringkasan Keuangan</h2>
+<div class="kpi-grid">
+  <div class="kpi"><div class="kpi-label">Total Pendapatan</div><div class="kpi-value green">${formatRp(r.totalIncome)}</div></div>
+  <div class="kpi"><div class="kpi-label">Total Pengeluaran</div><div class="kpi-value warn">${formatRp(r.totalExpense)}</div></div>
+  <div class="kpi"><div class="kpi-label">Laba Bersih</div><div class="kpi-value ${r.profit>=0?'green':'warn'}">${formatRp(r.profit)}</div></div>
+  <div class="kpi"><div class="kpi-label">Margin Bersih</div><div class="kpi-value">${r.margin?.toFixed(1)}%</div></div>
+</div>
+${r.scoreBasis ? `<div class="score-bar" style="font-size:12px;color:#374151;"><strong>Dasar Skor:</strong> ${r.scoreBasis}</div>` : ''}
+
+<h2>💡 Insights CFO</h2>
+${insightRows}
+
+<h2>🎯 Rekomendasi Aksi</h2>
+${recRows}
+
+${(r.fraudAlerts||[]).length > 0 ? `
+<h2>🚨 Fraud Radar — ${(r.fraudAlerts||[]).length} Anomali Terdeteksi</h2>
+<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;">
+  <strong>Ringkasan:</strong> ${r.fraudSummary||''}
+</div>
+<table>
+  <thead><tr><th>Level</th><th>Tipe</th><th>Detail</th><th>Nilai</th></tr></thead>
+  <tbody>${fraudRows}</tbody>
+</table>` : `<h2>✅ Fraud Radar</h2><div style="padding:14px;background:#ECFDF5;border-radius:8px;color:#065F46;">Tidak ada anomali signifikan yang terdeteksi.</div>`}
+
+<div class="footer">
+  Laporan ini dibuat otomatis oleh Findible AI · Bersifat indikatif · Verifikasi dengan akuntan sebelum mengambil keputusan strategis<br>
+  © ${new Date().getFullYear()} Findible · findible.vercel.app
+</div>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 500);
+}
+
 function formatRp(num) {
   const abs = Math.abs(num);
   if (abs >= 1000000000) return 'Rp ' + (abs/1000000000).toFixed(1) + 'M';
@@ -2520,6 +2732,10 @@ function renderResult(r) {
   scoreEl.className = 'kpi-cell-value ' + (r.score >= 75 ? 'green' : r.score >= 55 ? 'gold' : 'warn');
   document.getElementById('kpi-score-label').textContent = r.score >= 75 ? '✅ Sehat' : r.score >= 55 ? '⚠️ Cukup Baik' : '🚨 Perlu Perhatian';
   document.getElementById('kpi-score-label').className = 'kpi-cell-change ' + (r.score >= 75 ? 'up' : r.score >= 55 ? '' : 'down');
+  if (r.scoreBasis) {
+    const basisEl = document.getElementById('kpi-score-basis');
+    if (basisEl) { basisEl.textContent = r.scoreBasis; basisEl.style.display = 'block'; }
+  }
 
   document.getElementById('result-sub').innerHTML = `Dianalisis dari file Anda · <span id="result-date">${new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</span>`;
 
