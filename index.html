@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CFO.ai – Masuk atau Daftar</title>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root {
     --bg: #0D0F0E;
@@ -283,10 +283,16 @@ const SUPABASE_URL = 'https://pqpvtlfhewutpjwqdyqt.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcHZ0bGZoZXd1dHBqd3FkeXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTM4MzcsImV4cCI6MjA4ODQ4OTgzN30.cW9U7vgHV7OqJ0h3NXkiXgcos25-7y0246LDpjTITK4';
 // ────────────────────────────────────────────────────────
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let supabase;
+try {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch(e) {
+  console.error('Supabase init failed:', e);
+}
 
 // Kalau sudah login → langsung ke dashboard
 async function checkExistingSession() {
+  if (!supabase) return;
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -323,6 +329,10 @@ function setLoading(btnId, loading, label) {
 
 // ── Login ───────────────────────────────────────────────
 async function doLogin() {
+  if (!supabase) {
+    showAlert('masuk', 'Koneksi gagal. Refresh halaman dan coba lagi.');
+    return;
+  }
   const email    = document.getElementById('masuk-email').value.trim();
   const password = document.getElementById('masuk-password').value;
 
