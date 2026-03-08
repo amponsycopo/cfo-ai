@@ -2488,28 +2488,22 @@ CASHFLOW:
 ${bsStr}
 
 TOP 5 PRODUK/LAYANAN (by Revenue):
-${d.topProducts.map((p,i) => `${i+1}. ${p.name}: Rp ${p.val.toLocaleString('id')} (${p.pct}%)`).join('
-')}
+${d.topProducts.map((p,i) => (i+1)+'. '+p.name+': Rp '+p.val.toLocaleString('id')+' ('+p.pct+'%)').join(' | ')}
 
 TOP 5 CUSTOMER:
-${d.topCustomers.map((c,i) => `${i+1}. ${c.name}: Rp ${c.val.toLocaleString('id')} (${c.pct}%)`).join('
-')}
+${d.topCustomers.map((c,i) => (i+1)+'. '+c.name+': Rp '+c.val.toLocaleString('id')+' ('+c.pct+'%)').join(' | ')}
 
 TOP 5 PENGELUARAN PER KATEGORI:
-${d.topExpenses.map((e,i) => `${i+1}. ${e.name}: Rp ${e.val.toLocaleString('id')} (${e.pct}%)`).join('
-')}
+${d.topExpenses.map((e,i) => (i+1)+'. '+e.name+': Rp '+e.val.toLocaleString('id')+' ('+e.pct+'%)').join(' | ')}
 
 TOP 5 VENDOR (by Spend):
-${d.topVendors.map((v,i) => `${i+1}. ${v.name}: Rp ${v.val.toLocaleString('id')}`).join('
-')}
+${d.topVendors.map((v,i) => (i+1)+'. '+v.name+': Rp '+v.val.toLocaleString('id')).join(' | ')}
 
 TREN BULANAN (6 bulan terakhir):
-${d.monthlyData.slice(-6).map(m => `${m.month}: revenue=${m.income.toLocaleString('id')} expense=${m.expense.toLocaleString('id')}`).join('
-')}
+${d.monthlyData.slice(-6).map(m => m.month+': revenue='+m.income.toLocaleString('id')+' expense='+m.expense.toLocaleString('id')).join(' | ')}
 
 ANOMALI TERDETEKSI (pre-processor):
-${d.fraudFlags.length > 0 ? d.fraudFlags.map(f => `[${f.type}] ${f.desc}`).join('
-') : 'Tidak ada anomali signifikan'}
+${d.fraudFlags.length > 0 ? d.fraudFlags.map(f => `[${f.type}] ${f.desc}`).join(' | ') : 'Tidak ada anomali signifikan'}
 `.trim();
 
   const prompt = `Kamu adalah AI CFO senior berpengalaman 20 tahun yang mengaudit perusahaan menengah-besar Indonesia. Data ini berasal dari software akuntansi Accurate — data sangat lengkap dan akurat. Berikan analisis sekelas Big 4 consulting firm.
