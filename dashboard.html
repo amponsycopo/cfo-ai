@@ -1103,7 +1103,7 @@ tbody tr:hover td { background: var(--bg); }
           </div>
           <div class="proc-step" id="ps-3">
             <div class="proc-icon">🤖</div>
-            Findi menganalisis tren & anomali
+            AI menganalisis tren & anomali
           </div>
           <div class="proc-step" id="ps-4">
             <div class="proc-icon">💡</div>
@@ -1466,20 +1466,35 @@ function handleFile(e) {
   if (file) processFile(file);
 }
 
+let workbookSheets = {}; // store all sheets
+
 function processFile(file) {
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
-      let data;
       if (file.name.endsWith('.csv')) {
-        data = parseCSV(e.target.result);
+        const data = parseCSV(e.target.result);
+        workbookSheets = { 'Sheet1': data };
+        parsedData = data;
+        showPreview(data, file.name, false);
       } else {
         const wb = XLSX.read(e.target.result, { type: 'array' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        // Store all sheets
+        workbookSheets = {};
+        wb.SheetNames.forEach(name => {
+          workbookSheets[name] = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '' });
+        });
+
+        if (wb.SheetNames.length > 1) {
+          // Multi-sheet: show mapping UI
+          showSheetMapper(wb.SheetNames, file.name);
+        } else {
+          // Single sheet: langsung preview
+          const data = workbookSheets[wb.SheetNames[0]];
+          parsedData = data;
+          showPreview(data, file.name, false);
+        }
       }
-      parsedData = data;
-      showPreview(data, file.name);
     } catch(err) {
       alert('Gagal membaca file. Pastikan format Excel/CSV yang valid.');
     }
@@ -1488,11 +1503,214 @@ function processFile(file) {
   else reader.readAsArrayBuffer(file);
 }
 
+// ── Auto-detect sheet role ────────────────────────────────
+function detectSheetRole(sheetName) {
+  const n = sheetName.toLowerCase();
+  if (/sales|revenue|income|penjualan|pendapatan|pemasukan|omzet/.test(n)) return 'income';
+  if (/expense|cost|biaya|pengeluaran|belanja|keluar/.test(n)) return 'expense';
+  return null;
+}
+
+// ── Auto-detect column role ───────────────────────────────
+function detectColRole(colName) {
+  const n = String(colName).toLowerCase();
+  if (/tanggal|date|tgl|time|timestamp/.test(n)) return 'date';
+  if (/nominal|amount|jumlah|total|nilai|revenue|pendapatan|pengeluaran|harga|price|revenue_estimate/.test(n)) return 'amount';
+  if (/deskripsi|desc|keterangan|nama|vendor|item|produk|uraian|notes/.test(n)) return 'desc';
+  return null;
+}
+
+function showSheetMapper(sheetNames, filename) {
+  // Auto-detect roles
+  let autoIncome  = sheetNames.find(s => detectSheetRole(s) === 'income')  || sheetNames[0];
+  let autoExpense = sheetNames.find(s => detectSheetRole(s) === 'expense') || (sheetNames[1] || sheetNames[0]);
+
+  // Auto-detect columns for each sheet
+  function getHeaders(sheetName) {
+    const rows = workbookSheets[sheetName] || [];
+    // Find header row
+    for (let i = 0; i < Math.min(5, rows.length); i++) {
+      if (rows[i].filter(c => c !== '').length >= 2) return rows[i].map(String);
+    }
+    return [];
+  }
+
+  function autoCol(headers, role) {
+    return headers.find(h => detectColRole(h) === role) || headers[0] || '';
+  }
+
+  function sheetOptions(selected) {
+    return sheetNames.map(s => `<option value="${s}" ${s===selected?'selected':''}>${s}</option>`).join('');
+  }
+
+  function colOptions(sheetName, selectedRole) {
+    const headers = getHeaders(sheetName);
+    const autoSelected = autoCol(headers, selectedRole);
+    return headers.map(h => `<option value="${h}" ${h===autoSelected?'selected':''}>${h}</option>`).join('');
+  }
+
+  const incomeHeaders  = getHeaders(autoIncome);
+  const expenseHeaders = getHeaders(autoExpense);
+
+  const mapperHtml = `
+    <div id="sheet-mapper" style="margin-top:20px;padding:20px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">📋 Petakan Sheet</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">
+        Ditemukan <strong style="color:var(--blue)">${sheetNames.length} sheet</strong> — Findible sudah mencoba mendeteksi otomatis. Konfirmasi atau koreksi jika perlu.
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+        <!-- INCOME -->
+        <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:16px;">
+          <div style="font-size:11px;font-weight:700;color:var(--green);letter-spacing:0.5px;margin-bottom:10px;">📈 PENDAPATAN / PENJUALAN</div>
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Sheet</label>
+            <select id="map-income-sheet" onchange="updateColOptions('income')" style="width:100%;padding:7px 10px;border:1.5px solid var(--green-border);border-radius:7px;font-size:12px;background:white;color:var(--text);outline:none;">
+              ${sheetOptions(autoIncome)}
+            </select>
+          </div>
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Kolom Tanggal</label>
+            <select id="map-income-date" style="width:100%;padding:7px 10px;border:1.5px solid var(--green-border);border-radius:7px;font-size:12px;background:white;color:var(--text);outline:none;">
+              ${colOptions(autoIncome, 'date')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Kolom Nominal</label>
+            <select id="map-income-amount" style="width:100%;padding:7px 10px;border:1.5px solid var(--green-border);border-radius:7px;font-size:12px;background:white;color:var(--text);outline:none;">
+              ${colOptions(autoIncome, 'amount')}
+            </select>
+          </div>
+        </div>
+
+        <!-- EXPENSE -->
+        <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:10px;padding:16px;">
+          <div style="font-size:11px;font-weight:700;color:var(--red);letter-spacing:0.5px;margin-bottom:10px;">📉 PENGELUARAN / BIAYA</div>
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Sheet</label>
+            <select id="map-expense-sheet" onchange="updateColOptions('expense')" style="width:100%;padding:7px 10px;border:1.5px solid var(--red-border);border-radius:7px;font-size:12px;background:white;color:var(--text);outline:none;">
+              ${sheetOptions(autoExpense)}
+            </select>
+          </div>
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Kolom Tanggal</label>
+            <select id="map-expense-date" style="width:100%;padding:7px 10px;border:1.5px solid var(--red-border);border-radius:7px;font-size:12px;background:white;color:var(--text);outline:none;">
+              ${colOptions(autoExpense, 'date')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Kolom Nominal</label>
+            <select id="map-expense-amount" style="width:100%;padding:7px 10px;border:1.5px solid var(--red-border);border-radius:7px;font-size:12px;background:white;color:var(--text);outline:none;">
+              ${colOptions(autoExpense, 'amount')}
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:12px;padding:10px 14px;background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:8px;font-size:11px;color:var(--blue);">
+        💡 <strong>Tips:</strong> Kalau sheet yang sama berisi pendapatan DAN pengeluaran, pilih sheet yang sama untuk keduanya — Findible akan membaca berdasarkan kolom nominal masing-masing.
+      </div>
+
+      <button class="btn-primary" onclick="applySheetMapping()" style="margin-top:14px;width:100%;justify-content:center;">
+        ✓ Konfirmasi & Lanjut
+      </button>
+    </div>
+  `;
+
+  // Update dropzone & show mapper
+  const dz = document.getElementById('dropzone');
+  dz.innerHTML = `
+    <div class="upload-icon">✅</div>
+    <div class="upload-title" style="color:var(--green);">${filename}</div>
+    <div class="upload-sub">${sheetNames.length} sheet ditemukan · <span onclick="document.getElementById('file-input').click()">Ganti file</span></div>
+    <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+  `;
+
+  document.getElementById('preview-wrap').classList.add('visible');
+  document.getElementById('preview-stats').innerHTML = '';
+  document.getElementById('preview-table').innerHTML = '';
+  document.getElementById('preview-wrap').innerHTML = mapperHtml;
+  document.getElementById('email-section').style.display = 'none';
+}
+
+function updateColOptions(role) {
+  const sheetName = document.getElementById(`map-${role}-sheet`).value;
+  const rows = workbookSheets[sheetName] || [];
+  let headers = [];
+  for (let i = 0; i < Math.min(5, rows.length); i++) {
+    if (rows[i].filter(c => c !== '').length >= 2) { headers = rows[i].map(String); break; }
+  }
+  ['date','amount'].forEach(colRole => {
+    const sel = document.getElementById(`map-${role}-${colRole}`);
+    const autoSelected = headers.find(h => detectColRole(h) === colRole) || headers[0] || '';
+    sel.innerHTML = headers.map(h => `<option value="${h}" ${h===autoSelected?'selected':''}>${h}</option>`).join('');
+  });
+}
+
+function applySheetMapping() {
+  const incomeSheet   = document.getElementById('map-income-sheet').value;
+  const incomeDateCol = document.getElementById('map-income-date').value;
+  const incomeAmtCol  = document.getElementById('map-income-amount').value;
+  const expenseSheet  = document.getElementById('map-expense-sheet').value;
+  const expenseDateCol= document.getElementById('map-expense-date').value;
+  const expenseAmtCol = document.getElementById('map-expense-amount').value;
+
+  // Build unified data in standard format:
+  // [Tanggal, Deskripsi, Kategori, Tipe, Pendapatan, Pengeluaran]
+  const unified = [['Tanggal','Deskripsi','Kategori','Tipe','Pendapatan','Pengeluaran']];
+
+  function getColIdx(sheetName, colName) {
+    const rows = workbookSheets[sheetName] || [];
+    for (let i = 0; i < Math.min(5, rows.length); i++) {
+      const idx = rows[i].findIndex(h => String(h) === colName);
+      if (idx >= 0) return { headerRow: i, colIdx: idx };
+    }
+    return { headerRow: 0, colIdx: 0 };
+  }
+
+  // Process income sheet
+  const incInfo = getColIdx(incomeSheet, incomeDateCol);
+  const incAmtInfo = getColIdx(incomeSheet, incomeAmtCol);
+  const incRows = workbookSheets[incomeSheet] || [];
+  incRows.slice(incInfo.headerRow + 1).forEach(row => {
+    const date = row[incInfo.colIdx] || '';
+    const amt  = row[incAmtInfo.colIdx] || 0;
+    if (!date && !amt) return;
+    // Find desc col (first non-date, non-amount col)
+    const desc = row.find((c, i) => i !== incInfo.colIdx && i !== incAmtInfo.colIdx && c !== '') || '';
+    unified.push([date, desc, 'Pendapatan', 'Pendapatan', amt, '']);
+  });
+
+  // Process expense sheet (if different from income)
+  const expInfo = getColIdx(expenseSheet, expenseDateCol);
+  const expAmtInfo = getColIdx(expenseSheet, expenseAmtCol);
+  const expRows = workbookSheets[expenseSheet] || [];
+  expRows.slice(expInfo.headerRow + 1).forEach(row => {
+    const date = row[expInfo.colIdx] || '';
+    const amt  = row[expAmtInfo.colIdx] || 0;
+    if (!date && !amt) return;
+    const desc = row.find((c, i) => i !== expInfo.colIdx && i !== expAmtInfo.colIdx && c !== '') || '';
+    unified.push([date, desc, 'Pengeluaran', 'Pengeluaran', '', amt]);
+  });
+
+  parsedData = unified;
+
+  // Show preview of merged data
+  document.getElementById('preview-wrap').innerHTML = `
+    <div id="preview-stats" class="preview-stats"></div>
+    <div class="table-wrap"><table id="preview-table"></table></div>
+  `;
+  showPreview(unified, `${incomeSheet} + ${expenseSheet}`, true);
+}
+
+
 function parseCSV(text) {
   return text.split('\n').map(row => row.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
 }
 
-function showPreview(data, filename) {
+function showPreview(data, filename, isMerged) {
   const rows = data.filter(r => r.some(c => c !== ''));
   const headers = rows[0] || [];
   const dataRows = rows.slice(1);
@@ -1502,7 +1720,7 @@ function showPreview(data, filename) {
   statsEl.innerHTML = `
     <div class="preview-stat"><strong>${rows.length}</strong>Total Baris</div>
     <div class="preview-stat"><strong>${headers.length}</strong>Kolom</div>
-    <div class="preview-stat"><strong>${filename}</strong>Nama File</div>
+    ${isMerged ? `<div class="preview-stat" style="background:var(--green-bg);border-color:var(--green-border);color:var(--green);">✅ ${filename} — sheet berhasil digabung</div>` : `<div class="preview-stat"><strong>${filename}</strong></div>`}
   `;
 
   // Table (max 6 rows preview)
