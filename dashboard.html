@@ -2193,7 +2193,7 @@ function preAggregate(data) {
 
     // Store for anomaly detection
     if (desc || cat) {
-      txList.push({ date: dateRaw, desc, cat, income, expense, amount: income || expense });
+      txList.push({ date: dateRaw, desc, cat, vendor: desc || cat, flag, income, expense, amount: income || expense, rawDate: dateRaw });
     }
   });
 
@@ -2376,9 +2376,9 @@ function detectAnomalies(txList, categories) {
   const catExpense = {};
   txList.forEach(tx => {
     if (tx.expense > 0) {
-      const k = tx.cat || tx.desc || 'Lainnya';
+      const k = tx.cat || 'Lainnya';
       catExpense[k] = catExpense[k] || [];
-      catExpense[k].push({ amt: tx.expense, date: tx.date, desc: tx.desc });
+      catExpense[k].push({ amt: tx.expense, date: tx.date, desc: tx.desc, vendor: tx.vendor || tx.desc });
     }
   });
   Object.entries(catExpense).forEach(([cat, txs]) => {
@@ -2391,10 +2391,10 @@ function detectAnomalies(txList, categories) {
         anomalies.push({
           type: 'Spike Pengeluaran Tidak Wajar',
           severity: 'critical',
-          desc: `Kategori "${cat}" pada ${t.date}: Rp ${t.amt.toLocaleString('id')} — ${(t.amt/median).toFixed(1)}x di atas median kategori (Rp ${Math.round(median).toLocaleString('id')})`,
+          desc: `[${cat}] "${t.vendor || t.desc || 'transaksi'}" pada ${t.date}: Rp ${t.amt.toLocaleString('id')} — ${(t.amt/median).toFixed(1)}x di atas median kategori (Rp ${Math.round(median).toLocaleString('id')})`,
           amount: t.amt,
           date: t.date,
-          action: `Minta invoice asli + bukti penerimaan barang/jasa. Tanyakan ke kepala divisi: apakah ada approval untuk pengeluaran luar biasa ini?`
+          action: `Minta invoice asli + bukti penerimaan untuk "${t.vendor || t.desc}". Tanyakan ke kepala divisi: apakah ada approval untuk pengeluaran luar biasa ini?`
         });
       }
     });
@@ -2416,7 +2416,7 @@ function detectAnomalies(txList, categories) {
         anomalies.push({
           type: 'Split Invoice (Pecah Tagihan)',
           severity: 'critical',
-          desc: `"${desc}" melakukan ${txs.length} transaksi pada ${date} dengan total Rp ${total.toLocaleString('id')}. Nilai individual: ${txs.map(t => 'Rp ' + t.expense.toLocaleString('id')).join(', ')}`,
+          desc: `"${desc}" — ${txs.length} transaksi pada ${date}, total Rp ${total.toLocaleString('id')}. Detail: ${txs.map((t,i) => `#${i+1} Rp ${t.expense.toLocaleString('id')}`).join(' | ')}`,
           amount: total,
           date: date,
           action: 'Indikasi kuat pemecahan tagihan untuk menghindari batas approval. Minta satu invoice konsolidasi dan verifikasi apakah ada approval atasan yang dilewati.'
@@ -2431,7 +2431,7 @@ function detectAnomalies(txList, categories) {
     const key = tx.desc || tx.cat || 'Unknown';
     if (tx.expense > 0 && tx.expense % 1000000 === 0 && tx.expense >= 5000000) {
       roundByVendor[key] = roundByVendor[key] || [];
-      roundByVendor[key].push(tx);
+      roundByVendor[key].push({...tx, displayName: tx.vendor || tx.desc || tx.cat});
     }
   });
   Object.entries(roundByVendor).forEach(([desc, txs]) => {
@@ -2440,10 +2440,10 @@ function detectAnomalies(txList, categories) {
       anomalies.push({
         type: 'Round Number Pattern',
         severity: 'warning',
-        desc: `"${desc}" memiliki ${txs.length} transaksi dengan angka bulat sempurna (kelipatan Rp 1jt). Total: Rp ${total.toLocaleString('id')}`,
+        desc: `"${desc}" memiliki ${txs.length} transaksi dengan angka bulat sempurna (kelipatan Rp 1jt). Nilai: ${txs.map(t => 'Rp ' + t.expense.toLocaleString('id')).join(', ')}. Total: Rp ${total.toLocaleString('id')}`,
         amount: total,
         date: txs[0].date,
-        action: 'Angka bulat berulang mengindikasikan invoice fiktif atau perkiraan kasar — bukan transaksi nyata. Minta semua nota/invoice asli.'
+        action: `Angka bulat berulang pada "${desc}" mengindikasikan invoice fiktif atau perkiraan kasar. Minta semua nota/invoice asli untuk setiap transaksi.`
       });
     }
   });
