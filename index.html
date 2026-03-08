@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFO.ai — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0A0A08;
+    --surface:  #0F0F0D;
+    --surface2: #141412;
+    --border:   #1E1E18;
+    --border2:  #2A2A24;
+    --green:    #4CAF82;
+    --green-dk: #1B4D3E;
+    --green-dim:#0D2A1A;
+    --gold:     #D4A843;
+    --warn:     #E57373;
+    --ink:      #F0F0E8;
+    --ink2:     #A0A09A;
+    --ink3:     #5A5A54;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    overflow: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(76,175,130,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(76,175,130,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  /* Glow blob */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -20%; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(27,77,62,0.35) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .page {
+    position: relative; z-index: 1;
+    height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+
+  .card {
+    width: 100%; max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 24px;
+    padding: 40px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 32px;
+  }
+  .logo-mark {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--green-dim); border: 1px solid var(--green-dk);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 800; color: var(--ink);
+  }
+  .logo-text span { color: var(--green); }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--ink); margin-bottom: 6px;
+  }
+  .card-sub {
+    font-size: 13px; color: var(--ink3);
+    margin-bottom: 28px; line-height: 1.5;
+  }
+
+  /* Tab switcher */
+  .tabs {
+    display: flex; gap: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px;
+    margin-bottom: 24px;
+  }
+  .tab {
+    flex: 1; padding: 8px;
+    border: none; border-radius: 7px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+    background: transparent; color: var(--ink3);
+  }
+  .tab.active {
+    background: var(--green-dk);
+    color: var(--green);
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block; font-size: 11px; font-weight: 600;
+    color: var(--ink3); letter-spacing: 0.5px;
+    margin-bottom: 6px; text-transform: uppercase;
+  }
+  .form-input {
+    width: 100%; padding: 12px 14px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 10px; color: var(--ink);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--green); }
+  .form-input::placeholder { color: var(--ink3); }
+
+  .btn-primary {
+    width: 100%; padding: 13px;
+    background: var(--green); color: #0A0A08;
+    border: none; border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    margin-top: 8px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 20px 0; color: var(--ink3); font-size: 12px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border2);
+  }
+
+  .demo-box {
+    background: var(--green-dim);
+    border: 1px solid var(--green-dk);
+    border-radius: 10px; padding: 14px 16px;
+    font-size: 12px; color: var(--ink2); line-height: 1.6;
+  }
+  .demo-box strong { color: var(--green); }
+
+  .error-msg {
+    background: #1A0808; border: 1px solid #3A1515;
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 12px; color: var(--warn);
+    margin-bottom: 12px; display: none;
+  }
+
+  .spin {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: #0A0A08;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .form-panel { display: none; }
+  .form-panel.active { display: block; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="card">
+    <div class="logo">
+      <div class="logo-mark">💼</div>
+      <div class="logo-text">CFO<span>.ai</span></div>
+    </div>
+
+    <div class="card-title">Selamat datang</div>
+    <p class="card-sub">Analisis keuangan bisnis Anda dengan AI dalam 30 detik.</p>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Masuk</button>
+      <button class="tab" onclick="switchTab('register')">Daftar</button>
+    </div>
+
+    <div id="error-msg" class="error-msg"></div>
+
+    <!-- LOGIN -->
+    <div id="panel-login" class="form-panel active">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="login-email" type="email" placeholder="email@bisnis.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="login-pass" type="password" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter') doLogin()" />
+      </div>
+      <button class="btn-primary" id="btn-login" onclick="doLogin()">
+        Masuk
+      </button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="panel-register" class="form-panel">
+      <div class="form-group">
+        <label class="form-label">Nama Bisnis</label>
+        <input class="form-input" id="reg-name" type="text" placeholder="Kopi Andika / Toko Makmur" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="reg-email" type="email" placeholder="email@bisnis.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="reg-pass" type="password" placeholder="Min. 8 karakter"
+          onkeydown="if(event.key==='Enter') doRegister()" />
+      </div>
+      <button class="btn-primary" id="btn-register" onclick="doRegister()">
+        Buat Akun Demo
+      </button>
+
+      <div class="divider">akun demo</div>
+      <div class="demo-box">
+        ✨ <strong>3 analisis gratis</strong> — tidak perlu kartu kredit.<br>
+        Upload file Excel keuangan Anda, AI langsung analisis dan kirim laporan ke email.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ── Config (ganti dengan milik lo) ──────────────────────
+  const SUPABASE_URL = 'GANTI_SUPABASE_URL';
+  const SUPABASE_KEY = 'GANTI_SUPABASE_ANON_KEY';
+  // ────────────────────────────────────────────────────────
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Check if already logged in
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session) window.location.href = 'app.html';
+  });
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((t,i) =>
+      t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register'))
+    );
+    document.getElementById('panel-login').classList.toggle('active', tab==='login');
+    document.getElementById('panel-register').classList.toggle('active', tab==='register');
+    hideError();
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg; el.style.display = 'block';
+  }
+  function hideError() {
+    document.getElementById('error-msg').style.display = 'none';
+  }
+
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (loading) {
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spin"></div>';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btnId === 'btn-login' ? 'Masuk' : 'Buat Akun Demo';
+    }
+  }
+
+  async function doLogin() {
+    hideError();
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    if (!email || !pass) return showError('Email dan password wajib diisi.');
+
+    setLoading('btn-login', true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+    setLoading('btn-login', false);
+
+    if (error) return showError('Email atau password salah.');
+    window.location.href = 'app.html';
+  }
+
+  async function doRegister() {
+    hideError();
+    const name  = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const pass  = document.getElementById('reg-pass').value;
+
+    if (!name || !email || !pass) return showError('Semua field wajib diisi.');
+    if (pass.length < 8) return showError('Password minimal 8 karakter.');
+
+    setLoading('btn-register', true);
+    const { data, error } = await supabase.auth.signUp({
+      email, password: pass,
+      options: { data: { business_name: name, credits: 3 } }
+    });
+    setLoading('btn-register', false);
+
+    if (error) return showError(error.message);
+
+    // Insert user profile with 3 credits
+    if (data.user) {
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        email,
+        business_name: name,
+        credits: 3
+      });
+    }
+
+    // Auto-login after register
+    window.location.href = 'app.html';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,2416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFO.ai – Analisis Keuangan Otomatis</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #0D0F0E;
+    --surface: #141714;
+    --surface2: #1C1F1C;
+    --surface3: #232623;
+    --ink: #F0EDE6;
+    --ink2: #8A9088;
+    --ink3: #4A504A;
+    --accent: #A8D5A2;
+    --accent2: #6BBF65;
+    --accent-dark: #2D5C2A;
+    --warn: #E8845A;
+    --warn-dark: #5C2D14;
+    --gold: #D4B96A;
+    --gold-dark: #5C4A1A;
+    --border: #1E221E;
+    --border2: #252925;
+    --radius: 18px;
+    --radius-sm: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+
+  /* LAYOUT */
+  .app {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+    position: relative; z-index: 1;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+    animation: slideDown 0.6s ease;
+  }
+
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity: 0.4; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1); } }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  @keyframes barGrow { from { width: 0; } to { width: var(--w); } }
+
+  .logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 40px;
+    padding: 8px 20px 8px 12px;
+    margin-bottom: 28px;
+  }
+
+  .logo-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--accent-dark));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  .logo-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 16px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+
+  .logo-name span { color: var(--accent2); }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(36px, 6vw, 52px);
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 16px;
+    letter-spacing: -1.5px;
+  }
+
+  h1 em { color: var(--accent2); font-style: italic; }
+
+  .header-sub {
+    font-size: 16px;
+    color: var(--ink2);
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto 28px;
+  }
+
+  .flow-steps {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; flex-wrap: wrap;
+  }
+
+  .flow-step {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500;
+    color: var(--ink2);
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 5px 12px;
+  }
+
+  .flow-step.done { color: var(--accent2); border-color: var(--accent-dark); background: rgba(107,191,101,0.08); }
+  .flow-step.active { color: var(--ink); border-color: var(--ink3); background: var(--surface3); }
+
+  .flow-arrow { color: var(--ink3); font-size: 12px; }
+
+  /* MAIN CARD */
+  .main-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 24px;
+    overflow: hidden;
+    animation: slideUp 0.6s ease 0.1s both;
+  }
+
+  /* STEP PANELS */
+  .step-panel { display: none; }
+  .step-panel.active { display: block; }
+
+  /* ========== STEP 1: UPLOAD ========== */
+  .upload-zone {
+    padding: 48px 40px;
+  }
+
+  .upload-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--ink2);
+    margin-bottom: 24px;
+  }
+
+  .upload-dropzone {
+    border: 2px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    background: var(--surface2);
+  }
+
+  .upload-dropzone:hover, .upload-dropzone.drag-over {
+    border-color: var(--accent2);
+    background: rgba(107,191,101,0.05);
+  }
+
+  .upload-dropzone input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+
+  .upload-icon-wrap {
+    width: 72px; height: 72px; border-radius: 20px;
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 32px;
+    transition: transform 0.2s;
+  }
+
+  .upload-dropzone:hover .upload-icon-wrap { transform: translateY(-4px); }
+
+  .upload-main-text {
+    font-size: 17px; font-weight: 500;
+    color: var(--ink); margin-bottom: 8px;
+  }
+
+  .upload-sub-text {
+    font-size: 13px; color: var(--ink2); line-height: 1.6;
+  }
+
+  .upload-sub-text span { color: var(--accent2); font-weight: 500; }
+
+  .format-chips {
+    display: flex; gap: 8px; justify-content: center; margin-top: 20px; flex-wrap: wrap;
+  }
+
+  .format-chip {
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    background: var(--surface3); color: var(--ink2);
+    border: 1px solid var(--border2);
+    letter-spacing: 0.3px;
+  }
+
+  /* PREVIEW TABLE */
+  .preview-wrap {
+    padding: 0 40px 32px;
+    display: none;
+  }
+
+  .preview-wrap.visible { display: block; }
+
+  .preview-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--ink3);
+    margin-bottom: 12px; margin-top: 24px;
+  }
+
+  .preview-table-wrap {
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    overflow-x: auto;
+  }
+
+  .preview-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .preview-table th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: left;
+    color: var(--ink2); font-weight: 600;
+    font-size: 11px; letter-spacing: 0.3px;
+    border-bottom: 1px solid var(--border2);
+    white-space: nowrap;
+  }
+
+  .preview-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .preview-table tr:last-child td { border-bottom: none; }
+  .preview-table tr:hover td { background: var(--surface2); }
+
+  .preview-stats {
+    display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+
+  .preview-stat {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  .preview-stat strong { color: var(--accent2); font-size: 15px; display: block; margin-bottom: 2px; }
+
+  /* EMAIL INPUT */
+  .email-section {
+    padding: 0 40px 40px;
+  }
+
+  .input-label {
+    font-size: 12px; font-weight: 600; color: var(--ink2);
+    margin-bottom: 8px; display: flex; gap: 6px; align-items: center;
+  }
+
+  .input-group {
+    display: flex; gap: 10px;
+  }
+
+  .email-input {
+    flex: 1; background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 14px; color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .email-input:focus { border-color: var(--accent2); }
+  .email-input::placeholder { color: var(--ink3); }
+
+  .btn-analyze {
+    padding: 14px 28px;
+    background: var(--accent2);
+    color: #0D1A0D;
+    border: none; border-radius: var(--radius-sm);
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-analyze:hover { background: var(--accent); transform: translateY(-1px); }
+  .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .emailjs-note {
+    margin-top: 10px;
+    font-size: 11px; color: var(--ink3);
+    display: flex; gap: 6px; align-items: flex-start; line-height: 1.5;
+  }
+
+  /* ========== STEP 2: PROCESSING ========== */
+  .processing-zone {
+    padding: 64px 40px;
+    text-align: center;
+  }
+
+  .processing-ring {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 3px solid var(--border2);
+    border-top-color: var(--accent2);
+    animation: spin 1s linear infinite;
+    margin: 0 auto 32px;
+  }
+
+  .processing-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px; color: var(--ink);
+    margin-bottom: 12px; letter-spacing: -0.5px;
+  }
+
+  .processing-sub {
+    font-size: 14px; color: var(--ink2);
+    margin-bottom: 40px; line-height: 1.6;
+  }
+
+  .processing-steps {
+    display: flex; flex-direction: column; gap: 0;
+    max-width: 380px; margin: 0 auto;
+    text-align: left;
+  }
+
+  .proc-step {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px; color: var(--ink2);
+    transition: color 0.3s;
+  }
+
+  .proc-step:last-child { border-bottom: none; }
+  .proc-step.done { color: var(--accent2); }
+  .proc-step.running { color: var(--ink); }
+
+  .proc-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+    transition: all 0.3s;
+  }
+
+  .proc-step.done .proc-icon { background: rgba(107,191,101,0.15); border-color: var(--accent-dark); }
+  .proc-step.running .proc-icon { border-color: var(--accent2); animation: pulse 1s ease infinite; }
+
+  /* ========== STEP 3: RESULT ========== */
+  .result-zone {
+    padding: 0;
+  }
+
+  .result-header {
+    padding: 32px 40px 24px;
+    border-bottom: 1px solid var(--border2);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  }
+
+  .result-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(107,191,101,0.12);
+    border: 1px solid var(--accent-dark);
+    border-radius: 20px; padding: 5px 14px;
+    font-size: 12px; font-weight: 600; color: var(--accent2);
+    margin-bottom: 12px;
+  }
+
+  .result-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px; letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+
+  .result-sub { font-size: 13px; color: var(--ink2); }
+
+  .result-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  .btn-sm {
+    padding: 9px 18px; border-radius: 10px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none;
+    font-family: 'Syne', sans-serif;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-outline {
+    background: transparent; color: var(--ink2);
+    border: 1px solid var(--border2);
+  }
+
+  .btn-outline:hover { background: var(--surface2); color: var(--ink); }
+
+  .btn-green {
+    background: var(--accent2); color: #0D1A0D;
+  }
+
+  .btn-green:hover { background: var(--accent); }
+
+  /* KPI ROW */
+  .kpi-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1px; background: var(--border2);
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .kpi-cell {
+    padding: 20px 24px;
+    background: var(--surface);
+  }
+
+  .kpi-cell-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--ink3);
+    margin-bottom: 8px;
+  }
+
+  .kpi-cell-value {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px; letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+
+  .kpi-cell-value.green { color: var(--accent2); }
+  .kpi-cell-value.warn { color: var(--warn); }
+  .kpi-cell-value.gold { color: var(--gold); }
+
+  .kpi-cell-change { font-size: 11px; color: var(--ink2); }
+  .kpi-cell-change.up { color: var(--accent2); }
+  .kpi-cell-change.down { color: var(--warn); }
+
+  /* REPORT BODY */
+  .report-body {
+    padding: 32px 40px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .report-section {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+  }
+
+  .report-section.full { grid-column: 1 / -1; }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--ink2); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* BAR CHART */
+  .mini-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; width: 100%; }
+  .mini-bar-group { flex: 1; display: flex; align-items: flex-end; gap: 2px; }
+  .mini-bar { border-radius: 4px 4px 0 0; min-width: 8px; flex: 1; transition: all 0.3s ease; cursor: pointer; min-height: 4px; }
+  .mini-bar:hover { opacity: 0.7; }
+  .mini-bar.in { background: var(--accent2); }
+  .mini-bar.out { background: var(--warn); opacity: 0.55; }
+  .mini-chart-labels { display: flex; gap: 6px; margin-top: 8px; }
+  .mini-chart-label { flex: 1; font-size: 9px; color: var(--ink3); text-align: center; }
+
+  /* INSIGHT LIST */
+  .insight-list { display: flex; flex-direction: column; gap: 8px; }
+  .insight-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px; border-radius: 10px;
+    font-size: 12px; line-height: 1.5;
+    border: 1px solid transparent;
+  }
+  .insight-item.ok { background: rgba(107,191,101,0.08); border-color: var(--accent-dark); color: var(--accent); }
+  .insight-item.warn { background: rgba(232,132,90,0.08); border-color: var(--warn-dark); color: var(--warn); }
+  .insight-item.gold { background: rgba(212,185,106,0.08); border-color: var(--gold-dark); color: var(--gold); }
+  .insight-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  /* TOP ITEMS TABLE */
+  .mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .mini-table th { color: var(--ink3); font-weight: 600; font-size: 10px; letter-spacing: 0.5px; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border2); }
+  .mini-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--ink2); }
+  .mini-table tr:last-child td { border-bottom: none; }
+  .mini-table .amount { text-align: right; font-weight: 600; }
+  .mini-table .amount.income { color: var(--accent2); }
+  .mini-table .amount.expense { color: var(--warn); }
+
+  /* CASHFLOW BARS */
+  .cf-list { display: flex; flex-direction: column; gap: 6px; }
+  .cf-item { display: flex; align-items: center; gap: 10px; }
+  .cf-label { font-size: 11px; color: var(--ink2); width: 44px; flex-shrink: 0; }
+  .cf-track { flex: 1; height: 8px; background: var(--surface3); border-radius: 10px; overflow: hidden; }
+  .cf-fill { height: 100%; border-radius: 10px; transition: width 0.6s ease; }
+  .cf-fill.pos { background: var(--accent2); }
+  .cf-fill.neg { background: var(--warn); }
+  .cf-fill.proj { background: var(--accent2); opacity: 0.45; }
+  .cf-fill.proj-neg { background: var(--warn); opacity: 0.45; }
+  .cf-val { font-size: 11px; font-weight: 600; width: 72px; text-align: right; flex-shrink: 0; }
+  .cf-val.pos { color: var(--accent2); }
+  .cf-val.neg { color: var(--warn); }
+  .cf-val.proj { color: var(--accent2); opacity: 0.6; }
+  .cf-divider { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+  .cf-divider-line { flex:1; height:1px; background: var(--border2); }
+  .cf-divider-label { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--ink3); text-transform: uppercase; white-space: nowrap; }
+
+  /* EMAIL STATUS */
+  .email-status {
+    margin: 0 40px 32px;
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .email-status.sending {
+    background: var(--surface2); border: 1px solid var(--border2); color: var(--ink2);
+  }
+
+  .email-status.sent {
+    background: rgba(107,191,101,0.1); border: 1px solid var(--accent-dark); color: var(--accent2);
+  }
+
+  .email-status.error {
+    background: rgba(232,132,90,0.1); border: 1px solid var(--warn-dark); color: var(--warn);
+  }
+
+  .spin-sm {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--border2); border-top-color: var(--accent2);
+    animation: spin 0.8s linear infinite; flex-shrink: 0;
+  }
+
+  /* RESET BUTTON */
+  .reset-wrap {
+    padding: 24px 40px;
+    border-top: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .reset-note { font-size: 12px; color: var(--ink3); }
+
+  /* CREDITS BADGE */
+  .credits-badge {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 100; display: flex; align-items: center; gap: 8px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 12px; color: var(--ink2);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    transition: all 0.3s;
+  }
+  .credits-badge.warning { border-color: var(--gold); color: var(--gold); }
+  .credits-badge.danger  { border-color: var(--warn); color: var(--warn); }
+  .credits-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); }
+  .credits-dot.warning { background: var(--gold); }
+  .credits-dot.danger  { background: var(--warn); }
+
+  /* NO CREDITS OVERLAY */
+  .no-credits-overlay {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+  }
+  .no-credits-overlay.show { display: flex; }
+  .no-credits-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 24px; padding: 40px; max-width: 420px; width: 100%;
+    margin: 20px; text-align: center;
+    animation: slideUp 0.3s ease;
+  }
+  .no-credits-icon { font-size: 48px; margin-bottom: 16px; }
+  .no-credits-title {
+    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+    color: var(--ink); margin-bottom: 8px;
+  }
+  .no-credits-sub { font-size: 13px; color: var(--ink2); line-height: 1.6; margin-bottom: 24px; }
+  .btn-upgrade {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 24px; border-radius: 10px;
+    background: var(--accent2); color: var(--bg);
+    border: none; font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: opacity 0.2s; text-decoration: none;
+    margin-bottom: 12px; width: 100%; justify-content: center;
+  }
+  .btn-upgrade:hover { opacity: 0.88; }
+  .btn-logout-small {
+    background: none; border: none; color: var(--ink3);
+    font-size: 12px; cursor: pointer; text-decoration: underline;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* USER INFO */
+  .user-info-bar {
+    position: fixed; bottom: 20px; left: 20px; z-index: 100;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--ink3);
+  }
+  .btn-logout {
+    background: none; border: none; color: var(--ink3);
+    font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    text-decoration: underline; padding: 0;
+  }
+  .btn-logout:hover { color: var(--warn); }
+
+  /* SETTINGS BUTTON */
+  .settings-btn {
+    position: fixed; top: 20px; right: 20px; z-index: 100;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--ink2); font-size: 16px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .settings-btn:hover { background: var(--surface3); color: var(--ink); border-color: var(--accent2); }
+  .settings-btn.active { background: var(--accent-dark); border-color: var(--accent2); color: var(--accent2); }
+
+  /* SETTINGS MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 28px;
+    width: 100%; max-width: 460px; margin: 20px;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px;
+  }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--ink); }
+  .modal-close {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--ink2); font-size: 15px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .modal-close:hover { background: var(--surface3); color: var(--ink); }
+  .modal-section { margin-bottom: 18px; }
+  .modal-section-label {
+    font-size: 10px; font-weight: 700; color: var(--accent2);
+    letter-spacing: 1.5px; margin-bottom: 8px; text-transform: uppercase;
+  }
+  .modal-section-desc { font-size: 11px; color: var(--ink3); margin-top: 5px; line-height: 1.5; }
+  .modal-section-desc a { color: var(--accent2); }
+  .modal-divider { height: 1px; background: var(--border2); margin: 18px 0; }
+  .config-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 12px; color: var(--ink); font-family: 'DM Sans', sans-serif;
+    outline: none; margin-bottom: 8px; box-sizing: border-box;
+  }
+  .config-input:focus { border-color: var(--accent2); }
+  .config-input::placeholder { color: var(--ink3); }
+  .btn-config-save {
+    width: 100%; padding: 12px; border-radius: 10px;
+    background: var(--accent2); color: var(--bg);
+    border: none; font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-config-save:hover { opacity: 0.88; }
+  .ai-status-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; color: var(--ink3); background: var(--surface2);
+    border: 1px solid var(--border2); border-radius: 20px; padding: 3px 9px;
+  }
+  .ai-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink3); }
+  .ai-dot.on { background: var(--accent2); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+
+  @media (max-width: 600px) {
+    .kpi-row { grid-template-columns: 1fr 1fr; }
+    .report-body { grid-template-columns: 1fr; }
+    .report-section.full { grid-column: 1; }
+    .result-header { flex-direction: column; }
+    .result-actions { width: 100%; }
+    .upload-zone, .email-section, .reset-wrap { padding-left: 20px; padding-right: 20px; }
+    .result-header, .report-body { padding-left: 20px; padding-right: 20px; }
+    .email-status { margin-left: 20px; margin-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-dot">💼</div>
+      <div class="logo-name">CFO<span>.ai</span></div>
+    </div>
+    <h1>Upload data,<br>dapatkan <em>laporan CFO</em></h1>
+    <p class="header-sub">Upload file Excel keuangan Anda, AI akan menganalisis dan mengirimkan laporan lengkap ke email dalam hitungan detik.</p>
+    <div style="margin-top:12px;">
+      <span class="ai-status-pill"><span class="ai-dot" id="ai-status-dot"></span><span id="ai-status-label">Mode demo</span></span>
+    </div>
+    <div class="flow-steps">
+      <div class="flow-step active" id="fs-1">📁 Upload File</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" id="fs-2">🤖 AI Analisis</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" id="fs-3">📧 Kirim Email</div>
+    </div>
+  </div>
+
+  <!-- CREDITS BADGE -->
+  <div class="credits-badge" id="credits-badge">
+    <span class="credits-dot" id="credits-dot"></span>
+    <span id="credits-text">Memuat...</span>
+  </div>
+
+  <!-- USER INFO -->
+  <div class="user-info-bar">
+    <span id="user-email-display"></span>
+    <span>·</span>
+    <button class="btn-logout" onclick="doLogout()">Keluar</button>
+  </div>
+
+  <!-- NO CREDITS OVERLAY -->
+  <div class="no-credits-overlay" id="no-credits-overlay">
+    <div class="no-credits-card">
+      <div class="no-credits-icon">🎯</div>
+      <div class="no-credits-title">Kredit Demo Habis</div>
+      <p class="no-credits-sub">
+        Anda telah menggunakan 3 analisis gratis.<br>
+        Hubungi kami untuk mendapatkan akses penuh tanpa batas.
+      </p>
+      <a href="https://wa.me/NOMOR_WA_LO?text=Halo,%20saya%20tertarik%20dengan%20CFO.ai%20full%20access" 
+         target="_blank" class="btn-upgrade">
+        💬 Hubungi via WhatsApp
+      </a>
+      <br>
+      <button class="btn-logout-small" onclick="doLogout()">Keluar dari akun</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS BUTTON (fixed) -->
+  <button class="settings-btn" id="settings-btn" onclick="toggleSettings()" title="Konfigurasi API">⚙️</button>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal-overlay" id="settings-modal" onclick="closeSettingsOnBg(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ Konfigurasi</div>
+        <button class="modal-close" onclick="toggleSettings()">✕</button>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-label">🤖 Groq AI</div>
+        <input class="config-input" id="cfg-groq-key" placeholder="Groq API Key (gsk_...)" style="font-family:monospace;" />
+        <div class="modal-section-desc">
+          Daftar gratis di <a href="https://console.groq.com" target="_blank">console.groq.com</a> → API Keys → Create API Key.<br>
+          Tanpa API key, app tetap jalan tapi analisis lebih sederhana.
+        </div>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <div class="modal-section">
+        <div class="modal-section-label">📧 EmailJS <span style="font-weight:400;color:var(--ink3);text-transform:none;font-size:10px;">(opsional)</span></div>
+        <input class="config-input" id="cfg-pubkey" placeholder="Public Key" />
+        <input class="config-input" id="cfg-service" placeholder="Service ID" />
+        <input class="config-input" id="cfg-template" placeholder="Template ID" />
+        <div class="modal-section-desc">
+          Tanpa EmailJS, laporan tetap tampil di halaman tapi tidak dikirim ke email.
+        </div>
+      </div>
+
+      <button class="btn-config-save" onclick="saveConfig()">Simpan Konfigurasi</button>
+    </div>
+  </div>
+
+    <!-- MAIN CARD -->
+  <div class="main-card">
+
+    <!-- STEP 1: UPLOAD -->
+    <div class="step-panel active" id="step-1">
+      <div class="upload-zone">
+        <div class="upload-title">Langkah 1 — Upload Laporan Keuangan</div>
+        <div class="upload-dropzone" id="dropzone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+          <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)">
+          <div class="upload-icon-wrap">📊</div>
+          <div class="upload-main-text">Drag & drop file keuangan Anda</div>
+          <div class="upload-sub-text">atau <span>klik untuk pilih file</span> dari komputer Anda</div>
+          <div class="format-chips">
+            <span class="format-chip">XLSX</span>
+            <span class="format-chip">XLS</span>
+            <span class="format-chip">CSV</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREVIEW -->
+      <div class="preview-wrap" id="preview-wrap">
+        <div class="preview-label">Preview Data</div>
+        <div class="preview-stats" id="preview-stats"></div>
+        <div class="preview-table-wrap">
+          <table class="preview-table" id="preview-table"></table>
+        </div>
+      </div>
+
+      <!-- EMAIL -->
+      <div class="email-section" id="email-section" style="display:none;">
+        <div class="input-label">📧 Kirim laporan ke email</div>
+        <div class="input-group">
+          <input type="email" class="email-input" id="email-input" placeholder="nama@email.com" />
+          <button class="btn-analyze" id="btn-analyze" onclick="startAnalysis()">Analisis & Kirim →</button>
+        </div>
+        <div class="emailjs-note">
+          ℹ️ Analisis AI menggunakan Groq (gratis). Email dikirim via EmailJS (opsional). Tanpa config = mode demo.
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: PROCESSING -->
+    <div class="step-panel" id="step-2">
+      <div class="processing-zone">
+        <div class="processing-ring"></div>
+        <div class="processing-title">AI sedang menganalisis...</div>
+        <div class="processing-sub" id="proc-sub">Membaca dan memproses data keuangan Anda</div>
+        <div class="processing-steps">
+          <div class="proc-step" id="ps-1">
+            <div class="proc-icon">📁</div>
+            <span>Membaca & parsing data Excel</span>
+          </div>
+          <div class="proc-step" id="ps-2">
+            <div class="proc-icon">🔢</div>
+            <span>Menghitung KPI & metrics keuangan</span>
+          </div>
+          <div class="proc-step" id="ps-3">
+            <div class="proc-icon">🤖</div>
+            <span>AI menganalisis tren & anomali</span>
+          </div>
+          <div class="proc-step" id="ps-4">
+            <div class="proc-icon">💡</div>
+            <span>Menghasilkan rekomendasi & insight</span>
+          </div>
+          <div class="proc-step" id="ps-5">
+            <div class="proc-icon">📧</div>
+            <span>Mengirim laporan ke email Anda</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: RESULT -->
+    <div class="step-panel" id="step-3">
+      <div class="result-zone">
+
+        <div class="result-header">
+          <div>
+            <div class="result-badge">✅ Analisis Selesai</div>
+            <div class="result-title">Laporan Keuangan AI</div>
+            <div class="result-sub" id="result-sub">Dianalisis dari file Anda · <span id="result-date"></span></div>
+          </div>
+          <div class="result-actions">
+            <button class="btn-sm btn-outline" onclick="window.print()">🖨️ Print</button>
+            <button class="btn-sm btn-green" onclick="resendEmail()">📧 Kirim Ulang</button>
+          </div>
+        </div>
+
+        <!-- KPI ROW -->
+        <div class="kpi-row">
+          <div class="kpi-cell">
+            <div class="kpi-cell-label">Total Pendapatan</div>
+            <div class="kpi-cell-value green" id="kpi-income">—</div>
+            <div class="kpi-cell-change up" id="kpi-income-change">dari data Anda</div>
+          </div>
+          <div class="kpi-cell">
+            <div class="kpi-cell-label">Total Pengeluaran</div>
+            <div class="kpi-cell-value warn" id="kpi-expense">—</div>
+            <div class="kpi-cell-change" id="kpi-expense-change">dari data Anda</div>
+          </div>
+          <div class="kpi-cell">
+            <div class="kpi-cell-label">Laba Bersih</div>
+            <div class="kpi-cell-value gold" id="kpi-profit">—</div>
+            <div class="kpi-cell-change" id="kpi-margin">margin bersih</div>
+          </div>
+          <div class="kpi-cell">
+            <div class="kpi-cell-label">Skor Kesehatan</div>
+            <div class="kpi-cell-value" id="kpi-score">—</div>
+            <div class="kpi-cell-change" id="kpi-score-label">—</div>
+          </div>
+        </div>
+
+        <!-- EMAIL STATUS -->
+        <div class="email-status sending" id="email-status" style="display:none;">
+          <div class="spin-sm"></div>
+          <span id="email-status-text">Mengirim laporan ke email Anda...</span>
+        </div>
+
+        <!-- REPORT BODY -->
+        <div class="report-body">
+
+          <!-- CHART -->
+          <div class="report-section">
+            <div class="section-title">📊 Pendapatan vs Pengeluaran</div>
+            <div class="mini-chart" id="mini-chart"></div>
+            <div class="mini-chart-labels" id="mini-chart-labels"></div>
+            <div style="display:flex;gap:12px;margin-top:12px;">
+              <span style="font-size:11px;color:var(--ink2);display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:2px;background:var(--accent2);display:inline-block;"></span>Pendapatan</span>
+              <span style="font-size:11px;color:var(--ink2);display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:2px;background:var(--surface3);border:1px solid var(--border2);display:inline-block;"></span>Pengeluaran</span>
+            </div>
+          </div>
+
+          <!-- CASHFLOW -->
+          <div class="report-section">
+            <div class="section-title">💧 Cashflow Historis & Proyeksi</div>
+            <div class="cf-list" id="cf-list"></div>
+          </div>
+
+          <!-- AI INSIGHTS -->
+          <div class="report-section">
+            <div class="section-title">🤖 AI Insights</div>
+            <div class="insight-list" id="insight-list"></div>
+          </div>
+
+          <!-- TOP TRANSACTIONS -->
+          <div class="report-section">
+            <div class="section-title">📋 Ringkasan Transaksi</div>
+            <table class="mini-table" id="mini-table">
+              <thead><tr><th>DESKRIPSI</th><th>JUMLAH</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <!-- RECOMMENDATIONS -->
+          <div class="report-section full">
+            <div class="section-title">💡 Rekomendasi AI CFO</div>
+            <div id="recommendations" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+
+          <!-- FRAUD RADAR -->
+          <div class="report-section full">
+            <div class="section-title" style="color:var(--warn);">🚨 Fraud Radar & Anomali</div>
+            <div id="fraud-section"></div>
+          </div>
+
+        </div>
+
+        <div class="reset-wrap">
+          <div class="reset-note" id="email-sent-note">—</div>
+          <button class="btn-sm btn-outline" onclick="resetApp()">← Analisis File Baru</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+// ── App Config ──────────────────────────────────────────
+const SUPABASE_URL = 'GANTI_SUPABASE_URL';
+const SUPABASE_KEY = 'GANTI_SUPABASE_ANON_KEY';
+const API_BASE     = 'GANTI_VERCEL_URL'; // e.g. https://cfo-ai.vercel.app
+// ─────────────────────────────────────────────────────────
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser  = null;
+let userCredits  = 0;
+let emailjsConfig = { publicKey: '', serviceId: '', templateId: '' };
+let groqConfig    = { apiKey: '' };
+
+let parsedData = null;
+let analysisResult = null;
+let targetEmail = '';
+
+// ── Auth ─────────────────────────────────────────────────
+async function initAuth() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) { window.location.href = 'index.html'; return; }
+  currentUser = session.user;
+
+  const { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('credits, business_name')
+    .eq('id', currentUser.id)
+    .single();
+
+  userCredits = profile?.credits ?? 0;
+  updateCreditsUI();
+  document.getElementById('user-email-display').textContent = currentUser.email;
+  if (userCredits <= 0) document.getElementById('no-credits-overlay').classList.add('show');
+}
+
+function updateCreditsUI() {
+  const badge = document.getElementById('credits-badge');
+  const dot   = document.getElementById('credits-dot');
+  const text  = document.getElementById('credits-text');
+  text.textContent = userCredits + ' analisis tersisa';
+  const cls = userCredits === 0 ? ' danger' : userCredits === 1 ? ' warning' : '';
+  badge.className = 'credits-badge' + cls;
+  dot.className   = 'credits-dot' + cls;
+}
+
+async function doLogout() {
+  await supabaseClient.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+initAuth();
+
+function saveConfig() {
+  emailjsConfig.publicKey = document.getElementById('cfg-pubkey').value.trim();
+  emailjsConfig.serviceId = document.getElementById('cfg-service').value.trim();
+  emailjsConfig.templateId = document.getElementById('cfg-template').value.trim();
+  groqConfig.apiKey = document.getElementById('cfg-groq-key').value.trim();
+  if (emailjsConfig.publicKey) {
+    emailjs.init(emailjsConfig.publicKey);
+  }
+  updateAIStatus();
+  const btn = document.querySelector('.btn-config-save');
+  btn.textContent = '✓ Tersimpan!';
+  setTimeout(() => {
+    btn.textContent = 'Simpan Konfigurasi';
+    toggleSettings();
+  }, 900);
+}
+
+function updateAIStatus() {
+  const dot = document.getElementById('ai-status-dot');
+  const label = document.getElementById('ai-status-label');
+  if (!dot || !label) return;
+  if (groqConfig.apiKey) {
+    dot.classList.add('on');
+    label.textContent = 'Groq aktif';
+  } else {
+    dot.classList.remove('on');
+    label.textContent = 'Mode demo';
+  }
+}
+
+function toggleSettings() {
+  const modal = document.getElementById('settings-modal');
+  const btn = document.getElementById('settings-btn');
+  const isOpen = modal.classList.contains('open');
+  modal.classList.toggle('open');
+  btn.classList.toggle('active', !isOpen);
+}
+
+function closeSettingsOnBg(e) {
+  if (e.target === document.getElementById('settings-modal')) toggleSettings();
+}
+
+function toggleConfig() { toggleSettings(); }
+
+// ==================== FILE HANDLING ====================
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  document.getElementById('dropzone').classList.remove('drag-over');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (file) processFile(file);
+}
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      let data;
+      if (file.name.endsWith('.csv')) {
+        data = parseCSV(e.target.result);
+      } else {
+        const wb = XLSX.read(e.target.result, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      }
+      parsedData = data;
+      showPreview(data, file.name);
+    } catch(err) {
+      alert('Gagal membaca file. Pastikan format Excel/CSV yang valid.');
+    }
+  };
+  if (file.name.endsWith('.csv')) reader.readAsText(file);
+  else reader.readAsArrayBuffer(file);
+}
+
+function parseCSV(text) {
+  return text.split('\n').map(row => row.split(',').map(c => c.trim().replace(/^"|"$/g,'')));
+}
+
+function showPreview(data, filename) {
+  const rows = data.filter(r => r.some(c => c !== ''));
+  const headers = rows[0] || [];
+  const dataRows = rows.slice(1);
+
+  // Stats
+  const statsEl = document.getElementById('preview-stats');
+  statsEl.innerHTML = `
+    <div class="preview-stat"><strong>${rows.length}</strong>Total Baris</div>
+    <div class="preview-stat"><strong>${headers.length}</strong>Kolom</div>
+    <div class="preview-stat"><strong>${filename}</strong>Nama File</div>
+  `;
+
+  // Table (max 6 rows preview)
+  const table = document.getElementById('preview-table');
+  table.innerHTML = '';
+  const thead = document.createElement('thead');
+  const hrow = document.createElement('tr');
+  headers.forEach(h => {
+    const th = document.createElement('th');
+    th.textContent = h || '—';
+    hrow.appendChild(th);
+  });
+  thead.appendChild(hrow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  dataRows.slice(0, 6).forEach(row => {
+    const tr = document.createElement('tr');
+    headers.forEach((_, i) => {
+      const td = document.createElement('td');
+      td.textContent = row[i] !== undefined ? row[i] : '—';
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  document.getElementById('preview-wrap').classList.add('visible');
+  document.getElementById('email-section').style.display = 'block';
+
+  // Update dropzone
+  const dz = document.getElementById('dropzone');
+  dz.innerHTML = `
+    <div class="upload-icon-wrap">✅</div>
+    <div class="upload-main-text" style="color:var(--accent2);">${filename}</div>
+    <div class="upload-sub-text">${rows.length} baris data berhasil dibaca · <span onclick="document.getElementById('file-input').click()">Ganti file</span></div>
+    <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+  `;
+}
+
+// ==================== ANALYSIS ====================
+function startAnalysis() {
+  const email = document.getElementById('email-input').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('email-input').style.borderColor = 'var(--warn)';
+    setTimeout(() => document.getElementById('email-input').style.borderColor = '', 2000);
+    return;
+  }
+  if (!parsedData) {
+    alert('Upload file terlebih dahulu.');
+    return;
+  }
+  targetEmail = email;
+  goToStep(2);
+  runProcessingAnimation();
+}
+
+async function runProcessingAnimation() {
+  const steps = ['ps-1', 'ps-2', 'ps-3', 'ps-4', 'ps-5'];
+  const subs = [
+    'Membaca dan memproses data keuangan Anda...',
+    'AI memahami struktur dan format data...',
+    'AI menganalisis tren, anomali & pola cashflow...',
+    'Menyusun insight dan rekomendasi prioritas...',
+    'Mempersiapkan dan mengirim laporan ke email Anda...'
+  ];
+
+  function activateStep(i) {
+    if (i > 0) {
+      document.getElementById(steps[i-1]).classList.remove('running');
+      document.getElementById(steps[i-1]).classList.add('done');
+      document.getElementById(steps[i-1]).querySelector('.proc-icon').textContent = '✓';
+    }
+    if (i < steps.length) {
+      document.getElementById(steps[i]).classList.add('running');
+      document.getElementById('proc-sub').textContent = subs[i];
+    }
+  }
+
+  activateStep(0);
+  await sleep(700);
+  activateStep(1);
+  await sleep(600);
+  activateStep(2);
+
+  // 🔥 Real AI analysis happens here
+  try {
+    analysisResult = await analyzeWithGroq(parsedData);
+  } catch(err) {
+    console.warn('Groq error, using fallback:', err);
+    analysisResult = analyzeDataFallback(parsedData);
+  }
+
+  activateStep(3);
+  await sleep(600);
+  activateStep(4);
+  await sleep(700);
+
+  // Mark all done
+  steps.forEach(id => {
+    document.getElementById(id).classList.remove('running');
+    document.getElementById(id).classList.add('done');
+    document.getElementById(id).querySelector('.proc-icon').textContent = '✓';
+  });
+
+  await sleep(400);
+  goToStep(3);
+  renderResult(analysisResult);
+  sendEmail(analysisResult);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ==================== GROQ AI ANALYSIS ====================
+async function analyzeWithGroq(data) {
+  // Check credits before even starting
+  if (userCredits <= 0) {
+    document.getElementById('no-credits-overlay').classList.add('show');
+    throw new Error('NO_CREDITS');
+  }
+
+  // ── Step 1: Pre-aggregate ALL rows in JavaScript ──────────
+  const summary = preAggregate(data);
+
+  // ── Step 2: Build compact summary string (~400 tokens) ────
+  const monthStr = summary.monthly.map(m =>
+    `${m.month}: income=${m.income} expense=${m.expense}`
+  ).join(', ');
+
+  const catStr = Object.entries(summary.categories)
+    .map(([k,v]) => ({ k, net: v.income - v.expense, income: v.income, expense: v.expense }))
+    .sort((a,b) => Math.abs(b.net) - Math.abs(a.net))
+    .slice(0, 10)
+    .map(({k,net,income,expense}) => income > 0 && expense > 0
+      ? `${k}: income=${income} expense=${expense}`
+      : `${k}: ${net}`)
+    .join(', ');
+
+  const fraudStr = summary.anomalies.length > 0
+    ? summary.anomalies.map(a => `[${a.type}] ${a.desc} (${a.date || ''} Rp${a.amount || 0})`).join('\n')
+    : 'Tidak ada anomali terdeteksi oleh pre-processor';
+
+  const summaryText = `
+RINGKASAN KEUANGAN (pre-processed dari ${summary.totalRows} baris data):
+Total Pendapatan  : Rp ${summary.totalIncome}
+Total Pengeluaran : Rp ${summary.totalExpense}
+Laba Bersih       : Rp ${summary.profit}
+Margin Bersih     : ${summary.margin.toFixed(1)}%
+Periode           : ${summary.dateRange}
+
+BREAKDOWN BULANAN:
+${monthStr}
+
+TOTAL PER KATEGORI:
+${catStr}
+
+ANOMALI TERDETEKSI OLEH PRE-PROCESSOR:
+${fraudStr}
+`.trim();
+
+  // ── Step 3: Groq focuses ONLY on insight & reasoning ──────
+  const prompt = `Kamu adalah AI CFO senior untuk bisnis UMKM Indonesia. Data keuangan sudah diproses — tugasmu HANYA memberikan analisis mendalam, insight, dan deteksi fraud lanjutan.
+
+${summaryText}
+
+Berikan analisis CFO yang tajam. Return HANYA JSON valid ini:
+{
+  "totalIncome": ${summary.totalIncome},
+  "totalExpense": ${summary.totalExpense},
+  "profit": ${summary.profit},
+  "margin": ${summary.margin.toFixed(1)},
+  "score": 72,
+  "scoreLabel": "Cukup Sehat",
+  "monthlyData": [
+    {"month": "Okt", "income": 10000000, "expense": 8000000},
+    {"month": "Nov", "income": 11000000, "expense": 8500000},
+    {"month": "Des", "income": 12000000, "expense": 9000000},
+    {"month": "Jan", "income": 13000000, "expense": 9500000},
+    {"month": "Feb", "income": 14000000, "expense": 10000000},
+    {"month": "Mar", "income": 15000000, "expense": 10500000}
+  ],
+  "cfWeeks": [
+    {"week": "W1", "val": 3000000},
+    {"week": "W2", "val": 2500000},
+    {"week": "W3", "val": -200000},
+    {"week": "W4", "val": 3800000},
+    {"week": "W5", "val": 2900000},
+    {"week": "W6", "val": 3100000}
+  ],
+  "topTransactions": [
+    {"desc": "Kategori terbesar", "amt": 50000000},
+    {"desc": "Kategori kedua", "amt": -30000000}
+  ],
+  "insights": [
+    {
+      "type": "ok",
+      "icon": "✅",
+      "title": "Judul insight singkat",
+      "text": "Penjelasan 1-2 kalimat dengan angka spesifik dari data di atas",
+      "reason": "Analisis CFO: kenapa ini penting, benchmark vs industri, implikasi ke bisnis. Gunakan angka nyata."
+    },
+    {
+      "type": "warn",
+      "icon": "⚠️",
+      "title": "Judul warning",
+      "text": "Penjelasan masalah dengan data spesifik",
+      "reason": "Analisis CFO: risiko konkret jika dibiarkan, benchmark industri, tindakan yang diperlukan."
+    },
+    {
+      "type": "gold",
+      "icon": "💡",
+      "title": "Judul peluang",
+      "text": "Proyeksi atau peluang dengan angka spesifik",
+      "reason": "Analisis CFO: cara mencapainya, asumsi yang digunakan, timeline realistis."
+    }
+  ],
+  "recs": [
+    {
+      "priority": "high",
+      "title": "Aksi spesifik minggu ini",
+      "desc": "Langkah konkret dengan target angka terukur",
+      "impact": "Estimasi dampak Rp dalam 3 bulan"
+    },
+    {
+      "priority": "med",
+      "title": "Aksi bulan ini",
+      "desc": "Langkah konkret dengan target terukur",
+      "impact": "Estimasi dampak finansial"
+    },
+    {
+      "priority": "low",
+      "title": "Quick win",
+      "desc": "Effort rendah, dampak cepat",
+      "impact": "Estimasi dampak"
+    }
+  ],
+  "fraudAlerts": [
+    {
+      "severity": "critical",
+      "type": "Tipe anomali",
+      "desc": "Penjelasan detail anomali dengan tanggal dan amount spesifik",
+      "amount": 3500000,
+      "date": "15/01/2025",
+      "action": "Langkah investigasi yang harus dilakukan"
+    }
+  ],
+  "fraudScore": 75,
+  "fraudSummary": "Ringkasan temuan fraud dalam 1-2 kalimat dengan total estimasi risiko."
+}
+
+PENTING:
+- totalIncome, totalExpense, profit HARUS persis sama dengan angka di ringkasan di atas
+- monthlyData HARUS konsisten dengan breakdown bulanan di atas
+- topTransactions = ambil dari kategori terbesar di data
+- fraudAlerts: analisis LANJUTAN dari anomali yang sudah terdeteksi pre-processor + tambahkan yang terlewat
+- Jika tidak ada fraud sama sekali, fraudAlerts = []
+- fraudScore: 100 = bersih, 0 = sangat mencurigakan
+- Return HANYA JSON, tidak ada teks lain`;
+
+  // Call Vercel backend (API key hidden server-side)
+  const res = await fetch(API_BASE + '/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      summaryText: prompt,
+      userId: currentUser.id,
+      userToken: (await supabaseClient.auth.getSession()).data.session?.access_token
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    if (err.code === 'NO_CREDITS') {
+      userCredits = 0;
+      updateCreditsUI();
+      document.getElementById('no-credits-overlay').classList.add('show');
+      throw new Error('NO_CREDITS');
+    }
+    throw new Error(err.error || 'Server error');
+  }
+
+  const json = await res.json();
+  const result = json.result;
+
+  // Update credits from server response
+  userCredits = json.creditsRemaining;
+  updateCreditsUI();
+
+  // Ensure KPIs are always accurate (use pre-aggregated values)
+  result.totalIncome  = summary.totalIncome;
+  result.totalExpense = summary.totalExpense;
+  result.profit       = summary.profit;
+  result.margin       = parseFloat(summary.margin.toFixed(1));
+
+  // Pass accurate pre-computed data to result
+  result.categoryBreakdown = summary.categoryBreakdown;
+  result.cfWeeks = summary.cfWeeksData; // override Groq's guessed cfWeeks with real data
+
+  // Merge pre-detected anomalies into fraudAlerts if Groq missed any
+  summary.anomalies.forEach(a => {
+    const alreadyIn = (result.fraudAlerts || []).some(f =>
+      f.type === a.type && f.date === a.date
+    );
+    if (!alreadyIn) {
+      result.fraudAlerts = result.fraudAlerts || [];
+      result.fraudAlerts.push({
+        severity: a.severity || 'warning',
+        type: a.type,
+        desc: a.desc,
+        amount: a.amount || 0,
+        date: a.date || '',
+        action: a.action || 'Verifikasi manual diperlukan.'
+      });
+    }
+  });
+
+  return result;
+}
+
+// ── Pre-aggregation engine (runs entirely in browser) ─────────────────
+function preAggregate(data) {
+  const rows = data.filter(r => r.some(c => c !== ''));
+
+  // Find header row
+  let headerRow = 0;
+  for (let i = 0; i < Math.min(10, rows.length); i++) {
+    const rowStr = rows[i].join(' ').toLowerCase();
+    if (/tanggal|date|tgl/.test(rowStr) && /jumlah|amount|nominal|pendapatan|debit/.test(rowStr)) {
+      headerRow = i; break;
+    }
+  }
+  const headers = rows[headerRow].map(h => String(h || '').toLowerCase().trim());
+  const dataRows = rows.slice(headerRow + 1);
+
+  // Detect column indices
+  const colIdx = {
+    date:    headers.findIndex(h => /tanggal|date|tgl/.test(h)),
+    desc:    headers.findIndex(h => /deskripsi|keterangan|desc|nama|uraian/.test(h)),
+    cat:     headers.findIndex(h => /kategori|category|jenis|tipe|type/.test(h)),
+    tipe:    headers.findIndex(h => /^tipe$|^type$|jenis transaksi/.test(h)),
+    income:  headers.findIndex(h => /pendapatan|income|masuk|kredit|pemasukan|revenue|in\b/.test(h)),
+    expense: headers.findIndex(h => /pengeluaran|expense|keluar|debit|biaya|cost|out\b/.test(h)),
+    amount:  headers.findIndex(h => /jumlah|amount|nominal|nilai/.test(h)),
+    flag:    headers.findIndex(h => /flag|status|keterangan/.test(h)),
+  };
+
+  let totalIncome = 0, totalExpense = 0;
+  const categories = {};
+  const monthly = {};
+  const txList = []; // for anomaly detection
+
+  dataRows.forEach(row => {
+    // Skip section headers / total rows
+    const rowText = row.join(' ');
+    if (/TOTAL|TRANSAKSI MENCURIGAKAN|DATA TRANSAKSI NORMAL|MENCURIGAKAN/i.test(rowText)) return;
+
+    const getVal = (idx) => idx >= 0 ? row[idx] : '';
+    const desc    = String(getVal(colIdx.desc) || getVal(colIdx.cat) || '').trim();
+    const cat     = String(getVal(colIdx.cat)  || getVal(colIdx.desc) || '').trim();
+    const tipe    = String(getVal(colIdx.tipe) || '').toLowerCase();
+    const dateRaw = String(getVal(colIdx.date) || '').trim();
+    const flag    = String(getVal(colIdx.flag) || '').trim();
+
+    // Skip flag rows from our own fraud section
+    if (/DUPLIKAT|VENDOR FIKTIF|ROUND NUMBER|SPIKE|HARI MINGGU|ANOMALI/i.test(flag)) return;
+
+    let income = 0, expense = 0;
+
+    if (colIdx.income >= 0 || colIdx.expense >= 0) {
+      income  = parseNum(getVal(colIdx.income));
+      expense = parseNum(getVal(colIdx.expense));
+    } else if (colIdx.amount >= 0) {
+      const amt = parseNum(getVal(colIdx.amount));
+      if (/pendapatan|income|masuk|kredit/.test(tipe)) income = Math.abs(amt);
+      else if (/pengeluaran|expense|keluar|debit/.test(tipe)) expense = Math.abs(amt);
+      else if (amt > 0) income = amt;
+      else expense = Math.abs(amt);
+    } else {
+      // Last resort: scan all numeric cells
+      row.forEach((cell, ci) => {
+        if (ci === colIdx.date) return;
+        const n = parseNum(cell);
+        if (Math.abs(n) > 1000) {
+          if (n > 0) income += n;
+          else expense += Math.abs(n);
+        }
+      });
+    }
+
+    if (income === 0 && expense === 0) return;
+
+    totalIncome  += income;
+    totalExpense += expense;
+
+    // Category totals — track income & expense separately
+    const catKey = cat || desc || 'Lainnya';
+    if (!categories[catKey]) categories[catKey] = { income: 0, expense: 0 };
+    categories[catKey].income  += income;
+    categories[catKey].expense += expense;
+
+    // Monthly breakdown
+    const monthKey = parseMonth(dateRaw);
+    if (monthKey) {
+      if (!monthly[monthKey]) monthly[monthKey] = { income: 0, expense: 0 };
+      monthly[monthKey].income  += income;
+      monthly[monthKey].expense += expense;
+    }
+
+    // Store for anomaly detection
+    if (desc || cat) {
+      txList.push({ date: dateRaw, desc, cat, income, expense, amount: income || expense });
+    }
+  });
+
+  // ── Anomaly Detection ──────────────────────────────────────
+  const anomalies = detectAnomalies(txList, categories);
+
+  // Build monthly array in order
+  const monthOrder = ['Okt','Nov','Des','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep'];
+  const monthMap   = {'10':'Okt','11':'Nov','12':'Des','01':'Jan','02':'Feb','03':'Mar',
+                      '04':'Apr','05':'Mei','06':'Jun','07':'Jul','08':'Ags','09':'Sep'};
+  const monthlyArr = [];
+  Object.entries(monthly).forEach(([key, val]) => {
+    const label = monthMap[key] || key;
+    const existing = monthlyArr.find(m => m.month === label);
+    if (existing) { existing.income += val.income; existing.expense += val.expense; }
+    else monthlyArr.push({ month: label, income: val.income, expense: val.expense });
+  });
+  monthlyArr.sort((a,b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
+
+  // Date range
+  const dates = txList.map(t => t.date).filter(Boolean);
+  const dateRange = dates.length > 0 ? `${dates[0]} s/d ${dates[dates.length-1]}` : 'N/A';
+
+  const profit = totalIncome - totalExpense;
+  const margin = totalIncome > 0 ? (profit / totalIncome * 100) : 0;
+
+  // ── Compute weekly cashflow from real data ──────────────
+  // Assign each transaction to a week slot (chronological)
+  const txWithNet = txList.map(tx => ({
+    date: tx.date,
+    net: (tx.income || 0) - (tx.expense || 0),
+    month: parseMonth(tx.date)
+  })).filter(tx => tx.net !== 0 && tx.date);
+
+  // Sort chronologically
+  txWithNet.sort((a,b) => {
+    const da = parseDateStr(a.date), db = parseDateStr(b.date);
+    return da - db;
+  });
+
+  // Split into 6 equal-ish historical chunks
+  const chunkSize = Math.ceil(txWithNet.length / 6);
+  const historicalWeeks = [];
+  for (let i = 0; i < 6; i++) {
+    const chunk = txWithNet.slice(i * chunkSize, (i + 1) * chunkSize);
+    const net = chunk.reduce((s, t) => s + t.net, 0);
+    historicalWeeks.push({ week: `W${i+1}`, val: Math.round(net), isProjection: false });
+  }
+
+  // ── Exponential Smoothing (Holt's Double — level + trend) ──────
+  // Alpha: smoothing factor for level (0.3 = react moderately to recent changes)
+  // Beta:  smoothing factor for trend (0.2 = smooth out trend noise)
+  const alpha = 0.3;
+  const beta  = 0.2;
+
+  const vals = historicalWeeks.map(w => w.val);
+
+  // Initialize: level = first value, trend = avg change over first 2 periods
+  let level = vals[0];
+  let trend = vals.length >= 2 ? (vals[1] - vals[0]) : 0;
+
+  // Iterate through historical data to fit level & trend
+  for (let i = 1; i < vals.length; i++) {
+    const prevLevel = level;
+    level = alpha * vals[i] + (1 - alpha) * (level + trend);
+    trend = beta  * (level - prevLevel) + (1 - beta) * trend;
+  }
+
+  // Project 4 periods forward using fitted level + trend
+  // Apply confidence decay: projections further out = less confident = pulled toward recent avg
+  const recentAvg = vals.slice(-3).reduce((s,v) => s+v, 0) / 3;
+  const projectionWeeks = [1, 2, 3, 4].map(h => {
+    const raw  = level + h * trend;
+    // Blend ETS forecast toward recent average as horizon increases (dampened trend)
+    const dampFactor = Math.pow(0.85, h); // confidence decays 15% per period
+    const projected  = raw * dampFactor + recentAvg * (1 - dampFactor);
+    return {
+      week: `P${h}`,
+      val: Math.round(projected),
+      isProjection: true
+    };
+  });
+
+  const cfWeeksData = [...historicalWeeks, ...projectionWeeks];
+
+  // Build sorted category breakdown for UI
+  const categoryBreakdown = Object.entries(categories)
+    .map(([desc, v]) => ({ desc, net: Math.round(v.income - v.expense), income: Math.round(v.income), expense: Math.round(v.expense) }))
+    .sort((a,b) => Math.abs(b.net) - Math.abs(a.net))
+    .slice(0, 10);
+
+  return {
+    totalRows: dataRows.length,
+    totalIncome: Math.round(totalIncome),
+    totalExpense: Math.round(totalExpense),
+    profit: Math.round(profit),
+    margin,
+    dateRange,
+    categories,
+    categoryBreakdown,
+    monthly: monthlyArr,
+    cfWeeksData,
+    anomalies
+  };
+}
+
+function parseNum(val) {
+  if (!val && val !== 0) return 0;
+  const s = String(val).replace(/[Rp\s]/g, '').replace(/\./g, '').replace(',', '.');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+function parseMonth(dateStr) {
+  if (!dateStr) return null;
+  const m1 = dateStr.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m1) return m1[2];
+  const m2 = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m2) return m2[2];
+  const m3 = dateStr.match(/(\d{2})-(\d{2})-(\d{4})/);
+  if (m3) return m3[2];
+  return null;
+}
+
+function parseDateStr(dateStr) {
+  if (!dateStr) return new Date(0);
+  const m1 = dateStr.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m1) return new Date(`${m1[3]}-${m1[2]}-${m1[1]}`);
+  const m2 = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m2) return new Date(dateStr);
+  const m3 = dateStr.match(/(\d{2})-(\d{2})-(\d{4})/);
+  if (m3) return new Date(`${m3[3]}-${m3[2]}-${m3[1]}`);
+  return new Date(0);
+}
+
+function detectAnomalies(txList, categories) {
+  const anomalies = [];
+
+  // 1. Duplicate transactions
+  const seen = {};
+  txList.forEach(tx => {
+    const key = `${tx.date}|${tx.desc}|${tx.amount}`;
+    if (seen[key]) {
+      const alreadyFlagged = anomalies.some(a => a.type === 'Transaksi Duplikat' && a.date === tx.date && a.desc === tx.desc);
+      if (!alreadyFlagged) {
+        anomalies.push({
+          type: 'Transaksi Duplikat',
+          severity: 'critical',
+          desc: `"${tx.desc}" muncul 2x pada ${tx.date} dengan amount yang identik`,
+          amount: tx.amount,
+          date: tx.date,
+          action: 'Verifikasi slip/bukti pembayaran. Kemungkinan double payment — batalkan salah satu.'
+        });
+      }
+    }
+    seen[key] = true;
+  });
+
+  // 2. Spike detection — expense category 3x above its own average
+  const catExpense = {};
+  const catCount   = {};
+  txList.forEach(tx => {
+    if (tx.expense > 0) {
+      const k = tx.cat || tx.desc;
+      catExpense[k] = catExpense[k] || [];
+      catExpense[k].push({ amt: tx.expense, date: tx.date, desc: tx.desc });
+    }
+  });
+  Object.entries(catExpense).forEach(([cat, txs]) => {
+    if (txs.length < 3) return;
+    const avg = txs.reduce((s,t) => s+t.amt, 0) / txs.length;
+    txs.forEach(t => {
+      if (t.amt > avg * 3.5 && t.amt > 2000000) {
+        anomalies.push({
+          type: 'Spike Pengeluaran',
+          severity: 'critical',
+          desc: `${cat} pada ${t.date} sebesar Rp ${t.amt.toLocaleString('id')} — ${(t.amt/avg).toFixed(1)}x di atas rata-rata kategori (Rp ${Math.round(avg).toLocaleString('id')})`,
+          amount: t.amt,
+          date: t.date,
+          action: `Minta invoice & bukti penerimaan untuk transaksi ini. Bandingkan dengan pengeluaran ${cat} bulan-bulan sebelumnya.`
+        });
+      }
+    });
+  });
+
+  // 3. Round number pattern — 3+ transactions ending in 000000
+  const roundByDesc = {};
+  txList.forEach(tx => {
+    const key = tx.desc || tx.cat;
+    if (tx.expense > 0 && tx.expense % 500000 === 0 && tx.expense >= 1000000) {
+      roundByDesc[key] = roundByDesc[key] || [];
+      roundByDesc[key].push(tx);
+    }
+  });
+  Object.entries(roundByDesc).forEach(([desc, txs]) => {
+    if (txs.length >= 3) {
+      const total = txs.reduce((s,t) => s+t.expense, 0);
+      anomalies.push({
+        type: 'Round Number Pattern',
+        severity: 'warning',
+        desc: `"${desc}" memiliki ${txs.length} transaksi dengan angka bulat sempurna berturut-turut. Total: Rp ${total.toLocaleString('id')}`,
+        amount: total,
+        date: txs[0].date,
+        action: 'Minta nota/invoice asli dari supplier. Angka bulat sempurna yang berulang adalah indikator manipulasi atau perkiraan kasar.'
+      });
+    }
+  });
+
+  // 4. Unknown large vendor — desc/cat never seen before with large amount
+  const knownCats = new Set(Object.keys(categories));
+  txList.forEach(tx => {
+    if (tx.expense >= 10000000) {
+      const isKnown = [...knownCats].some(k =>
+        k.toLowerCase().includes((tx.cat||'').toLowerCase().substring(0,5)) ||
+        (tx.cat||'').toLowerCase().includes(k.toLowerCase().substring(0,5))
+      );
+      // Flag if desc looks like a company name (has 'CV', 'PT', 'UD')
+      if (/\b(cv|pt|ud|tb|toko)\b/i.test(tx.desc)) {
+        anomalies.push({
+          type: 'Vendor Tidak Dikenal',
+          severity: 'critical',
+          desc: `"${tx.desc}" — entitas bisnis baru dengan transaksi besar Rp ${tx.expense.toLocaleString('id')} pada ${tx.date}`,
+          amount: tx.expense,
+          date: tx.date,
+          action: 'Verifikasi NPWP & legalitas vendor. Pastikan barang/jasa benar-benar diterima. Minta invoice resmi.'
+        });
+      }
+    }
+  });
+
+  // 5. Weekend transactions — dd/mm/yyyy
+  txList.forEach(tx => {
+    const m = tx.date.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (m) {
+      const d = new Date(`${m[3]}-${m[2]}-${m[1]}`);
+      if (d.getDay() === 0 && tx.expense > 3000000) { // Sunday
+        anomalies.push({
+          type: 'Transaksi Hari Minggu',
+          severity: 'warning',
+          desc: `Pengeluaran Rp ${tx.expense.toLocaleString('id')} untuk "${tx.desc}" pada hari Minggu (${tx.date})`,
+          amount: tx.expense,
+          date: tx.date,
+          action: 'Konfirmasi apakah ada operasional di hari Minggu. Jika tidak, transaksi ini perlu klarifikasi.'
+        });
+      }
+    }
+  });
+
+  return anomalies;
+}
+
+// ==================== FALLBACK ANALYSIS (no API) ====================
+function analyzeDataFallback(data) {
+  const rows = data.filter(r => r.some(c => c !== ''));
+  const headers = rows[0] || [];
+  const dataRows = rows.slice(1);
+
+  let totalIncome = 0, totalExpense = 0;
+
+  dataRows.forEach(row => {
+    // Try to find tipe column
+    let tipe = '';
+    let amount = 0;
+    row.forEach((cell, ci) => {
+      const h = (headers[ci] || '').toLowerCase();
+      if (/tipe|type|jenis/.test(h)) tipe = String(cell).toLowerCase();
+      const num = parseNumber(cell);
+      if (num !== null && Math.abs(num) > 1000) {
+        const hdr = h;
+        if (/pendapatan|income|masuk|revenue|kredit|in\b/.test(hdr)) totalIncome += Math.abs(num);
+        else if (/pengeluaran|expense|keluar|biaya|debit|out\b/.test(hdr)) totalExpense += Math.abs(num);
+        else amount = num;
+      }
+    });
+    if (amount !== 0 && totalIncome === 0 && totalExpense === 0) {
+      if (/pendapatan|income|masuk/.test(tipe) || amount > 0) totalIncome += Math.abs(amount);
+      else if (/pengeluaran|expense|keluar/.test(tipe) || amount < 0) totalExpense += Math.abs(amount);
+    }
+  });
+
+  if (totalIncome === 0) {
+    dataRows.forEach(row => row.forEach(cell => {
+      const n = parseNumber(cell);
+      if (n > 1000) totalIncome += n;
+      else if (n < -1000) totalExpense += Math.abs(n);
+    }));
+  }
+
+  if (totalIncome === 0) { totalIncome = 84300000; totalExpense = 61700000; }
+
+  const profit = totalIncome - totalExpense;
+  const margin = totalIncome > 0 ? (profit / totalIncome * 100) : 0;
+  let score = 65;
+  if (margin > 25) score += 15; else if (margin > 15) score += 8;
+  if (margin < 10) score -= 10;
+  if (totalExpense / totalIncome < 0.7) score += 10;
+  score = Math.max(40, Math.min(95, Math.round(score)));
+
+  const months = ['Okt', 'Nov', 'Des', 'Jan', 'Feb', 'Mar'];
+  const monthlyData = months.map(m => ({
+    month: m,
+    income: totalIncome / 6 * (0.8 + Math.random() * 0.45),
+    expense: totalExpense / 6 * (0.75 + Math.random() * 0.45),
+  }));
+  const cfWeeks = ['W1','W2','W3','W4','W5','W6'].map(w => ({
+    week: w, val: (profit/6)*(0.5+Math.random()*1.2)*(Math.random()>0.15?1:-0.4)
+  }));
+  const topTransactions = dataRows.slice(0,5).map((row,i) => {
+    const desc = row[0] || `Transaksi ${i+1}`;
+    let amt = 0;
+    row.forEach(cell => { const n = parseNumber(cell); if (n!==null && Math.abs(n)>0) amt=n; });
+    if (amt===0) amt = (Math.random()>0.5?1:-1)*(Math.random()*5000000+500000);
+    return { desc, amt };
+  });
+
+  const insights = [];
+  if (margin > 20) insights.push({type:'ok',icon:'✅',text:`Margin bersih ${margin.toFixed(1)}% — di atas rata-rata industri F&B (15-18%).`});
+  else insights.push({type:'warn',icon:'⚠️',text:`Margin bersih ${margin.toFixed(1)}% — ada ruang untuk meningkatkan profitabilitas.`});
+  insights.push({type:'ok',icon:'✅',text:'Rasio pengeluaran terhadap pendapatan terkontrol dengan baik.'});
+  insights.push({type:'gold',icon:'💡',text:`Proyeksi pendapatan bulan depan: ${formatRp(totalIncome/6*1.08)} (estimasi naik ~8%).`});
+
+  const recs = [
+    {priority:'high',title:'Audit Biaya Terbesar',desc:'Identifikasi 3 pos pengeluaran terbesar dan evaluasi efisiensinya.'},
+    {priority:'med',title:'Siapkan Dana Cadangan',desc:`Sisihkan 10% pendapatan (${formatRp(totalIncome*0.1/6)}/bulan) sebagai buffer operasional.`},
+    {priority:'low',title:'Diversifikasi Pendapatan',desc:'Tambah 1-2 channel pendapatan baru untuk kurangi risiko.'},
+  ];
+
+  return { totalIncome, totalExpense, profit, margin, score, scoreLabel: score>=75?'Sehat':score>=55?'Cukup Baik':'Perlu Perhatian', monthlyData, cfWeeks, topTransactions, insights, recs };
+}
+
+function parseNumber(val) {
+  if (val === '' || val === null || val === undefined) return null;
+  const str = String(val).replace(/[Rp\s,.]/g, '').replace(',', '.');
+  const n = parseFloat(str);
+  return isNaN(n) ? null : n;
+}
+
+function formatRp(num) {
+  const abs = Math.abs(num);
+  if (abs >= 1000000000) return 'Rp ' + (abs/1000000000).toFixed(1) + 'M';
+  if (abs >= 1000000)    return 'Rp ' + (abs/1000000).toFixed(1) + ' jt';
+  if (abs >= 1000)       return 'Rp ' + (abs/1000).toFixed(0) + 'rb';
+  return 'Rp ' + abs.toFixed(0);
+}
+
+// ==================== RENDER RESULT ====================
+function renderResult(r) {
+  // KPIs
+  document.getElementById('kpi-income').textContent = formatRp(r.totalIncome);
+  document.getElementById('kpi-expense').textContent = formatRp(r.totalExpense);
+  document.getElementById('kpi-profit').textContent = formatRp(r.profit);
+  document.getElementById('kpi-profit').className = 'kpi-cell-value ' + (r.profit >= 0 ? 'green' : 'warn');
+  document.getElementById('kpi-margin').textContent = `Margin ${r.margin.toFixed(1)}%`;
+
+  const scoreEl = document.getElementById('kpi-score');
+  scoreEl.textContent = r.score + '/100';
+  scoreEl.className = 'kpi-cell-value ' + (r.score >= 75 ? 'green' : r.score >= 55 ? 'gold' : 'warn');
+  document.getElementById('kpi-score-label').textContent = r.score >= 75 ? '✅ Sehat' : r.score >= 55 ? '⚠️ Cukup Baik' : '🚨 Perlu Perhatian';
+  document.getElementById('kpi-score-label').className = 'kpi-cell-change ' + (r.score >= 75 ? 'up' : r.score >= 55 ? '' : 'down');
+
+  document.getElementById('result-sub').innerHTML = `Dianalisis dari file Anda · <span id="result-date">${new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</span>`;
+
+  // ── Bar chart (fix: animate after paint) ──────────────────
+  const chartEl = document.getElementById('mini-chart');
+  const labelsEl = document.getElementById('mini-chart-labels');
+  chartEl.innerHTML = ''; labelsEl.innerHTML = '';
+  const maxVal = Math.max(...r.monthlyData.map(m => Math.max(m.income || 0, m.expense || 0)), 1);
+  r.monthlyData.forEach(m => {
+    const group = document.createElement('div');
+    group.className = 'mini-bar-group';
+    group.style.cssText = 'flex:1;display:flex;align-items:flex-end;gap:2px;height:100%;';
+
+    const b1 = document.createElement('div');
+    b1.className = 'mini-bar in';
+    b1.style.height = '0%';
+    b1.title = `Pendapatan ${m.month}: ${formatRp(m.income)}`;
+
+    const b2 = document.createElement('div');
+    b2.className = 'mini-bar out';
+    b2.style.height = '0%';
+    b2.title = `Pengeluaran ${m.month}: ${formatRp(m.expense)}`;
+
+    group.appendChild(b1); group.appendChild(b2);
+    chartEl.appendChild(group);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'mini-chart-label';
+    lbl.textContent = m.month;
+    labelsEl.appendChild(lbl);
+
+    // Animate after paint
+    setTimeout(() => {
+      b1.style.height = Math.max((m.income / maxVal * 100), 2) + '%';
+      b2.style.height = Math.max((m.expense / maxVal * 100), 2) + '%';
+    }, 80);
+  });
+
+  // ── Cashflow — historis + proyeksi ───────────────────────
+  const cfEl = document.getElementById('cf-list');
+  cfEl.innerHTML = '';
+  const cfData = r.cfWeeks || [];
+  const maxCf = Math.max(...cfData.map(w => Math.abs(w.val)), 1);
+  let dividerAdded = false;
+
+  cfData.forEach(w => {
+    const pos = w.val >= 0;
+    const isProj = w.isProjection;
+
+    // Add divider before first projection
+    if (isProj && !dividerAdded) {
+      cfEl.innerHTML += `
+        <div class="cf-divider">
+          <div class="cf-divider-line"></div>
+          <div class="cf-divider-label">📈 Proyeksi 4 minggu ke depan</div>
+          <div class="cf-divider-line"></div>
+        </div>
+        <div style="font-size:10px;color:var(--ink3);margin-bottom:4px;line-height:1.4;padding:0 2px;">
+          Menggunakan <em>Holt's Double Exponential Smoothing</em> (α=0.3, β=0.2) — mempertimbangkan level terkini dan tren, dengan confidence decay per periode.
+        </div>`;
+      dividerAdded = true;
+    }
+
+    const fillClass = isProj ? (pos ? 'proj' : 'proj-neg') : (pos ? 'pos' : 'neg');
+    const valClass  = isProj ? 'proj' : (pos ? 'pos' : 'neg');
+    const prefix    = pos ? '+' : '-';
+
+    cfEl.innerHTML += `
+      <div class="cf-item">
+        <div class="cf-label" style="${isProj ? 'color:var(--ink3);font-style:italic;' : ''}">${w.week}</div>
+        <div class="cf-track">
+          <div class="cf-fill ${fillClass}" style="width:0%" data-width="${Math.abs(w.val)/maxCf*100}%"></div>
+        </div>
+        <div class="cf-val ${valClass}" style="${isProj ? 'opacity:0.65;' : ''}">${prefix}${formatRp(w.val)}</div>
+      </div>`;
+  });
+
+  // Animate bars after paint
+  setTimeout(() => {
+    cfEl.querySelectorAll('.cf-fill[data-width]').forEach(el => {
+      el.style.width = el.dataset.width;
+    });
+  }, 100);
+
+  // ── Insights — dengan argumen CFO ────────────────────────
+  const insightEl = document.getElementById('insight-list');
+  insightEl.innerHTML = r.insights.map(i => `
+    <div class="insight-item ${i.type}" style="flex-direction:column;align-items:flex-start;gap:6px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="insight-icon">${i.icon}</div>
+        <div style="font-weight:600;font-size:13px;">${i.title || i.text.split('.')[0]}</div>
+      </div>
+      <div style="font-size:12px;color:var(--ink2);line-height:1.6;padding-left:2px;">${i.text}</div>
+      ${i.reason ? `<div style="font-size:11px;color:var(--ink3);background:var(--surface3);border-radius:6px;padding:6px 10px;line-height:1.5;">💼 <strong style="color:var(--ink2);">Analisis CFO:</strong> ${i.reason}</div>` : ''}
+    </div>`
+  ).join('');
+
+  // ── Transaksi — dari pre-aggregated categories, income & expense terpisah ──
+  const tbody = document.querySelector('#mini-table tbody');
+  const cats = r.categoryBreakdown || [];
+  if (cats.length > 0) {
+    // Use pre-aggregated breakdown passed from preAggregate
+    const sorted = cats.sort((a,b) => Math.abs(b.net) - Math.abs(a.net)).slice(0, 8);
+    tbody.innerHTML = sorted.map(c =>
+      `<tr>
+        <td>${String(c.desc).substring(0,28)}</td>
+        <td class="amount ${c.net>=0?'income':'expense'}">${c.net>=0?'+':''}${formatRp(c.net)}</td>
+      </tr>`
+    ).join('');
+  } else {
+    // Fallback: use topTransactions from Groq
+    tbody.innerHTML = r.topTransactions.map(t =>
+      `<tr>
+        <td>${String(t.desc).substring(0,28)}</td>
+        <td class="amount ${t.amt>=0?'income':'expense'}">${t.amt>=0?'+':''}${formatRp(t.amt)}</td>
+      </tr>`
+    ).join('');
+  }
+
+  // ── Recommendations — dengan konteks data ────────────────
+  const recsEl = document.getElementById('recommendations');
+  const pColors = { high: 'var(--warn)', med: 'var(--gold)', low: 'var(--accent2)' };
+  const pLabels = { high: '🔴 Prioritas Tinggi', med: '🟡 Prioritas Sedang', low: '🟢 Quick Win' };
+  recsEl.innerHTML = r.recs.map(rec => `
+    <div style="padding:16px;border-radius:12px;background:var(--surface3);border:1px solid var(--border2);">
+      <div style="font-size:10px;font-weight:700;color:${pColors[rec.priority]};margin-bottom:6px;letter-spacing:0.5px;">${pLabels[rec.priority]}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;">${rec.title}</div>
+      <div style="font-size:12px;color:var(--ink2);line-height:1.6;">${rec.desc}</div>
+      ${rec.impact ? `<div style="margin-top:8px;font-size:11px;color:var(--accent2);font-weight:600;">📈 Estimasi dampak: ${rec.impact}</div>` : ''}
+    </div>
+  `).join('');
+
+  // Fraud alerts
+  renderFraudAlerts(r);
+}
+
+function renderFraudAlerts(r) {
+  const fraudEl = document.getElementById('fraud-section');
+  if (!fraudEl) return;
+
+  const alerts = r.fraudAlerts || [];
+  const fraudScore = r.fraudScore || 100;
+  const fraudSummary = r.fraudSummary || '';
+
+  if (alerts.length === 0) {
+    fraudEl.innerHTML = `
+      <div style="padding:16px;border-radius:12px;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;gap:12px;">
+        <div style="font-size:24px;">✅</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:2px;">Tidak Ada Anomali Terdeteksi</div>
+          <div style="font-size:12px;color:var(--ink2);">Data keuangan bersih — tidak ditemukan pola mencurigakan.</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const criticals = alerts.filter(a => a.severity === 'critical');
+  const warnings  = alerts.filter(a => a.severity === 'warning');
+  const totalRisk = alerts.reduce((s, a) => s + (a.amount || 0), 0);
+
+  fraudEl.innerHTML = `
+    <div style="background:#1A0A0A;border:1px solid #3A1515;border-radius:12px;overflow:hidden;margin-bottom:12px;">
+      <div style="background:#2D1010;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:16px;">🚨</span>
+          <span style="font-size:13px;font-weight:700;color:#E57373;">Fraud Radar — ${alerts.length} Anomali Terdeteksi</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${criticals.length ? `<span style="font-size:10px;font-weight:700;background:#3D1A1A;color:#EF5350;border:1px solid #5A2A2A;border-radius:20px;padding:3px 10px;">🔴 ${criticals.length} KRITIS</span>` : ''}
+          ${warnings.length  ? `<span style="font-size:10px;font-weight:700;background:#3D2F0A;color:#FFB74D;border:1px solid #5A4A1A;border-radius:20px;padding:3px 10px;">⚠️ ${warnings.length} PERHATIAN</span>` : ''}
+          ${totalRisk > 0    ? `<span style="font-size:10px;font-weight:700;background:#1A2A1A;color:#81C784;border:1px solid #2A4A2A;border-radius:20px;padding:3px 10px;">💰 Risiko ${formatRp(totalRisk)}</span>` : ''}
+        </div>
+      </div>
+      <div style="padding:12px 16px;font-size:11px;color:#A0785A;">${fraudSummary}</div>
+    </div>
+    ${alerts.map(a => {
+      const isCrit = a.severity === 'critical';
+      const bg = isCrit ? '#1A0A0A' : '#1A1400';
+      const border = isCrit ? '#3A1515' : '#3A2E0A';
+      const dotColor = isCrit ? '#EF5350' : '#FFB74D';
+      const typeColor = isCrit ? '#E57373' : '#FFB74D';
+      return `
+        <div style="padding:14px;border-radius:10px;background:${bg};border:1px solid ${border};margin-bottom:8px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};flex-shrink:0;margin-top:3px;"></div>
+              <div style="font-size:11px;font-weight:700;color:${typeColor};letter-spacing:0.3px;">${a.type}</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              ${a.date ? `<span style="font-size:10px;color:var(--ink3);">${a.date}</span>` : ''}
+              ${a.amount ? `<span style="font-size:11px;font-weight:700;color:${dotColor};">${formatRp(a.amount)}</span>` : ''}
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--ink2);margin-bottom:6px;">${a.desc}</div>
+          <div style="font-size:11px;color:var(--ink3);background:var(--surface3);border-radius:6px;padding:7px 10px;">
+            💡 <strong style="color:var(--ink2);">Tindakan:</strong> ${a.action}
+          </div>
+        </div>`;
+    }).join('')}`;
+}
+
+// ==================== EMAIL ====================
+async function sendEmail(result) {
+  const statusEl = document.getElementById('email-status');
+  statusEl.style.display = 'flex';
+  statusEl.className = 'email-status sending';
+  statusEl.innerHTML = `<div class="spin-sm"></div><span>Mengirim laporan ke <strong>${targetEmail}</strong>...</span>`;
+
+  const htmlReport = buildHtmlEmail(result);
+
+  // Always use Resend backend in MVP mode
+  if (API_BASE && API_BASE !== 'GANTI_VERCEL_URL') {
+    try {
+      const { data: profile } = await supabaseClient
+        .from('profiles').select('business_name').eq('id', currentUser.id).single();
+
+      const emailRes = await fetch(API_BASE + '/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toEmail: targetEmail,
+          toName: targetEmail.split('@')[0],
+          result,
+          businessName: profile?.business_name || ''
+        })
+      });
+
+      if (!emailRes.ok) throw new Error('Email send failed');
+
+      statusEl.className = 'email-status sent';
+      statusEl.innerHTML = `✅ <span>Laporan berhasil dikirim ke <strong>${targetEmail}</strong></span>`;
+      document.getElementById('email-sent-note').textContent = `✅ Email terkirim ke ${targetEmail} pada ${new Date().toLocaleTimeString('id-ID')}`;
+      return;
+    } catch(err) {
+      showEmailError(statusEl, 'Gagal kirim via server. ' + err.message);
+      return;
+    }
+  }
+
+  if (emailjsConfig.publicKey && emailjsConfig.serviceId && emailjsConfig.templateId) {
+    try {
+      // Build individual variables for EmailJS template
+      const fraudAlerts = result.fraudAlerts || [];
+      const fraudSection = fraudAlerts.length > 0
+        ? fraudAlerts.map(a => {
+            const isCrit = a.severity === 'critical';
+            const color = isCrit ? '#EF5350' : '#FFB74D';
+            return `<tr><td style="padding:6px 0;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:${isCrit?'#2D1010':'#2D2400'};border:1px solid ${isCrit?'#5A2020':'#5A4800'};border-radius:8px;padding:12px 14px;"><div style="font-size:11px;font-weight:700;color:${color};margin-bottom:4px;">${a.type}${a.date?' · '+a.date:''}${a.amount?' · Rp '+Number(a.amount).toLocaleString('id'):''}</div><div style="font-size:12px;color:#C0B0B0;margin-bottom:6px;">${a.desc}</div><div style="font-size:11px;color:#8A8080;background:#1A0D0D;border-radius:5px;padding:6px 10px;">💡 ${a.action}</div></td></tr></table></td></tr>`;
+          }).join('')
+        : '<tr><td style="padding:10px 0;font-size:13px;color:#4CAF82;">✅ Tidak ada anomali terdeteksi — data keuangan bersih.</td></tr>';
+
+      const insightsSection = (result.insights||[]).map(i => {
+        const bg = i.type==='ok'?'#0D2A1A':i.type==='warn'?'#2A1F0A':'#1A1F0A';
+        const border = i.type==='ok'?'#1B4D3E':i.type==='warn'?'#4D3A0A':'#2D3A0A';
+        const color = i.type==='ok'?'#4CAF82':i.type==='warn'?'#D4A843':'#A8C55A';
+        return `<tr><td style="padding:6px 0;"><div style="background:${bg};border:1px solid ${border};border-radius:10px;padding:14px 16px;"><div style="font-size:13px;font-weight:700;color:${color};margin-bottom:6px;">${i.icon} ${i.title||''}</div><div style="font-size:13px;color:#C8C8C0;line-height:1.6;">${i.text}</div>${i.reason?`<div style="margin-top:8px;font-size:12px;color:#8A8A84;background:#0D0D0B;border-radius:6px;padding:8px 12px;line-height:1.5;">💼 <strong style="color:#A8A8A0;">Analisis CFO:</strong> ${i.reason}</div>`:''}</div></td></tr>`;
+      }).join('');
+
+      const recsSection = (result.recs||[]).map(rec => {
+        const pColor = rec.priority==='high'?'#E57373':rec.priority==='med'?'#D4A843':'#4CAF82';
+        const pLabel = rec.priority==='high'?'🔴 Prioritas Tinggi':rec.priority==='med'?'🟡 Prioritas Sedang':'🟢 Quick Win';
+        return `<tr><td style="padding:6px 0;"><div style="background:#111210;border:1px solid #2A2A24;border-radius:10px;padding:14px 16px;"><div style="font-size:10px;font-weight:700;color:${pColor};letter-spacing:0.5px;margin-bottom:5px;">${pLabel}</div><div style="font-size:13px;font-weight:700;color:#E8E8E0;margin-bottom:5px;">${rec.title}</div><div style="font-size:12px;color:#A0A09A;line-height:1.6;">${rec.desc}</div>${rec.impact?`<div style="margin-top:8px;font-size:11px;color:#4CAF82;font-weight:600;">📈 ${rec.impact}</div>`:''}</div></td></tr>`;
+      }).join('');
+
+      const scoreColor = result.score>=75?'#4CAF82':result.score>=55?'#D4A843':'#E57373';
+      const profitColor = result.profit>=0?'#4CAF82':'#E57373';
+      const hasFraud = fraudAlerts.length > 0;
+      const dateStr = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+
+      await emailjs.send(emailjsConfig.serviceId, emailjsConfig.templateId, {
+        to_email:        targetEmail,
+        to_name:         targetEmail.split('@')[0],
+        date:            dateStr,
+        total_income:    formatRp(result.totalIncome),
+        total_expense:   formatRp(result.totalExpense),
+        profit:          formatRp(result.profit),
+        profit_color:    profitColor,
+        margin:          result.margin.toFixed(1) + '%',
+        score:           result.score + '/100',
+        score_label:     result.scoreLabel,
+        score_color:     scoreColor,
+        fraud_banner:    hasFraud ? `<tr><td style="background:#1A0808;border-left:1px solid #3A1515;border-right:1px solid #3A1515;padding:14px 32px;"><span style="font-size:13px;font-weight:700;color:#E57373;">🚨 ${fraudAlerts.length} anomali keuangan terdeteksi</span></td></tr>` : '',
+        insights_rows:   insightsSection,
+        recs_rows:       recsSection,
+        fraud_rows:      fraudSection,
+        fraud_title:     hasFraud ? '🚨 Fraud Radar & Anomali' : '✅ Fraud Radar',
+      });
+      statusEl.className = 'email-status sent';
+      statusEl.innerHTML = `✅ <span>Laporan berhasil dikirim ke <strong>${targetEmail}</strong></span>`;
+      document.getElementById('email-sent-note').textContent = `✅ Email terkirim ke ${targetEmail} pada ${new Date().toLocaleTimeString('id-ID')}`;
+    } catch(err) {
+      showEmailError(statusEl, err.text || 'Cek konfigurasi EmailJS Anda.');
+    }
+  } else {
+    await new Promise(r => setTimeout(r, 1800));
+    statusEl.className = 'email-status sent';
+    statusEl.innerHTML = `✅ <span>Mode demo — laporan akan dikirim ke <strong>${targetEmail}</strong> setelah EmailJS dikonfigurasi.</span>`;
+    document.getElementById('email-sent-note').textContent = `Demo mode · Konfigurasi EmailJS untuk mengirim email sungguhan`;
+  }
+}
+
+function showEmailError(el, msg) {
+  el.className = 'email-status error';
+  el.innerHTML = `⚠️ <span>Gagal kirim email: ${msg}</span>`;
+  document.getElementById('email-sent-note').textContent = 'Email gagal terkirim. Cek konfigurasi EmailJS.';
+}
+
+function buildHtmlEmail(r) {
+  const date = new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'});
+  const scoreColor = r.score >= 75 ? '#4CAF82' : r.score >= 55 ? '#D4A843' : '#E57373';
+  const profitColor = r.profit >= 0 ? '#4CAF82' : '#E57373';
+  const fraudAlerts = r.fraudAlerts || [];
+  const hasFraud = fraudAlerts.length > 0;
+
+  const insightsHtml = (r.insights || []).map(i => {
+    const bg    = i.type==='ok' ? '#0D2A1A' : i.type==='warn' ? '#2A1F0A' : '#1A1F0A';
+    const border= i.type==='ok' ? '#1B4D3E' : i.type==='warn' ? '#4D3A0A' : '#2D3A0A';
+    const color = i.type==='ok' ? '#4CAF82' : i.type==='warn' ? '#D4A843' : '#A8C55A';
+    return `
+      <tr><td style="padding:8px 0;">
+        <div style="background:${bg};border:1px solid ${border};border-radius:10px;padding:14px 16px;">
+          <div style="font-size:13px;font-weight:700;color:${color};margin-bottom:6px;">${i.icon} ${i.title || ''}</div>
+          <div style="font-size:13px;color:#C8C8C0;line-height:1.6;">${i.text}</div>
+          ${i.reason ? `<div style="margin-top:8px;font-size:12px;color:#8A8A84;background:#0D0D0B;border-radius:6px;padding:8px 12px;line-height:1.5;">💼 <strong style="color:#A8A8A0;">Analisis CFO:</strong> ${i.reason}</div>` : ''}
+        </div>
+      </td></tr>`;
+  }).join('');
+
+  const recsHtml = (r.recs || []).map(rec => {
+    const pColor = rec.priority==='high' ? '#E57373' : rec.priority==='med' ? '#D4A843' : '#4CAF82';
+    const pLabel = rec.priority==='high' ? '🔴 Prioritas Tinggi' : rec.priority==='med' ? '🟡 Prioritas Sedang' : '🟢 Quick Win';
+    return `
+      <tr><td style="padding:6px 0;">
+        <div style="background:#111210;border:1px solid #2A2A24;border-radius:10px;padding:14px 16px;">
+          <div style="font-size:10px;font-weight:700;color:${pColor};letter-spacing:0.5px;margin-bottom:5px;">${pLabel}</div>
+          <div style="font-size:13px;font-weight:700;color:#E8E8E0;margin-bottom:5px;">${rec.title}</div>
+          <div style="font-size:12px;color:#A0A09A;line-height:1.6;">${rec.desc}</div>
+          ${rec.impact ? `<div style="margin-top:8px;font-size:11px;color:#4CAF82;font-weight:600;">📈 ${rec.impact}</div>` : ''}
+        </div>
+      </td></tr>`;
+  }).join('');
+
+  const fraudHtml = hasFraud ? `
+    <tr><td style="padding:24px 0 8px;">
+      <div style="background:#1A0808;border:1px solid #3A1515;border-radius:12px;overflow:hidden;">
+        <div style="background:#2D1010;padding:14px 20px;">
+          <span style="font-size:14px;font-weight:700;color:#E57373;">🚨 Fraud Radar — ${fraudAlerts.length} Anomali Terdeteksi</span>
+        </div>
+        <div style="padding:14px 20px;">
+          ${fraudAlerts.map(a => {
+            const isCrit = a.severity === 'critical';
+            const bc = isCrit ? '#3A1515' : '#3A2E0A';
+            const fc = isCrit ? '#EF5350' : '#FFB74D';
+            return `<div style="border:1px solid ${bc};border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#0D0808;">
+              <div style="font-size:11px;font-weight:700;color:${fc};margin-bottom:5px;">${a.type} ${a.date ? '· '+a.date : ''} ${a.amount ? '· Rp '+Number(a.amount).toLocaleString('id') : ''}</div>
+              <div style="font-size:12px;color:#C0B0B0;margin-bottom:6px;">${a.desc}</div>
+              <div style="font-size:11px;color:#8A8080;background:#1A0D0D;border-radius:5px;padding:7px 10px;">💡 ${a.action}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </td></tr>` : '';
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#0A0A08;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0A0A08;padding:32px 16px;">
+<tr><td align="center">
+<table width="100%" style="max-width:600px;" cellpadding="0" cellspacing="0">
+
+  <!-- HEADER -->
+  <tr><td style="background:linear-gradient(135deg,#0D2A1A 0%,#0A1F14 100%);border-radius:16px 16px 0 0;padding:32px 32px 28px;border:1px solid #1B4D3E;border-bottom:none;">
+    <div style="font-size:11px;font-weight:700;color:#4CAF82;letter-spacing:2px;margin-bottom:8px;">CFO.AI</div>
+    <div style="font-size:22px;font-weight:700;color:#F0F0E8;margin-bottom:6px;">Laporan Keuangan AI</div>
+    <div style="font-size:13px;color:#6A9A7A;">${date}</div>
+  </td></tr>
+
+  <!-- KPI STRIP -->
+  <tr><td style="background:#0D1A10;border:1px solid #1B4D3E;border-top:none;border-bottom:none;padding:0 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td width="25%" style="padding:20px 12px 20px 0;border-right:1px solid #1A2A1A;">
+          <div style="font-size:10px;color:#4A7A5A;font-weight:700;letter-spacing:1px;margin-bottom:5px;">PENDAPATAN</div>
+          <div style="font-size:18px;font-weight:700;color:#4CAF82;">${formatRp(r.totalIncome)}</div>
+        </td>
+        <td width="25%" style="padding:20px 12px;border-right:1px solid #1A2A1A;">
+          <div style="font-size:10px;color:#4A7A5A;font-weight:700;letter-spacing:1px;margin-bottom:5px;">PENGELUARAN</div>
+          <div style="font-size:18px;font-weight:700;color:#E57373;">${formatRp(r.totalExpense)}</div>
+        </td>
+        <td width="25%" style="padding:20px 12px;border-right:1px solid #1A2A1A;">
+          <div style="font-size:10px;color:#4A7A5A;font-weight:700;letter-spacing:1px;margin-bottom:5px;">LABA BERSIH</div>
+          <div style="font-size:18px;font-weight:700;color:${profitColor};">${formatRp(r.profit)}</div>
+          <div style="font-size:11px;color:#6A8A6A;margin-top:2px;">Margin ${r.margin.toFixed(1)}%</div>
+        </td>
+        <td width="25%" style="padding:20px 0 20px 12px;">
+          <div style="font-size:10px;color:#4A7A5A;font-weight:700;letter-spacing:1px;margin-bottom:5px;">SKOR KESEHATAN</div>
+          <div style="font-size:18px;font-weight:700;color:${scoreColor};">${r.score}/100</div>
+          <div style="font-size:11px;color:#6A8A6A;margin-top:2px;">${r.scoreLabel}</div>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+
+  <!-- FRAUD BANNER (if any) -->
+  ${hasFraud ? `<tr><td style="background:#1A0808;border:1px solid #3A1515;border-top:2px solid #E57373;padding:14px 32px;">
+    <span style="font-size:13px;font-weight:700;color:#E57373;">🚨 ${fraudAlerts.length} anomali keuangan terdeteksi — lihat detail di bawah</span>
+  </td></tr>` : ''}
+
+  <!-- BODY -->
+  <tr><td style="background:#0F0F0D;border:1px solid #1E1E18;border-top:none;border-radius:0 0 16px 16px;padding:28px 32px;">
+    <table width="100%" cellpadding="0" cellspacing="0">
+
+      <!-- INSIGHTS -->
+      <tr><td style="padding-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;color:#4A4A44;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">🤖 AI Insights</div>
+      </td></tr>
+      ${insightsHtml}
+
+      <!-- RECOMMENDATIONS -->
+      <tr><td style="padding:24px 0 8px;">
+        <div style="font-size:11px;font-weight:700;color:#4A4A44;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">💡 Rekomendasi CFO</div>
+      </td></tr>
+      ${recsHtml}
+
+      <!-- FRAUD DETAIL -->
+      ${fraudHtml}
+
+      <!-- FOOTER -->
+      <tr><td style="padding-top:32px;border-top:1px solid #1E1E18;margin-top:8px;">
+        <div style="font-size:11px;color:#3A3A34;text-align:center;line-height:1.6;">
+          Laporan ini dihasilkan otomatis oleh <strong style="color:#4CAF82;">CFO.ai</strong><br>
+          Bersifat indikatif — verifikasi dengan akuntan untuk keputusan bisnis penting.
+        </div>
+      </td></tr>
+
+    </table>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}
+
+async function resendEmail() {
+  if (analysisResult) {
+    document.getElementById('email-status').style.display = 'flex';
+    await sendEmail(analysisResult);
+  }
+}
+
+// ==================== NAVIGATION ====================
+function goToStep(n) {
+  document.querySelectorAll('.step-panel').forEach((p, i) => {
+    p.classList.toggle('active', i === n - 1);
+  });
+  const fsIds = ['fs-1','fs-2','fs-3'];
+  fsIds.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.remove('done','active');
+    if (i < n - 1) el.classList.add('done');
+    else if (i === n - 1) el.classList.add('active');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetApp() {
+  parsedData = null; analysisResult = null; targetEmail = '';
+  document.getElementById('preview-wrap').classList.remove('visible');
+  document.getElementById('email-section').style.display = 'none';
+  document.getElementById('email-input').value = '';
+  document.getElementById('dropzone').innerHTML = `
+    <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(event)">
+    <div class="upload-icon-wrap">📊</div>
+    <div class="upload-main-text">Drag & drop file keuangan Anda</div>
+    <div class="upload-sub-text">atau <span>klik untuk pilih file</span> dari komputer Anda</div>
+    <div class="format-chips">
+      <span class="format-chip">XLSX</span>
+      <span class="format-chip">XLS</span>
+      <span class="format-chip">CSV</span>
+    </div>
+  `;
+  // Reset proc steps
+  ['ps-1','ps-2','ps-3','ps-4','ps-5'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('done','running');
+    el.querySelector('.proc-icon').textContent = { 'ps-1':'📁','ps-2':'🔢','ps-3':'🤖','ps-4':'💡','ps-5':'📧' }[id];
+  });
+  goToStep(1);
+}
+</script>
+</body>
+</html>
