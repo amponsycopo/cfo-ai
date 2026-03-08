@@ -99,33 +99,12 @@
     overflow: hidden;
   }
 
-  /* TABS */
-  .tabs {
-    display: grid; grid-template-columns: 1fr 1fr;
+  /* CARD HEADER */
+  .card-header {
+    padding: 20px 32px 0;
     border-bottom: 1px solid var(--border2);
+    padding-bottom: 0;
   }
-
-  .tab {
-    padding: 16px;
-    text-align: center;
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700;
-    color: var(--ink3);
-    cursor: pointer;
-    background: var(--surface2);
-    border: none; outline: none;
-    transition: all 0.2s;
-    letter-spacing: 0.3px;
-  }
-
-  .tab:first-child { border-right: 1px solid var(--border2); }
-
-  .tab.active {
-    background: var(--surface);
-    color: var(--ink);
-  }
-
-  .tab:hover:not(.active) { color: var(--ink2); }
 
   /* FORM BODY */
   .form-body {
@@ -249,19 +228,7 @@
 
   .forgot-link:hover { color: var(--ink2); }
 
-  /* PANEL SWITCH */
-  .panel { display: none; }
-  .panel.active { display: block; }
 
-  /* FREE BADGE */
-  .free-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: rgba(107,191,101,0.1);
-    border: 1px solid var(--accent-dark);
-    border-radius: 20px; padding: 3px 10px;
-    font-size: 11px; font-weight: 600; color: var(--accent2);
-    margin-bottom: 16px;
-  }
 
   /* SCROLLBAR */
   ::-webkit-scrollbar { width: 5px; }
@@ -282,74 +249,28 @@
   <!-- CARD -->
   <div class="card">
 
-    <!-- TABS -->
-    <div class="tabs">
-      <button class="tab active" id="tab-masuk" onclick="switchTab('masuk')">Masuk</button>
-      <button class="tab" id="tab-daftar" onclick="switchTab('daftar')">Daftar Gratis</button>
-    </div>
-
     <!-- FORM BODY -->
     <div class="form-body">
+      <div class="form-title">Selamat datang</div>
+      <div class="form-sub">Masuk ke akun CFO.ai Anda</div>
 
-      <!-- MASUK PANEL -->
-      <div class="panel active" id="panel-masuk">
-        <div class="form-title">Selamat datang</div>
-        <div class="form-sub">Masuk untuk menganalisis keuangan bisnis Anda</div>
+      <div class="alert" id="alert-masuk"></div>
 
-        <div class="alert" id="alert-masuk"></div>
-
-        <div class="field">
-          <label class="field-label">Email</label>
-          <input class="field-input" type="email" id="masuk-email" placeholder="nama@email.com" />
-        </div>
-
-        <div class="field">
-          <label class="field-label">Password</label>
-          <input class="field-input" type="password" id="masuk-password" placeholder="••••••••" 
-            onkeydown="if(event.key==='Enter') doLogin()" />
-          <button class="forgot-link" onclick="doForgotPassword()">Lupa password?</button>
-        </div>
-
-        <button class="btn-submit" id="btn-masuk" onclick="doLogin()">
-          <span>Masuk →</span>
-        </button>
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" type="email" id="masuk-email" placeholder="nama@email.com" />
       </div>
 
-      <!-- DAFTAR PANEL -->
-      <div class="panel" id="panel-daftar">
-        <div class="free-badge">✨ 3 analisis gratis</div>
-        <div class="form-title">Mulai gratis</div>
-        <div class="form-sub">Daftar dan analisis keuangan bisnis Anda dalam hitungan detik</div>
-
-        <div class="alert" id="alert-daftar"></div>
-
-        <div class="field">
-          <label class="field-label">Nama Bisnis</label>
-          <input class="field-input" type="text" id="daftar-bisnis" placeholder="Toko / Warung / Usaha Anda" />
-        </div>
-
-        <div class="field">
-          <label class="field-label">Email</label>
-          <input class="field-input" type="email" id="daftar-email" placeholder="nama@email.com" />
-        </div>
-
-        <div class="field">
-          <label class="field-label">Password</label>
-          <input class="field-input" type="password" id="daftar-password" placeholder="Min. 6 karakter"
-            onkeydown="if(event.key==='Enter') doRegister()" />
-        </div>
-
-        <button class="btn-submit" id="btn-daftar" onclick="doRegister()">
-          <span>Daftar & Mulai →</span>
-        </button>
-
-        <div class="features">
-          <div class="feature"><div class="feature-dot">🤖</div> Analisis AI otomatis dari file Excel</div>
-          <div class="feature"><div class="feature-dot">🚨</div> Deteksi fraud & anomali keuangan</div>
-          <div class="feature"><div class="feature-dot">📧</div> Laporan dikirim langsung ke email</div>
-          <div class="feature"><div class="feature-dot">🔒</div> Data diproses lokal, tidak dikirim ke server</div>
-        </div>
+      <div class="field">
+        <label class="field-label">Password</label>
+        <input class="field-input" type="password" id="masuk-password" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter') doLogin()" />
+        <button class="forgot-link" onclick="doForgotPassword()">Lupa password?</button>
       </div>
+
+      <button class="btn-submit" id="btn-masuk" onclick="doLogin()">
+        <span>Masuk →</span>
+      </button>
 
     </div>
   </div>
@@ -378,13 +299,8 @@ async function checkExistingSession() {
 checkExistingSession();
 
 // ── Tab Switch ──────────────────────────────────────────
-function switchTab(tab) {
-  document.getElementById('tab-masuk').classList.toggle('active', tab === 'masuk');
-  document.getElementById('tab-daftar').classList.toggle('active', tab === 'daftar');
-  document.getElementById('panel-masuk').classList.toggle('active', tab === 'masuk');
-  document.getElementById('panel-daftar').classList.toggle('active', tab === 'daftar');
-  hideAlert('masuk'); hideAlert('daftar');
-}
+// (removed - login only mode)
+
 
 // ── Alerts ──────────────────────────────────────────────
 function showAlert(panel, msg, type = 'error') {
@@ -430,63 +346,6 @@ async function doLogin() {
       : 'Gagal masuk: ' + e.message;
     showAlert('masuk', msg);
     setLoading('btn-masuk', false, 'Masuk →');
-  }
-}
-
-// ── Register ────────────────────────────────────────────
-async function doRegister() {
-  const bisnis   = document.getElementById('daftar-bisnis').value.trim();
-  const email    = document.getElementById('daftar-email').value.trim();
-  const password = document.getElementById('daftar-password').value;
-
-  if (!email || !password) {
-    showAlert('daftar', 'Email dan password wajib diisi.');
-    return;
-  }
-  if (password.length < 6) {
-    showAlert('daftar', 'Password minimal 6 karakter.');
-    return;
-  }
-
-  hideAlert('daftar');
-  setLoading('btn-daftar', true, 'Daftar & Mulai →');
-
-  try {
-    const { data, error } = await supabase.auth.signUp({ 
-      email, 
-      password,
-      options: { data: { business_name: bisnis } }
-    });
-    if (error) throw error;
-
-    // Coba buat profile (mungkin sudah dibuat via trigger)
-    if (data.user) {
-      try {
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          email: email,
-          business_name: bisnis,
-          credits: 3
-        }, { onConflict: 'id' });
-      } catch(e) {
-        console.warn('Profile upsert:', e.message);
-      }
-    }
-
-    // Kalau email confirmation dimatikan → langsung redirect
-    if (data.session) {
-      window.location.href = 'dashboard.html';
-    } else {
-      showAlert('daftar', '✅ Akun berhasil dibuat! Cek email Anda untuk konfirmasi, lalu masuk.', 'success');
-      setLoading('btn-daftar', false, 'Daftar & Mulai →');
-    }
-
-  } catch(e) {
-    const msg = e.message.includes('already registered')
-      ? 'Email sudah terdaftar. Silakan masuk.'
-      : 'Gagal daftar: ' + e.message;
-    showAlert('daftar', msg);
-    setLoading('btn-daftar', false, 'Daftar & Mulai →');
   }
 }
 
