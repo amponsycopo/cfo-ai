@@ -999,9 +999,9 @@
 <script>
 // ==================== CONFIG ====================
 // ── App Config ──────────────────────────────────────────
-const SUPABASE_URL = https://pqpvtlfhewutpjwqdyqt.supabase.co;
-const SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcHZ0bGZoZXd1dHBqd3FkeXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTM4MzcsImV4cCI6MjA4ODQ4OTgzN30.cW9U7vgHV7OqJ0h3NXkiXgcos25-7y0246LDpjTITK4;
-const API_BASE     = https://cfo-ai-pi.vercel.app; // e.g. https://cfo-ai.vercel.app
+const SUPABASE_URL = 'https://pqpvtlfhewutpjwqdyqt.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcHZ0bGZoZXd1dHBqd3FkeXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTM4MzcsImV4cCI6MjA4ODQ4OTgzN30.cW9U7vgHV7OqJ0h3NXkiXgcos25-7y0246LDpjTITK4';
+const API_BASE     = 'https://cfo-ai-pi.vercel.app';
 // ─────────────────────────────────────────────────────────
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1016,20 +1016,43 @@ let targetEmail = '';
 
 // ── Auth ─────────────────────────────────────────────────
 async function initAuth() {
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (!session) { window.location.href = 'index.html'; return; }
-  currentUser = session.user;
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) { window.location.href = 'index.html'; return; }
+    currentUser = session.user;
 
-  const { data: profile } = await supabaseClient
-    .from('profiles')
-    .select('credits, business_name')
-    .eq('id', currentUser.id)
-    .single();
+    try {
+      const { data: profile, error } = await supabaseClient
+        .from('profiles')
+        .select('credits, business_name')
+        .eq('id', currentUser.id)
+        .single();
 
-  userCredits = profile?.credits ?? 0;
-  updateCreditsUI();
-  document.getElementById('user-email-display').textContent = currentUser.email;
-  if (userCredits <= 0) document.getElementById('no-credits-overlay').classList.add('show');
+      if (error || !profile) {
+        // Profile belum ada — auto-create dengan 3 credits
+        await supabaseClient.from('profiles').upsert({
+          id: currentUser.id,
+          email: currentUser.email,
+          business_name: '',
+          credits: 3
+        }, { onConflict: 'id' });
+        userCredits = 3;
+      } else {
+        userCredits = profile.credits ?? 3;
+      }
+    } catch(e) {
+      console.warn('Profile fetch failed, default 3 credits:', e.message);
+      userCredits = 3;
+    }
+
+    updateCreditsUI();
+    document.getElementById('user-email-display').textContent = currentUser.email;
+    if (userCredits <= 0) document.getElementById('no-credits-overlay').classList.add('show');
+
+  } catch(e) {
+    console.error('Auth init failed:', e.message);
+    window.location.href = 'index.html';
+  }
 }
 
 function updateCreditsUI() {
