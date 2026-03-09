@@ -1312,6 +1312,26 @@ tbody tr:hover td { background: var(--bg); }
       </div>
     </div>
 
+    <!-- CFO 4-Layer Analysis -->
+    <div class="card" style="margin-bottom:16px;margin-top:16px;" id="cfo-layer-analysis" style="display:none;">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="icon">🔍</div>
+          Analisis CFO: Kenapa Angka Berubah?
+        </div>
+        <div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:0.5px;padding:4px 10px;background:var(--blue-light);border-radius:20px;border:1px solid var(--blue-mid);">4-LAYER CFO FRAMEWORK</div>
+      </div>
+      <div style="padding:16px 24px;">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:#EEF1FD;color:var(--blue);border:1px solid var(--blue-mid);">① Volume</span>
+          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:#ECFDF5;color:var(--green);border:1px solid var(--green-border);">② Value</span>
+          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:#FFFBEB;color:var(--orange);border:1px solid var(--orange-border);">③ Customer Mix</span>
+          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:#FEF2F2;color:var(--red);border:1px solid var(--red-border);">④ Product Mix</span>
+        </div>
+        <div id="cfo-layer-text" style="font-size:13px;color:var(--text2);line-height:1.7;"></div>
+      </div>
+    </div>
+
     <!-- AI Insights full width -->
     <div class="card" style="margin-bottom:16px;margin-top:16px;">
       <div class="card-header">
@@ -2279,9 +2299,34 @@ ${fraudStr}
 
   // ── Step 3: Groq focuses ONLY on insight & reasoning ──────
   const fullSummary = summaryText + bsAppend;
-  const prompt = `Kamu AI CFO senior Indonesia. Analisis data keuangan dan return JSON ringkas.
+  // Build MoM delta string for 4-layer analysis
+  const momDeltas = (() => {
+    const m = summary.monthly;
+    if (m.length < 2) return 'Hanya 1 bulan data — analisis MoM tidak tersedia.';
+    const last = m[m.length - 1];
+    const prev = m[m.length - 2];
+    const revDelta = prev.income > 0 ? ((last.income - prev.income) / prev.income * 100).toFixed(1) : null;
+    const expDelta = prev.expense > 0 ? ((last.expense - prev.expense) / prev.expense * 100).toFixed(1) : null;
+    const lastTx = summary.topIncomeTx?.[0];
+    return `Bulan terakhir (${last.month}): Revenue Rp ${last.income.toLocaleString('id')} vs bulan sebelumnya (${prev.month}) Rp ${prev.income.toLocaleString('id')} → ${revDelta !== null ? revDelta + '%' : 'N/A'}.
+Pengeluaran: Rp ${last.expense.toLocaleString('id')} vs ${prev.expense.toLocaleString('id')} → ${expDelta !== null ? expDelta + '%' : 'N/A'}.
+Top kategori pendapatan: ${summary.topIncomeCategories?.map(c => c.desc + ' Rp ' + c.income.toLocaleString('id')).join(' | ') || 'N/A'}
+Top kategori pengeluaran: ${summary.topExpenseCategories?.map(c => c.desc + ' Rp ' + c.expense.toLocaleString('id')).join(' | ') || 'N/A'}`;
+  })();
+
+  const prompt = `Kamu AI CFO senior Indonesia. Analisis data keuangan dengan framework 4-layer CFO.
 
 ${fullSummary}
+
+ANALISIS MoM (Month-over-Month):
+${momDeltas}
+
+FRAMEWORK 4-LAYER CFO — untuk setiap perubahan signifikan, cek 4 lapisan:
+1. VOLUME: Apakah jumlah transaksi berubah? (jika data tersedia)
+2. VALUE: Apakah rata-rata nilai transaksi berubah? (jika data tersedia)
+3. CUSTOMER CONCENTRATION: Apakah ada pelanggan/kategori besar yang hilang atau muncul?
+4. PRODUCT MIX: Apakah komposisi kategori pendapatan berubah (margin tinggi vs rendah)?
+Jika data tidak cukup untuk suatu layer, skip layer tersebut dan tulis "data tidak tersedia".
 
 Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
 {
@@ -2295,11 +2340,12 @@ Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
   "monthlyData": [{"month": "Jan", "income": 10000000, "expense": 8000000}],
   "cfWeeks": [{"week": "W1", "val": 3000000}],
   "topTransactions": [{"desc": "kategori terbesar", "amt": 50000000}],
+  "cfoLayerAnalysis": "Analisis 4-layer CFO dalam 4-6 kalimat: jelaskan perubahan revenue/expense menggunakan layer mana yang datanya tersedia. Sebut angka spesifik. Contoh: Revenue turun 15% — terutama dari turunnya volume transaksi kategori X (-20%), bukan dari penurunan nilai per transaksi. Customer concentration: kategori Y menyumbang 45% revenue bulan lalu namun turun 30% bulan ini.",
   "insights": [
     {"type": "ok", "icon": "✅", "title": "Judul dengan angka spesifik", "text": "2-3 kalimat dengan angka nyata dan benchmark industri Indonesia."},
     {"type": "warn", "icon": "⚠️", "title": "Warning dengan angka konkret", "text": "Masalah dari data dengan angka spesifik."},
     {"type": "gold", "icon": "💡", "title": "Peluang dengan estimasi Rp", "text": "Peluang dari pola data dengan estimasi Rp."},
-    {"type": "warn", "icon": "⚠️", "title": "Insight keempat jika ada", "text": "Temuan keempat dari data."}
+    {"type": "warn", "icon": "⚠️", "title": "Insight keempat jika relevan", "text": "Temuan keempat dari data."}
   ],
   "recs": [
     {"priority": "critical", "title": "Aksi minggu ini", "desc": "Langkah spesifik dengan target angka", "impact": "Estimasi dampak Rp 3 bulan"},
@@ -2315,7 +2361,7 @@ Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
   "trendInsight": "3 kalimat: bulan terbaik/terburuk dan penyebabnya, tren naik/turun/flat, 1 rekomendasi konkret."
 }
 
-ATURAN: totalIncome/totalExpense/profit HARUS sama persis angka di atas. Jika tidak ada fraud, fraudAlerts=[]. Setiap insight/rekomendasi HARUS ada angka dari data. Return JSON mentah saja.`;
+ATURAN: totalIncome/totalExpense/profit HARUS sama persis angka di atas. Jika tidak ada fraud, fraudAlerts=[]. Setiap insight HARUS ada angkanya. cfoLayerAnalysis wajib diisi. Return JSON mentah saja.`;
 
   // Call Vercel backend (API key hidden server-side)
   console.log('Prompt size:', prompt.length, 'chars,', Math.round(prompt.length/4), 'tokens est.');
@@ -3442,6 +3488,13 @@ function renderResult(r) {
   if (trendInsightEl && trendTextEl && r.trendInsight) {
     trendInsightEl.style.display = 'block';
     trendTextEl.textContent = r.trendInsight;
+  }
+
+  // ── CFO 4-Layer Analysis ───────────────────────────────────
+  const layerEl = document.getElementById('cfo-layer-analysis');
+  if (layerEl && r.cfoLayerAnalysis) {
+    layerEl.style.display = 'block';
+    document.getElementById('cfo-layer-text').textContent = r.cfoLayerAnalysis;
   }
 
   // ── Cashflow — historis + proyeksi ───────────────────────
