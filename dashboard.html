@@ -1172,12 +1172,12 @@ tbody tr:hover td { background: var(--bg); }
 
 
     <!-- Findi Executive Summary -->
-    <div id="findi-summary" style="display:none;margin-bottom:20px;background:linear-gradient(135deg,#1B3FE4 0%,#1230B0 100%);border-radius:16px;padding:24px 28px;box-shadow:0 4px 20px rgba(27,63,228,0.25);">
+    <div id="findi-summary" style="display:none;margin-bottom:20px;background:#F0F4FF;border:1.5px solid #C7D4FF;border-radius:16px;padding:22px 26px;box-shadow:0 2px 12px rgba(27,63,228,0.08);">
       <div style="display:flex;align-items:flex-start;gap:16px;">
-        <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">✨</div>
+        <div style="width:44px;height:44px;background:#1B3FE4;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">✨</div>
         <div style="flex:1;">
-          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.55);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">FINDI BILANG</div>
-          <div id="findi-summary-text" style="font-size:15px;color:rgba(255,255,255,0.95);line-height:1.75;font-weight:400;"></div>
+          <div style="font-size:11px;font-weight:700;color:#1B3FE4;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">FINDI BILANG</div>
+          <div id="findi-summary-text" style="font-size:14px;color:#1a1a2e;line-height:1.7;font-weight:400;"></div>
           <div id="findi-summary-pills" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;"></div>
         </div>
       </div>
@@ -2438,14 +2438,14 @@ Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
   ],
   "fraudScore": 75,
   "fraudSummary": "1 paragraf: berapa anomali, total risiko, rekomendasi.",
-  "trendInsight": "2-3 kalimat ringkasan eksekutif untuk owner bisnis non-finance: kondisi bisnis sekarang gimana, kenapa, dan 1 hal paling penting yang harus dilakukan. Pakai bahasa santai Indonesia, tanpa jargon akuntansi.",
+  "trendInsight": "Tulis 3 kalimat TERPISAH (bukan satu paragraf). Kalimat 1: kondisi bisnis sekarang dan angka kuncinya. Kalimat 2: kenapa bisa begitu. Kalimat 3: 1 aksi paling penting yang harus dilakukan. Bahasa santai Indonesia, tanpa jargon.",
   "cfoLayers": [
     {"layer": "Volume", "icon": "📦", "available": true, "status": "ok", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "1-2 kalimat penjelasan dengan angka nyata."},
     {"layer": "Value", "icon": "💵", "available": true, "status": "ok", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "1-2 kalimat penjelasan."},
     {"layer": "Customer Mix", "icon": "👥", "available": true, "status": "warn", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "Customer concentration: ada customer/produk besar yang hilang atau dominasi berubah?"},
     {"layer": "Product Mix", "icon": "📊", "available": true, "status": "gold", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "Apakah komposisi produk margin tinggi vs rendah berubah?"}
   ],
-  "trendInsight": "2-3 kalimat ringkasan eksekutif untuk owner bisnis non-finance: kondisi bisnis sekarang gimana, kenapa, dan 1 hal paling penting yang harus dilakukan. Pakai bahasa santai Indonesia, tanpa jargon akuntansi."
+  "trendInsight": "Tulis 3 kalimat TERPISAH (bukan satu paragraf). Kalimat 1: kondisi bisnis sekarang dan angka kuncinya. Kalimat 2: kenapa bisa begitu. Kalimat 3: 1 aksi paling penting yang harus dilakukan. Bahasa santai Indonesia, tanpa jargon."
 }
 
 ATURAN: totalIncome/totalExpense/profit HARUS sama persis angka di atas. Jika tidak ada fraud, fraudAlerts=[]. Setiap insight HARUS ada angkanya. Return JSON mentah saja.`;
@@ -2615,7 +2615,7 @@ Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
     {"layer": "Customer Mix", "icon": "👥", "available": true, "status": "warn", "headline": "1 kalimat konsentrasi customer dari top 5 customers", "detail": "Top customer terlalu dominan (>30% revenue)? Ada customer besar yang hilang bulan ini?"},
     {"layer": "Product Mix", "icon": "📊", "available": true, "status": "ok", "headline": "1 kalimat komposisi produk dari top 5 products", "detail": "Komposisi produk margin tinggi vs rendah berubah? Produk mana yang tumbuh atau turun?"}
   ],
-  "trendInsight": "2-3 kalimat ringkasan untuk owner bisnis: kondisi bisnis sekarang gimana, kenapa, dan 1 hal paling penting yang harus dilakukan. Bahasa santai Indonesia, tanpa jargon akuntansi."
+  "trendInsight": "Tulis 3 kalimat TERPISAH (bukan satu paragraf). Kalimat 1: kondisi bisnis sekarang dan angka kuncinya. Kalimat 2: kenapa bisa begitu. Kalimat 3: 1 aksi paling penting yang harus dilakukan. Bahasa santai Indonesia, tanpa jargon."
 }
 Bandingkan Current Ratio (ideal >1.5x), D/E (ideal <1x), Gross/Op Margin dengan benchmark industri. Cek customer concentration jika top 1 customer >30% revenue. DILARANG rekomendasi yang tidak ada datanya. Return JSON mentah saja.`;
 
@@ -3420,6 +3420,28 @@ function formatRp(num) {
   return 'Rp ' + abs.toFixed(0);
 }
 
+
+// Split teks panjang jadi bullet points berdasarkan kalimat
+function textToBullets(text) {
+  if (!text) return '';
+  // Split by '. ' or '; ' or ': ' tapi jaga angka seperti Rp 1.5M
+  const sentences = text
+    .replace(/([.;])\s+(?=[A-Z])/g, '$1|||')
+    .replace(/([.;])\s+(?=[a-z])/g, '$1|||')
+    .split('|||')
+    .map(s => s.trim())
+    .filter(s => s.length > 15);
+  
+  if (sentences.length <= 1) return `<p style="margin:0">${text}</p>`;
+  
+  return sentences.map(s => 
+    `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:7px;">
+      <span style="color:#1B3FE4;font-weight:700;margin-top:1px;flex-shrink:0;">•</span>
+      <span>${s.replace(/\.$/,'')}</span>
+    </div>`
+  ).join('');
+}
+
 // ==================== FINDI SUMMARY ====================
 function renderFindiSummary(r) {
   const box = document.getElementById('findi-summary');
@@ -3445,7 +3467,7 @@ function renderFindiSummary(r) {
     if (fraudCount > 0) summary += ` Findi menemukan <strong>${fraudCount} transaksi</strong> yang perlu kamu cek.`;
     if (insightCount > 0) summary += ` Ada <strong>${insightCount} insight penting</strong> di bawah.`;
   }
-  textEl.innerHTML = summary;
+  textEl.innerHTML = textToBullets(summary);
 
   // Highlight pills
   const pills = [];
@@ -3456,7 +3478,7 @@ function renderFindiSummary(r) {
   if (r.recs?.length) pills.push({ text: `${r.recs.length} Rekomendasi`, color: 'rgba(255,255,255,0.25)' });
 
   pillsEl.innerHTML = pills.map(p =>
-    `<span style="background:${p.color};color:white;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;">${p.text}</span>`
+    `<span style="background:${p.color};color:white;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;opacity:0.92;">${p.text}</span>`
   ).join('');
 
   box.style.display = 'block';
@@ -3624,7 +3646,7 @@ function renderResult(r) {
   const trendTextEl = document.getElementById('trend-ai-text');
   if (trendInsightEl && trendTextEl && r.trendInsight) {
     trendInsightEl.style.display = 'block';
-    trendTextEl.textContent = r.trendInsight;
+    trendTextEl.innerHTML = textToBullets(r.trendInsight);
   }
 
   // ── CFO 4-Layer Analysis ───────────────────────────────────
