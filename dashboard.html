@@ -1030,7 +1030,7 @@ tbody tr:hover td { background: var(--bg); }
   </div>
   <div class="flow-step" id="fs-2" style="margin-left:16px;">
     <div class="flow-step-num">2</div>
-    Analisis AI
+    Analisis Findi
   </div>
   <div class="flow-step" id="fs-3" style="margin-left:16px;">
     <div class="flow-step-num">3</div>
@@ -1122,7 +1122,7 @@ tbody tr:hover td { background: var(--bg); }
           </div>
           <div class="proc-step" id="ps-3">
             <div class="proc-icon">🤖</div>
-            AI menganalisis tren & anomali
+            Findi menganalisis tren & anomali
           </div>
           <div class="proc-step" id="ps-4">
             <div class="proc-icon">💡</div>
@@ -1142,7 +1142,7 @@ tbody tr:hover td { background: var(--bg); }
 
     <div class="result-header">
       <div>
-        <div class="result-title">Laporan Keuangan AI</div>
+        <div class="result-title">Laporan Keuangan Findi</div>
         <div class="result-sub" id="result-sub">Findible · Hasil analisis otomatis</div>
       </div>
       <div class="result-actions">
@@ -1167,6 +1167,19 @@ tbody tr:hover td { background: var(--bg); }
           </svg>
           Analisis Baru
         </button>
+      </div>
+    </div>
+
+
+    <!-- Findi Executive Summary -->
+    <div id="findi-summary" style="display:none;margin-bottom:20px;background:linear-gradient(135deg,#1B3FE4 0%,#1230B0 100%);border-radius:16px;padding:24px 28px;box-shadow:0 4px 20px rgba(27,63,228,0.25);">
+      <div style="display:flex;align-items:flex-start;gap:16px;">
+        <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">✨</div>
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.55);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">FINDI BILANG</div>
+          <div id="findi-summary-text" style="font-size:15px;color:rgba(255,255,255,0.95);line-height:1.75;font-weight:400;"></div>
+          <div id="findi-summary-pills" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;"></div>
+        </div>
       </div>
     </div>
 
@@ -1276,7 +1289,7 @@ tbody tr:hover td { background: var(--bg); }
 
       <!-- AI Trend Insight -->
       <div id="trend-ai-insight" style="display:none;margin-top:14px;padding:12px 14px;background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:10px;">
-        <div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:0.5px;margin-bottom:6px;">🤖 AI ANALISIS TREN</div>
+        <div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:0.5px;margin-bottom:6px;">✨ FINDI ANALISIS TREN</div>
         <div id="trend-ai-text" style="font-size:12px;color:var(--text2);line-height:1.6;"></div>
       </div>
     </div>
@@ -1330,7 +1343,7 @@ tbody tr:hover td { background: var(--bg); }
       <div class="card-header">
         <div class="card-title">
           <div class="icon">🤖</div>
-          AI Insights
+          Findi Insights
         </div>
       </div>
       <div class="insight-list" id="insight-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:4px;"></div>
@@ -1352,7 +1365,7 @@ tbody tr:hover td { background: var(--bg); }
       <div class="card-header">
         <div class="card-title">
           <div class="icon">🚨</div>
-          Fraud Radar
+          Transaksi yang Perlu Dicek
         </div>
       </div>
       <div class="fraud-wrap" id="fraud-section"></div>
@@ -2167,8 +2180,8 @@ async function runProcessingAnimation() {
   const steps = ['ps-1', 'ps-2', 'ps-3', 'ps-4', 'ps-5'];
   const subs = [
     'Membaca dan memproses data keuangan Anda...',
-    'AI memahami struktur dan format data...',
-    'AI menganalisis tren, anomali & pola cashflow...',
+    'Findi memahami struktur dan format data...',
+    'Findi menganalisis tren, anomali & pola cashflow...',
     'Menyusun insight dan rekomendasi prioritas...',
     'Mempersiapkan dan mengirim laporan ke email Anda...'
   ];
@@ -2195,7 +2208,7 @@ async function runProcessingAnimation() {
   try {
     analysisResult = await analyzeWithGroq(parsedData);
   } catch(err) {
-    console.error('AI analysis error:', err.message, err);
+    console.error('Findi analysis error:', err.message, err);
     // Only use fallback for NO_CREDITS — otherwise show real error
     if (err.message === 'NO_CREDITS') {
       throw err; // re-throw so credit overlay shows
@@ -2359,14 +2372,14 @@ Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
   ],
   "fraudScore": 75,
   "fraudSummary": "1 paragraf: berapa anomali, total risiko, rekomendasi.",
-  "trendInsight": "3 kalimat: bulan terbaik/terburuk dan penyebabnya, tren naik/turun/flat, 1 rekomendasi konkret.",
+  "trendInsight": "2-3 kalimat ringkasan eksekutif untuk owner bisnis non-finance: kondisi bisnis sekarang gimana, kenapa, dan 1 hal paling penting yang harus dilakukan. Pakai bahasa santai Indonesia, tanpa jargon akuntansi.",
   "cfoLayers": [
     {"layer": "Volume", "icon": "📦", "available": true, "status": "ok", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "1-2 kalimat penjelasan dengan angka nyata."},
     {"layer": "Value", "icon": "💵", "available": true, "status": "ok", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "1-2 kalimat penjelasan."},
     {"layer": "Customer Mix", "icon": "👥", "available": true, "status": "warn", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "Customer concentration: ada customer/produk besar yang hilang atau dominasi berubah?"},
     {"layer": "Product Mix", "icon": "📊", "available": true, "status": "gold", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "Apakah komposisi produk margin tinggi vs rendah berubah?"}
   ],
-  "trendInsight": "3 kalimat: bulan terbaik/terburuk dan penyebabnya, tren naik/turun/flat, 1 rekomendasi konkret."
+  "trendInsight": "2-3 kalimat ringkasan eksekutif untuk owner bisnis non-finance: kondisi bisnis sekarang gimana, kenapa, dan 1 hal paling penting yang harus dilakukan. Pakai bahasa santai Indonesia, tanpa jargon akuntansi."
 }
 
 ATURAN: totalIncome/totalExpense/profit HARUS sama persis angka di atas. Jika tidak ada fraud, fraudAlerts=[]. Setiap insight HARUS ada angkanya. Return JSON mentah saja.`;
@@ -2530,7 +2543,15 @@ Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
   "fraudAlerts": ${JSON.stringify(d.fraudFlags.slice(0,5))},
   "fraudScore": ${d.fraudFlags.length === 0 ? 95 : d.fraudFlags.some(f=>f.severity==='critical') ? 45 : 70},
   "fraudSummary": "1 paragraf: berapa anomali, total risiko, rekomendasi.",
- Bandingkan Current Ratio (ideal >1.5x), D/E (ideal <1x), Gross/Op Margin dengan benchmark industri. Cek customer concentration jika top 1 customer >30% revenue. DILARANG rekomendasi yang tidak ada datanya. Return JSON mentah saja.`;
+  "cfoLayers": [
+    {"layer": "Volume", "icon": "📦", "available": true, "status": "ok", "headline": "1 kalimat dengan angka — apakah jumlah transaksi/invoice bulan ini naik atau turun?", "detail": "Berapa persen perubahan volume transaksi? Apa penyebabnya?"},
+    {"layer": "Value", "icon": "💵", "available": true, "status": "ok", "headline": "1 kalimat avg transaction value dari data Accurate", "detail": "Avg revenue per transaksi naik/turun? Implikasinya untuk harga atau mix produk?"},
+    {"layer": "Customer Mix", "icon": "👥", "available": true, "status": "warn", "headline": "1 kalimat konsentrasi customer dari top 5 customers", "detail": "Top customer terlalu dominan (>30% revenue)? Ada customer besar yang hilang bulan ini?"},
+    {"layer": "Product Mix", "icon": "📊", "available": true, "status": "ok", "headline": "1 kalimat komposisi produk dari top 5 products", "detail": "Komposisi produk margin tinggi vs rendah berubah? Produk mana yang tumbuh atau turun?"}
+  ],
+  "trendInsight": "2-3 kalimat ringkasan untuk owner bisnis: kondisi bisnis sekarang gimana, kenapa, dan 1 hal paling penting yang harus dilakukan. Bahasa santai Indonesia, tanpa jargon akuntansi."
+}
+Bandingkan Current Ratio (ideal >1.5x), D/E (ideal <1x), Gross/Op Margin dengan benchmark industri. Cek customer concentration jika top 1 customer >30% revenue. DILARANG rekomendasi yang tidak ada datanya. Return JSON mentah saja.`;
 
   const res = await fetch(API_BASE + '/api/analyze', {
     method: 'POST',
@@ -3279,7 +3300,7 @@ function exportPDF() {
 <div class="header">
   <div>
     <div class="brand">Findible</div>
-    <div style="font-size:13px;color:#6B7280;margin-top:4px;">Laporan Analisis Keuangan AI</div>
+    <div style="font-size:13px;color:#6B7280;margin-top:4px;">Laporan Analisis Keuangan Findi</div>
   </div>
   <div class="meta">
     <div style="font-weight:700;font-size:14px;color:#111827;">${bizName}</div>
@@ -3304,17 +3325,17 @@ ${insightRows}
 ${recRows}
 
 ${(r.fraudAlerts||[]).length > 0 ? `
-<h2>🚨 Fraud Radar — ${(r.fraudAlerts||[]).length} Anomali Terdeteksi</h2>
+<h2>🚨 Transaksi yang Perlu Dicek — ${(r.fraudAlerts||[]).length} Anomali Terdeteksi</h2>
 <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;">
   <strong>Ringkasan:</strong> ${r.fraudSummary||''}
 </div>
 <table>
   <thead><tr><th>Level</th><th>Tipe</th><th>Detail</th><th>Nilai</th></tr></thead>
   <tbody>${fraudRows}</tbody>
-</table>` : `<h2>✅ Fraud Radar</h2><div style="padding:14px;background:#ECFDF5;border-radius:8px;color:#065F46;">Tidak ada anomali signifikan yang terdeteksi.</div>`}
+</table>` : `<h2>✅ Transaksi yang Perlu Dicek</h2><div style="padding:14px;background:#ECFDF5;border-radius:8px;color:#065F46;">Tidak ada anomali signifikan yang terdeteksi.</div>`}
 
 <div class="footer">
-  Laporan ini dibuat otomatis oleh Findible AI · Bersifat indikatif · Verifikasi dengan akuntan sebelum mengambil keputusan strategis<br>
+  Laporan ini dibuat otomatis oleh Findi · Bersifat indikatif · Verifikasi dengan akuntan sebelum mengambil keputusan strategis<br>
   © ${new Date().getFullYear()} Findible · findible.vercel.app
 </div>
 </body></html>`;
@@ -3333,8 +3354,53 @@ function formatRp(num) {
   return 'Rp ' + abs.toFixed(0);
 }
 
+// ==================== FINDI SUMMARY ====================
+function renderFindiSummary(r) {
+  const box = document.getElementById('findi-summary');
+  const textEl = document.getElementById('findi-summary-text');
+  const pillsEl = document.getElementById('findi-summary-pills');
+  if (!box || !textEl) return;
+
+  // Build plain-language summary sentence
+  const profit = r.profit >= 0;
+  const margin = r.margin?.toFixed(1);
+  const score = r.score;
+  const scoreWord = score >= 75 ? 'sehat' : score >= 55 ? 'cukup stabil' : 'perlu perhatian';
+  const profitWord = profit ? 'untung' : 'rugi';
+  const fraudCount = r.fraudAlerts?.length || 0;
+  const insightCount = r.insights?.length || 0;
+
+  // Use AI-generated trendInsight as the core, fallback to generated text
+  let summary = '';
+  if (r.trendInsight && r.trendInsight.length > 20) {
+    summary = r.trendInsight;
+  } else {
+    summary = `Bisnis kamu sedang ${profitWord} dengan margin <strong>${margin}%</strong> dan skor kesehatan <strong>${score}/100</strong> — kondisi ${scoreWord}.`;
+    if (fraudCount > 0) summary += ` Findi menemukan <strong>${fraudCount} transaksi</strong> yang perlu kamu cek.`;
+    if (insightCount > 0) summary += ` Ada <strong>${insightCount} insight penting</strong> di bawah.`;
+  }
+  textEl.innerHTML = summary;
+
+  // Highlight pills
+  const pills = [];
+  if (r.profit >= 0) pills.push({ text: `Laba ${formatRp(r.profit)}`, color: '#4CAF82' });
+  else pills.push({ text: `Rugi ${formatRp(Math.abs(r.profit))}`, color: '#EF4444' });
+  if (margin) pills.push({ text: `Margin ${margin}%`, color: score >= 75 ? '#4CAF82' : score >= 55 ? '#F59E0B' : '#EF4444' });
+  if (fraudCount > 0) pills.push({ text: `⚠️ ${fraudCount} Anomali`, color: '#F59E0B' });
+  if (r.recs?.length) pills.push({ text: `${r.recs.length} Rekomendasi`, color: 'rgba(255,255,255,0.25)' });
+
+  pillsEl.innerHTML = pills.map(p =>
+    `<span style="background:${p.color};color:white;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;">${p.text}</span>`
+  ).join('');
+
+  box.style.display = 'block';
+}
+
 // ==================== RENDER RESULT ====================
 function renderResult(r) {
+  // Findi Summary (top of page)
+  renderFindiSummary(r);
+
   // KPIs
   document.getElementById('kpi-income').textContent = formatRp(r.totalIncome);
   document.getElementById('kpi-expense').textContent = formatRp(r.totalExpense);
@@ -3703,7 +3769,7 @@ function renderFraudAlerts(r) {
       <div style="background:#FEE2E2;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:16px;">🚨</span>
-          <span style="font-size:13px;font-weight:700;color:var(--red);">Fraud Radar — ${alerts.length} Anomali Terdeteksi</span>
+          <span style="font-size:13px;font-weight:700;color:var(--red);">Transaksi yang Perlu Dicek — ${alerts.length} Anomali Terdeteksi</span>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           ${criticals.length ? `<span style="font-size:10px;font-weight:700;background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);border-radius:20px;padding:3px 10px;">🔴 ${criticals.length} KRITIS</span>` : ''}
@@ -3823,7 +3889,7 @@ async function sendEmail(result) {
         insights_rows:   insightsSection,
         recs_rows:       recsSection,
         fraud_rows:      fraudSection,
-        fraud_title:     hasFraud ? '🚨 Fraud Radar & Anomali' : '✅ Fraud Radar',
+        fraud_title:     hasFraud ? '🚨 Transaksi yang Perlu Dicek & Anomali' : '✅ Transaksi yang Perlu Dicek',
       });
       statusEl.className = 'email-status sent';
       statusEl.innerHTML = `✅ <span>Laporan berhasil dikirim ke <strong>${targetEmail}</strong></span>`;
@@ -3884,7 +3950,7 @@ function buildHtmlEmail(r) {
     <tr><td style="padding:24px 0 8px;">
       <div style="background:#1A0808;border:1px solid #3A1515;border-radius:12px;overflow:hidden;">
         <div style="background:#2D1010;padding:14px 20px;">
-          <span style="font-size:14px;font-weight:700;color:#E57373;">🚨 Fraud Radar — ${fraudAlerts.length} Anomali Terdeteksi</span>
+          <span style="font-size:14px;font-weight:700;color:#E57373;">🚨 Transaksi yang Perlu Dicek — ${fraudAlerts.length} Anomali Terdeteksi</span>
         </div>
         <div style="padding:14px 20px;">
           ${fraudAlerts.map(a => {
@@ -3911,8 +3977,8 @@ function buildHtmlEmail(r) {
 
   <!-- HEADER -->
   <tr><td style="background:linear-gradient(135deg,#0D2A1A 0%,#0A1F14 100%);border-radius:16px 16px 0 0;padding:32px 32px 28px;border:1px solid #1B4D3E;border-bottom:none;">
-    <div style="font-size:11px;font-weight:700;color:#4CAF82;letter-spacing:2px;margin-bottom:8px;">CFO.AI</div>
-    <div style="font-size:22px;font-weight:700;color:#F0F0E8;margin-bottom:6px;">Laporan Keuangan AI</div>
+    <div style="font-size:11px;font-weight:700;color:#4CAF82;letter-spacing:2px;margin-bottom:8px;">Findible</div>
+    <div style="font-size:22px;font-weight:700;color:#F0F0E8;margin-bottom:6px;">Laporan Keuangan Findi</div>
     <div style="font-size:13px;color:#6A9A7A;">${date}</div>
   </td></tr>
 
@@ -3953,7 +4019,7 @@ function buildHtmlEmail(r) {
 
       <!-- INSIGHTS -->
       <tr><td style="padding-bottom:8px;">
-        <div style="font-size:11px;font-weight:700;color:#4A4A44;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">🤖 AI Insights</div>
+        <div style="font-size:11px;font-weight:700;color:#4A4A44;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">✨ Findi Insights</div>
       </td></tr>
       ${insightsHtml}
 
