@@ -1,5 +1,5 @@
 // api/analyze.js — Vercel Serverless Function
-// Handles Groq AI analysis — API key never exposed to client
+// Claude Sonnet 4.5 — API key never exposed to client
 
 export default async function handler(req, res) {
   // CORS
@@ -21,7 +21,6 @@ export default async function handler(req, res) {
       process.env.SUPABASE_SERVICE_KEY
     );
 
-    // Get user profile and check credits
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('credits, business_name')
@@ -40,28 +39,29 @@ export default async function handler(req, res) {
       });
     }
 
-    // Call Groq API using server-side key
-    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // Call Claude Sonnet API
+    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'claude-sonnet-4-5',
         max_tokens: 2000,
         temperature: 0.1,
         messages: [{ role: 'user', content: summaryText }]
       })
     });
 
-    if (!groqRes.ok) {
-      const err = await groqRes.json();
-      throw new Error(err.error?.message || 'Groq API error');
+    if (!claudeRes.ok) {
+      const err = await claudeRes.json();
+      throw new Error(err.error?.message || 'Claude API error');
     }
 
-    const groqData = await groqRes.json();
-    let text = groqData.choices[0].message.content.trim();
+    const claudeData = await claudeRes.json();
+    let text = claudeData.content[0].text.trim();
     text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
     const result = JSON.parse(text);
 
@@ -71,7 +71,6 @@ export default async function handler(req, res) {
       .update({ credits: profile.credits - 1 })
       .eq('id', userId);
 
-    // Return result + remaining credits
     return res.status(200).json({
       result,
       creditsRemaining: profile.credits - 1,
