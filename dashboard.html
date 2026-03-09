@@ -1422,6 +1422,7 @@ const API_BASE     = 'https://findible.vercel.app';
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser  = null;
+let userBusinessType = 'general';
 let userCredits  = 0;
 let emailjsConfig = { publicKey: '', serviceId: '', templateId: '' };
 let groqConfig    = { apiKey: '' };
@@ -1442,7 +1443,7 @@ async function initAuth() {
     try {
       const { data: profile, error } = await supabaseClient
         .from('profiles')
-        .select('credits, business_name')
+        .select('credits, business_name, business_type')
         .eq('id', currentUser.id)
         .single();
 
@@ -1457,6 +1458,7 @@ async function initAuth() {
         userCredits = 3;
       } else {
         userCredits = profile.credits ?? 3;
+        userBusinessType = profile.business_type || 'general';
       }
     } catch(e) {
       console.warn('Profile fetch failed, default 3 credits:', e.message);
@@ -2248,6 +2250,70 @@ async function runProcessingAnimation() {
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ==================== GROQ AI ANALYSIS ====================
+
+// ==================== INDUSTRY CONTEXT ====================
+const INDUSTRY_CONTEXT = {
+  fnb: {
+    label: 'F&B / Restoran / Kafe',
+    benchmark: 'Gross margin ideal: 30-50%. Food cost ideal: <35% revenue. Net margin sehat: 8-15%. Perhatikan inventory spoilage dan labour cost.',
+    kpis: 'food cost ratio, table turnover, avg spend per customer, labour cost %',
+    risks: 'cashflow ketat karena daily ops, spoilage, musiman (Ramadan, liburan)',
+  },
+  retail: {
+    label: 'Retail / Toko',
+    benchmark: 'Gross margin ideal: 25-45% tergantung kategori. Inventory turnover ideal: >6x/tahun. Net margin sehat: 5-12%.',
+    kpis: 'inventory turnover, sell-through rate, gross margin per SKU, shrinkage',
+    risks: 'deadstock, cashflow terikat inventory, persaingan harga',
+  },
+  agency: {
+    label: 'Agency / Jasa Kreatif',
+    benchmark: 'Gross margin ideal: 50-70%. Net margin sehat: 20-35%. Utilization rate ideal: >75%. Retainer > project one-off = lebih stabil.',
+    kpis: 'revenue per head, utilization rate, retainer vs project ratio, client concentration',
+    risks: 'revenue tidak stabil, ketergantungan 1-2 klien besar, churn klien',
+  },
+  contractor: {
+    label: 'Kontraktor / Properti',
+    benchmark: 'Gross margin ideal: 15-25%. Net margin sehat: 5-10%. Cashflow sering negatif di awal proyek karena modal dulu.',
+    kpis: 'project margin per job, AR days, progress billing vs actual cost, backlog nilai proyek',
+    risks: 'cashflow negatif awal proyek, AR macet, cost overrun, keterlambatan termin',
+  },
+  clinic: {
+    label: 'Klinik / Kesehatan',
+    benchmark: 'Gross margin ideal: 40-60%. Net margin sehat: 10-20%. Revenue per pasien dan patient retention adalah KPI utama.',
+    kpis: 'revenue per pasien, jumlah kunjungan/bulan, occupancy rate, BPJS vs non-BPJS ratio',
+    risks: 'piutang BPJS lama cair, biaya SDM tinggi, regulasi',
+  },
+  trading: {
+    label: 'Distribusi / Trading',
+    benchmark: 'Gross margin ideal: 10-20% (tipis tapi volume). Inventory turnover ideal: >8x/tahun. Working capital management sangat kritis.',
+    kpis: 'inventory turnover, gross margin per SKU, AR days, AP days, fill rate',
+    risks: 'cashflow terikat stok dan piutang, harga komoditas fluktuatif, ketergantungan supplier',
+  },
+  ecommerce: {
+    label: 'E-commerce',
+    benchmark: 'Gross margin ideal: 20-40%. Net margin sehat: 5-15% setelah ads. ROAS ideal: >3x. Customer acquisition cost harus < LTV.',
+    kpis: 'ROAS, CAC, LTV, repeat order rate, return rate, ads spend % of revenue',
+    risks: 'ads cost makin mahal, return tinggi, cashflow terikat stok + marketplace payout',
+  },
+  general: {
+    label: 'Bisnis Umum',
+    benchmark: 'Analisis berdasarkan pola data tanpa benchmark industri spesifik.',
+    kpis: 'revenue growth, margin trend, cashflow, expense ratio',
+    risks: 'analisis umum tanpa konteks industri spesifik',
+  },
+};
+
+function getIndustryContext() {
+  const ind = INDUSTRY_CONTEXT[userBusinessType] || INDUSTRY_CONTEXT.general;
+  if (userBusinessType === 'general') return '';
+  return `
+KONTEKS INDUSTRI USER: ${ind.label}
+- Benchmark: ${ind.benchmark}
+- KPI penting industri ini: ${ind.kpis}
+- Risiko umum industri ini: ${ind.risks}
+Gunakan benchmark ini saat menilai margin, cashflow, dan memberi rekomendasi. Sebutkan apakah angka user di atas/bawah benchmark industri.`;
+}
+
 async function analyzeWithGroq(data) {
   // Check credits before even starting
   if (userCredits <= 0) {
@@ -2324,7 +2390,7 @@ Top kategori pengeluaran: ${summary.topExpenseCategories?.map(c => c.desc + ' Rp
   })();
 
   const prompt = `Kamu AI CFO senior Indonesia. Analisis data keuangan dengan framework 4-layer CFO.
-
+${getIndustryContext()}
 ${fullSummary}
 
 ANALISIS MoM (Month-over-Month):
@@ -2505,7 +2571,7 @@ ${d.fraudFlags.length > 0 ? d.fraudFlags.map(f => `[${f.type}] ${f.desc}`).join(
 `.trim();
 
   const prompt = `Kamu AI CFO senior Indonesia. Data dari software Accurate — analisis level eksekutif.
-
+${getIndustryContext()}
 ${summaryText}
 
 Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
