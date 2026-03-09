@@ -1398,12 +1398,12 @@ function handleBalanceSheet(event) {
 // ==================== HELPERS ====================
 function formatRp(num) {
   const abs=Math.abs(num);
-  if(abs>=1000000000)return'Rp '+(abs/1000000000).toFixed(1)+'M';
-  if(abs>=1000000)return'Rp '+(abs/1000000).toFixed(1)+' jt';
-  if(abs>=1000)return'Rp '+(abs/1000).toFixed(0)+'rb';
+  if(abs>=1000000000)return'Rp '+(abs/1000000000).toFixed(1)+' Miliar';
+  if(abs>=1000000)return'Rp '+(abs/1000000).toFixed(1)+' Juta';
+  if(abs>=1000)return'Rp '+(abs/1000).toFixed(0)+' Ribu';
   return'Rp '+abs.toFixed(0);
 }
-
+  
 function textToBullets(text) {
   if(!text)return'';
   const sentences=text.replace(/([.;])\s+(?=[A-Z])/g,'$1|||').replace(/([.;])\s+(?=[a-z])/g,'$1|||').split('|||').map(s=>s.trim()).filter(s=>s.length>15);
