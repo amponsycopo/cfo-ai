@@ -2179,8 +2179,23 @@ async function runProcessingAnimation() {
   try {
     analysisResult = await analyzeWithGroq(parsedData);
   } catch(err) {
-    console.warn('Groq error, using fallback:', err);
-    analysisResult = analyzeDataFallback(parsedData);
+    console.error('AI analysis error:', err.message, err);
+    // Only use fallback for NO_CREDITS — otherwise show real error
+    if (err.message === 'NO_CREDITS') {
+      throw err; // re-throw so credit overlay shows
+    }
+    // Show error to user instead of silently using dummy data
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step1').style.display = 'block';
+    const dzEl = document.getElementById('dropzone');
+    if (dzEl) dzEl.innerHTML = `
+      <div style="padding:24px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+        <div style="font-size:15px;font-weight:700;color:var(--red);margin-bottom:8px;">Analisis gagal</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">${err.message || 'Server error — coba beberapa saat lagi'}</div>
+        <button onclick="location.reload()" style="padding:8px 20px;background:var(--blue);color:white;border:none;border-radius:8px;cursor:pointer;font-size:13px;">Coba Lagi</button>
+      </div>`;
+    return;
   }
 
   activateStep(3);
