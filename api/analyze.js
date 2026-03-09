@@ -2,7 +2,6 @@
 // Claude Sonnet 4.5 — API key never exposed to client
 
 export default async function handler(req, res) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -11,10 +10,8 @@ export default async function handler(req, res) {
 
   try {
     const { summaryText, userId, userToken } = req.body;
-
     if (!summaryText) return res.status(400).json({ error: 'summaryText required' });
 
-    // Verify user via Supabase (check credits)
     const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient(
       process.env.SUPABASE_URL,
@@ -30,7 +27,6 @@ export default async function handler(req, res) {
     if (profileError || !profile) {
       return res.status(401).json({ error: 'User tidak ditemukan.' });
     }
-
     if (profile.credits <= 0) {
       return res.status(403).json({
         error: 'Kredit habis',
@@ -39,7 +35,6 @@ export default async function handler(req, res) {
       });
     }
 
-    // Call Claude Sonnet API
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -49,8 +44,9 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 4096,
+        max_tokens: 8096,
         temperature: 0.1,
+        system: 'You are a senior CFO AI. Always respond with valid, complete JSON only. No markdown, no explanation, no truncation. The JSON must be fully closed with all brackets and braces.',
         messages: [{ role: 'user', content: summaryText }]
       })
     });
@@ -62,11 +58,44 @@ export default async function handler(req, res) {
     }
 
     const claudeData = await claudeRes.json();
+
+    // Check if response was truncated
+    const stopReason = claudeData.stop_reason;
+    if (stopReason === 'max_tokens') {
+      console.error('Response truncated at max_tokens');
+    }
+
     let text = claudeData.content[0].text.trim();
     text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
-    const result = JSON.parse(text);
 
-    // Deduct 1 credit AFTER successful analysis
+    // Try parse — if fails, attempt JSON repair (close unclosed structures)
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (parseErr) {
+      console.error('JSON parse failed, attempting repair. Length:', text.length);
+      // Try to find last valid closing brace
+      let repaired = text;
+      // Count unclosed brackets/braces
+      let braces = 0, brackets = 0;
+      let inString = false, escape = false;
+      for (const ch of repaired) {
+        if (escape) { escape = false; continue; }
+        if (ch === '\\' && inString) { escape = true; continue; }
+        if (ch === '"') { inString = !inString; continue; }
+        if (inString) continue;
+        if (ch === '{') braces++;
+        else if (ch === '}') braces--;
+        else if (ch === '[') brackets++;
+        else if (ch === ']') brackets--;
+      }
+      // Close any unclosed arrays then objects
+      for (let i = 0; i < brackets; i++) repaired += ']';
+      for (let i = 0; i < braces; i++) repaired += '}';
+      result = JSON.parse(repaired);
+      console.log('JSON repaired successfully');
+    }
+
     await supabase
       .from('profiles')
       .update({ credits: profile.credits - 1 })
