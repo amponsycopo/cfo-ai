@@ -106,23 +106,50 @@ export default async function handler(req, res) {
       message: 'Kredit demo Anda sudah habis.'
     });
 
-    // ── Step 1: Reasoning Pass ──────────────────────────────
-    // First, ask Claude to reason through the data and extract structured metrics
-    console.log('Step 1: Calling Claude for reasoning pass...');
+    // ── Step 1: Reasoning Pass (internal, not sent to JSON step) ───────────
+    console.log('Step 1: Reasoning pass...');
     const reasoningPrompt = `${summaryText}
 
 ---
-Sebelum membuat laporan final, lakukan analisis step-by-step:
+Analisis data keuangan di atas secara singkat dan terstruktur:
+1. Metrik utama yang ditemukan
+2. Rasio kunci (gross margin, net margin, payroll ratio, burn rate)
+3. Anomali yang ditemukan beserta severity
+4. Root cause paling mungkin per anomali
 
-1. Sebutkan semua metrik utama yang kamu temukan dari data di atas
-2. Hitung semua rasio kunci (gross margin, net margin, payroll ratio, dst)
-3. Bandingkan dengan benchmark industri yang relevan
-4. List semua anomali yang ditemukan beserta severity-nya
-5. Untuk setiap anomali, identifikasi root cause yang paling mungkin
+Tulis dalam 200-300 kata, singkat dan padat.`;
 
-Tulis reasoning ini secara singkat dan terstruktur, lalu generate JSON final.`;
+    const reasoningRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 800,
+        temperature: 0.1,
+        system: 'Kamu CFO senior Indonesia. Analisis data keuangan secara singkat dan terstruktur dalam Bahasa Indonesia.',
+        messages: [{ role: 'user', content: reasoningPrompt }]
+      })
+    });
 
-    // ── Step 2: Final Analysis ──────────────────────────────
+    let reasoningText = '';
+    if (reasoningRes.ok) {
+      const reasoningData = await reasoningRes.json();
+      reasoningText = reasoningData.content?.[0]?.text?.trim() || '';
+      console.log('Reasoning done, chars:', reasoningText.length);
+    } else {
+      console.warn('Reasoning pass failed, continuing without it');
+    }
+
+    // ── Step 2: Final JSON Analysis ─────────────────────────
+    console.log('Step 2: Final JSON analysis...');
+    const finalPrompt = reasoningText
+      ? `${summaryText}\n\n---\nHasil analisis awal:\n${reasoningText}\n\n---\nBerdasarkan analisis di atas, generate JSON final sesuai format yang diminta. Return HANYA JSON valid, tanpa teks lain.`
+      : summaryText;
+
     console.log('Calling Claude API...');
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -133,10 +160,10 @@ Tulis reasoning ini secara singkat dan terstruktur, lalu generate JSON final.`;
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 6000,
+        max_tokens: 8000,
         temperature: 0.1,
         system: CFO_SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: reasoningPrompt }]
+        messages: [{ role: 'user', content: finalPrompt }]
       })
     });
 
@@ -168,21 +195,32 @@ Tulis reasoning ini secara singkat dan terstruktur, lalu generate JSON final.`;
     // Strip markdown fences if any
     text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
 
-    // If Claude did a reasoning pass before JSON, extract only the JSON part
-    const jsonStart = text.indexOf('{');
-    if (jsonStart > 0) {
-      console.log(`Stripping ${jsonStart} chars of reasoning preamble before JSON`);
-      text = text.substring(jsonStart);
+    // Extract the outermost JSON object robustly
+    // Walk from the last } backwards to find matching { — handles reasoning preamble
+    const jsonEnd = text.lastIndexOf('}');
+    if (jsonEnd < 0) throw new Error('No closing } in Claude response');
+    let depth = 0, jsonStart = -1;
+    for (let i = jsonEnd; i >= 0; i--) {
+      if (text[i] === '}') depth++;
+      else if (text[i] === '{') { depth--; if (depth === 0) { jsonStart = i; break; } }
+    }
+    if (jsonStart >= 0) {
+      if (jsonStart > 0) console.log(`Stripping ${jsonStart} chars preamble before JSON`);
+      text = text.substring(jsonStart, jsonEnd + 1);
     }
 
-    console.log('Response tail:', text.slice(-200));
+    console.log('JSON length:', text.length, '| tail:', text.slice(-80));
 
     // Parse with repair fallback
     let result;
     try {
       result = JSON.parse(text);
     } catch (parseErr) {
-      console.error(`Parse failed (len=${text.length}), stop_reason=${stopReason}. Attempting repair...`);
+      console.error(`Parse failed at len=${text.length}, stop_reason=${stopReason}`);
+      console.error(`Parse error position: ${parseErr.message}`);
+      console.error(`Text tail (last 300): ${text.slice(-300)}`);
+
+      // Attempt structural repair
       let braces = 0, brackets = 0, inString = false, escape = false;
       for (const ch of text) {
         if (escape)          { escape = false; continue; }
@@ -194,11 +232,31 @@ Tulis reasoning ini secara singkat dan terstruktur, lalu generate JSON final.`;
         else if (ch === '[') brackets++;
         else if (ch === ']') brackets--;
       }
+      // If we were mid-string, close it safely
       if (inString) text += '"';
+      // Close any open arrays/objects
       for (let i = 0; i < brackets; i++) text += ']';
       for (let i = 0; i < braces; i++)   text += '}';
-      console.log(`Repair: closed ${brackets} brackets, ${braces} braces`);
-      result = JSON.parse(text);
+      console.log(`Repair: added ${brackets} ']' and ${braces} '}'`);
+
+      try {
+        result = JSON.parse(text);
+        console.log('Repair succeeded');
+      } catch (repairErr) {
+        console.error('Repair also failed:', repairErr.message);
+        // Last resort: truncate to last valid closing brace
+        const lastBrace = text.lastIndexOf('}');
+        if (lastBrace > 0) {
+          try {
+            result = JSON.parse(text.substring(0, lastBrace + 1));
+            console.log('Truncation repair succeeded at pos', lastBrace);
+          } catch {
+            throw new Error(`JSON parse failed after all repairs: ${parseErr.message}`);
+          }
+        } else {
+          throw new Error(`JSON parse failed: ${parseErr.message}`);
+        }
+      }
     }
 
     // Deduct credit
