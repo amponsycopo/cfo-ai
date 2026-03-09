@@ -1,6 +1,8 @@
 // api/analyze.js — Vercel Serverless Function
 // Claude Sonnet 4.5
 
+export const maxDuration = 60;
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
