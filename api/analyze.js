@@ -54,7 +54,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-sonnet-4-5',
         max_tokens: 6000,
         temperature: 0.1,
         system: 'You are a senior CFO AI analyst. Respond ONLY with a single valid complete JSON object. No markdown, no code blocks, no explanation. The JSON must be completely closed with all brackets and braces properly terminated.',
