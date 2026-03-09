@@ -1122,11 +1122,11 @@ tbody tr:hover td { background: var(--bg); }
           </div>
           <div class="proc-step" id="ps-3">
             <div class="proc-icon">🤖</div>
-            AI menganalisis tren & anomali
+            Findi menganalisis tren & anomali
           </div>
           <div class="proc-step" id="ps-4">
             <div class="proc-icon">💡</div>
-            Menyusun rekomendasi CFO
+            Menyusun rekomendasi Findi
           </div>
           <div class="proc-step" id="ps-5">
             <div class="proc-icon">📧</div>
@@ -1313,7 +1313,7 @@ tbody tr:hover td { background: var(--bg); }
     </div>
 
     <!-- CFO 4-Layer Analysis -->
-    <div class="card" style="margin-bottom:16px;margin-top:16px;" id="cfo-layer-analysis" style="display:none;">
+    <div class="card" id="cfo-layer-analysis" style="margin-bottom:16px;margin-top:16px;display:none;">
       <div class="card-header">
         <div class="card-title">
           <div class="icon">🔍</div>
@@ -2358,10 +2358,11 @@ Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
   ],
   "fraudScore": 75,
   "fraudSummary": "1 paragraf: berapa anomali, total risiko, rekomendasi.",
-  "trendInsight": "3 kalimat: bulan terbaik/terburuk dan penyebabnya, tren naik/turun/flat, 1 rekomendasi konkret."
+  "trendInsight": "3 kalimat: bulan terbaik/terburuk dan penyebabnya, tren naik/turun/flat, 1 rekomendasi konkret.",
+  "cfoLayerAnalysis": "4-6 kalimat analisis 4-layer: (1) Volume — apakah jumlah transaksi/produk berubah? (2) Value — apakah avg nilai per transaksi berubah? (3) Customer Mix — apakah ada customer/produk besar yang hilang atau naik dominasinya? (4) Product Mix — apakah komposisi produk margin tinggi vs rendah berubah? Gunakan angka spesifik dari data. Jika layer tidak ada datanya, skip."
 }
 
-ATURAN: totalIncome/totalExpense/profit HARUS sama persis angka di atas. Jika tidak ada fraud, fraudAlerts=[]. Setiap insight HARUS ada angkanya. cfoLayerAnalysis wajib diisi. Return JSON mentah saja.`;
+ATURAN: totalIncome/totalExpense/profit HARUS sama persis angka di atas. Jika tidak ada fraud, fraudAlerts=[]. Setiap insight HARUS ada angkanya. Return JSON mentah saja.`;
 
   // Call Vercel backend (API key hidden server-side)
   console.log('Prompt size:', prompt.length, 'chars,', Math.round(prompt.length/4), 'tokens est.');
@@ -2522,10 +2523,7 @@ Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
   "fraudAlerts": ${JSON.stringify(d.fraudFlags.slice(0,5))},
   "fraudScore": ${d.fraudFlags.length === 0 ? 95 : d.fraudFlags.some(f=>f.severity==='critical') ? 45 : 70},
   "fraudSummary": "1 paragraf: berapa anomali, total risiko, rekomendasi.",
-  "trendInsight": "3 kalimat: bulan terbaik/terburuk dan penyebabnya, tren naik/turun/flat, 1 rekomendasi konkret."
-}
-
-ATURAN: Setiap insight WAJIB ada angka dari data. Bandingkan Current Ratio (ideal >1.5x), D/E (ideal <1x), Gross/Op Margin dengan benchmark industri. Cek customer concentration jika top 1 customer >30% revenue. DILARANG rekomendasi yang tidak ada datanya. Return JSON mentah saja.`;
+ Bandingkan Current Ratio (ideal >1.5x), D/E (ideal <1x), Gross/Op Margin dengan benchmark industri. Cek customer concentration jika top 1 customer >30% revenue. DILARANG rekomendasi yang tidak ada datanya. Return JSON mentah saja.`;
 
   const res = await fetch(API_BASE + '/api/analyze', {
     method: 'POST',
