@@ -2405,6 +2405,7 @@ ATURAN KETAT:
 - Return HANYA JSON mentah, tidak ada penjelasan, tidak ada markdown backtick`;
 
   // Call Vercel backend (API key hidden server-side)
+  console.log('Prompt size:', prompt.length, 'chars,', Math.round(prompt.length/4), 'tokens est.');
   const res = await fetch(API_BASE + '/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
