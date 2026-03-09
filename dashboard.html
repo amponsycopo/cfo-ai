@@ -2279,36 +2279,11 @@ ${fraudStr}
 
   // ── Step 3: Groq focuses ONLY on insight & reasoning ──────
   const fullSummary = summaryText + bsAppend;
-  const prompt = `Kamu adalah AI CFO senior berpengalaman 20 tahun yang mengaudit bisnis skala menengah-besar di Indonesia. Kamu berbicara langsung kepada owner/CEO bisnis — bukan akuntan. Tugasmu adalah memberikan analisis tajam, jujur, dan actionable seperti seorang CFO sungguhan yang dibayar mahal.
+  const prompt = `Kamu AI CFO senior Indonesia. Analisis data keuangan dan return JSON ringkas.
 
 ${fullSummary}
 
-INSTRUKSI ANALISIS:
-1. INSIGHTS: Berikan 5-6 insight yang benar-benar tajam. Jangan generik. Setiap insight harus:
-   - Menyebut angka spesifik dari data (bukan placeholder)
-   - Membandingkan dengan benchmark industri Indonesia yang relevan
-   - Menjelaskan implikasi bisnis konkret jika dibiarkan atau jika dioptimalkan
-   - Gunakan bahasa owner, bukan bahasa akuntan
-
-2. REKOMENDASI: Berikan 4 rekomendasi actionable dengan:
-   - Langkah spesifik yang bisa dikerjakan minggu ini / bulan ini
-   - Target angka yang terukur (bukan "tingkatkan revenue" tapi "targetkan revenue +15% = Rp X")
-   - Estimasi dampak finansial dalam 3-6 bulan
-   - Tingkat prioritas: critical/high/med/low
-
-3. FRAUD ANALYSIS: Analisis mendalam setiap anomali yang terdeteksi:
-   - Berikan konteks mengapa ini mencurigakan (pola, timing, jumlah)
-   - Estimasi potensi kerugian jika fraud ini nyata
-   - Langkah investigasi konkret yang harus dilakukan owner
-   - Bedakan antara fraud vs human error vs kebiasaan bisnis yang tidak efisien
-
-4. FINANCIAL HEALTH SCORE: Hitung skor 0-100 berdasarkan:
-   - Margin bersih (benchmark: retail 5-15%, jasa 20-40%, manufaktur 8-15%)
-   - Konsistensi cashflow bulanan
-   - Rasio pengeluaran vs pendapatan
-   - Ada/tidaknya anomali kritis
-
-Return HANYA JSON valid ini (tidak ada teks lain, tidak ada markdown):
+Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
 {
   "totalIncome": ${summary.totalIncome},
   "totalExpense": ${summary.totalExpense},
@@ -2316,93 +2291,31 @@ Return HANYA JSON valid ini (tidak ada teks lain, tidak ada markdown):
   "margin": ${summary.margin.toFixed(1)},
   "score": 72,
   "scoreLabel": "Cukup Sehat",
-  "scoreBasis": "Penjelasan singkat 1 kalimat kenapa skor ini — contoh: margin 74% sangat baik tapi ada 3 anomali fraud bernilai Rp X",
-  "monthlyData": [
-    {"month": "Jan", "income": 10000000, "expense": 8000000}
-  ],
-  "cfWeeks": [
-    {"week": "W1", "val": 3000000}
-  ],
-  "topTransactions": [
-    {"desc": "Nama kategori terbesar", "amt": 50000000},
-    {"desc": "Nama kategori kedua", "amt": -30000000}
-  ],
+  "scoreBasis": "1 kalimat: kenapa skor ini berdasarkan data",
+  "monthlyData": [{"month": "Jan", "income": 10000000, "expense": 8000000}],
+  "cfWeeks": [{"week": "W1", "val": 3000000}],
+  "topTransactions": [{"desc": "kategori terbesar", "amt": 50000000}],
   "insights": [
-    {
-      "type": "ok",
-      "icon": "✅",
-      "title": "Judul spesifik dengan angka",
-      "text": "Penjelasan 2-3 kalimat dengan angka nyata dari data. Bandingkan dengan benchmark. Jelaskan artinya untuk bisnis.",
-      "reason": "Analisis CFO mendalam: implikasi strategis, risiko tersembunyi, atau peluang yang belum dimanfaatkan. Minimal 3 kalimat."
-    },
-    {
-      "type": "warn",
-      "icon": "⚠️",
-      "title": "Judul warning spesifik",
-      "text": "Masalah konkret dengan data spesifik dan angka.",
-      "reason": "Risiko finansial jika dibiarkan 3-6 bulan ke depan. Estimasi kerugian potensial. Tindakan yang harus segera dilakukan."
-    },
-    {
-      "type": "gold",
-      "icon": "💡",
-      "title": "Peluang dengan potensi Rp spesifik",
-      "text": "Peluang konkret berdasarkan pola data yang terlihat.",
-      "reason": "Cara mencapainya step-by-step. Asumsi yang digunakan. ROI estimasi dalam 6 bulan."
-    }
+    {"type": "ok", "icon": "✅", "title": "Judul dengan angka spesifik", "text": "2-3 kalimat dengan angka nyata dan benchmark industri Indonesia."},
+    {"type": "warn", "icon": "⚠️", "title": "Warning dengan angka konkret", "text": "Masalah dari data dengan angka spesifik."},
+    {"type": "gold", "icon": "💡", "title": "Peluang dengan estimasi Rp", "text": "Peluang dari pola data dengan estimasi Rp."},
+    {"type": "warn", "icon": "⚠️", "title": "Insight keempat jika ada", "text": "Temuan keempat dari data."}
   ],
   "recs": [
-    {
-      "priority": "critical",
-      "title": "Aksi darurat — kerjakan minggu ini",
-      "desc": "Langkah spesifik step-by-step dengan target angka terukur",
-      "impact": "Estimasi dampak Rp dalam 3 bulan jika dilakukan vs tidak dilakukan"
-    },
-    {
-      "priority": "high",
-      "title": "Aksi prioritas bulan ini",
-      "desc": "Langkah konkret dengan target terukur",
-      "impact": "Estimasi dampak finansial"
-    },
-    {
-      "priority": "med",
-      "title": "Optimasi 3 bulan ke depan",
-      "desc": "Strategi menengah dengan milestone jelas",
-      "impact": "Estimasi dampak finansial"
-    },
-    {
-      "priority": "low",
-      "title": "Quick win — effort rendah dampak cepat",
-      "desc": "Bisa dikerjakan sambil lalu, hasil terasa dalam 2-4 minggu",
-      "impact": "Estimasi dampak"
-    }
+    {"priority": "critical", "title": "Aksi minggu ini", "desc": "Langkah spesifik dengan target angka", "impact": "Estimasi dampak Rp 3 bulan"},
+    {"priority": "high", "title": "Aksi bulan ini", "desc": "Langkah konkret", "impact": "Estimasi dampak"},
+    {"priority": "med", "title": "Optimasi 3 bulan", "desc": "Strategi menengah", "impact": "Estimasi dampak"},
+    {"priority": "low", "title": "Quick win", "desc": "Effort rendah dampak cepat", "impact": "Estimasi dampak"}
   ],
   "fraudAlerts": [
-    {
-      "severity": "critical",
-      "type": "Nama tipe fraud spesifik",
-      "desc": "Penjelasan detail: tanggal, vendor, jumlah, pola yang mencurigakan, kenapa ini red flag",
-      "amount": 3500000,
-      "date": "15/01/2025",
-      "potentialLoss": "Estimasi total kerugian jika ini adalah fraud nyata",
-      "action": "Langkah investigasi konkret: siapa yang dihubungi, dokumen apa yang diminta, dalam berapa hari"
-    }
+    {"severity": "critical", "type": "Tipe fraud", "desc": "Detail: vendor, jumlah, pola", "amount": 3500000, "date": "15/01/2025", "action": "Langkah investigasi"}
   ],
   "fraudScore": 75,
-  "fraudSummary": "Ringkasan eksekutif fraud: berapa anomali ditemukan, total nilai yang berisiko, tingkat keparahan keseluruhan, dan rekomendasi tindak lanjut dalam 1 paragraf.",
-  "trendInsight": "Analisis tren 3-4 kalimat: bulan mana paling bagus dan kenapa, bulan mana drop dan kemungkinan penyebabnya, apakah tren secara keseluruhan naik/turun/flat, dan 1 rekomendasi konkret dari pola tren ini."
+  "fraudSummary": "1 paragraf: berapa anomali, total risiko, rekomendasi.",
+  "trendInsight": "3 kalimat: bulan terbaik/terburuk dan penyebabnya, tren naik/turun/flat, 1 rekomendasi konkret."
 }
 
-ATURAN KETAT:
-- totalIncome, totalExpense, profit HARUS persis sama dengan angka di ringkasan
-- monthlyData HARUS konsisten dengan breakdown bulanan di atas
-- topTransactions ambil dari kategori terbesar di data nyata
-- fraudAlerts: analisis SETIAP anomali dari pre-processor + tambahkan yang terlewat berdasarkan pattern analysis
-- Jika tidak ada fraud, fraudAlerts = [] dan fraudScore = 90-100
-- fraudScore: 100 = bersih sempurna, 70-99 = perlu perhatian, 40-69 = mencurigakan, 0-39 = kritis
-- DILARANG menggunakan placeholder seperti "Nama kategori" atau "Estimasi" tanpa angka nyata
-- DILARANG membuat rekomendasi tentang topik yang TIDAK ADA datanya di ringkasan (contoh: jangan rekomendasikan "optimasi harga" jika tidak ada data harga, jangan rekomendasikan "kurangi utang" jika tidak ada data utang)
-- Setiap rekomendasi HARUS bisa dijustifikasi langsung dari angka di ringkasan di atas
-- Return HANYA JSON mentah, tidak ada penjelasan, tidak ada markdown backtick`;
+ATURAN: totalIncome/totalExpense/profit HARUS sama persis angka di atas. Jika tidak ada fraud, fraudAlerts=[]. Setiap insight/rekomendasi HARUS ada angka dari data. Return JSON mentah saja.`;
 
   // Call Vercel backend (API key hidden server-side)
   console.log('Prompt size:', prompt.length, 'chars,', Math.round(prompt.length/4), 'tokens est.');
@@ -2524,11 +2437,11 @@ ANOMALI TERDETEKSI (pre-processor):
 ${d.fraudFlags.length > 0 ? d.fraudFlags.map(f => `[${f.type}] ${f.desc}`).join(' | ') : 'Tidak ada anomali signifikan'}
 `.trim();
 
-  const prompt = `Kamu adalah AI CFO senior berpengalaman 20 tahun yang mengaudit perusahaan menengah-besar Indonesia. Data ini berasal dari software akuntansi Accurate — data sangat lengkap dan akurat. Berikan analisis sekelas Big 4 consulting firm.
+  const prompt = `Kamu AI CFO senior Indonesia. Data dari software Accurate — analisis level eksekutif.
 
 ${summaryText}
 
-Berikan analisis CFO level eksekutif. Return HANYA JSON valid:
+Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
 {
   "totalIncome": ${d.totalRevenue},
   "totalExpense": ${d.totalExpense},
@@ -2541,7 +2454,7 @@ Berikan analisis CFO level eksekutif. Return HANYA JSON valid:
   "deRatio": ${d.deRatio},
   "score": 80,
   "scoreLabel": "Sehat",
-  "scoreBasis": "1 kalimat eksekutif: kenapa skor ini berdasarkan data di atas",
+  "scoreBasis": "1 kalimat: kenapa skor ini berdasarkan data",
   "monthlyData": ${JSON.stringify(d.monthlyData.slice(-12))},
   "cfWeeks": [],
   "topTransactions": [
@@ -2549,69 +2462,24 @@ Berikan analisis CFO level eksekutif. Return HANYA JSON valid:
     {"desc": "${d.topExpenses[0]?.name||'Biaya Utama'}", "amt": ${-(d.topExpenses[0]?.val||0)}}
   ],
   "insights": [
-    {
-      "type": "ok",
-      "icon": "✅",
-      "title": "Insight spesifik dengan angka dari data",
-      "text": "Analisis 2-3 kalimat dengan angka nyata. Benchmark industri Indonesia. Implikasi bisnis konkret.",
-      "reason": "Analisis CFO mendalam: implikasi strategis, risiko, atau peluang. Minimal 3 kalimat dengan rekomendasi spesifik."
-    },
-    {
-      "type": "warn",
-      "icon": "⚠️",
-      "title": "Warning dengan angka spesifik",
-      "text": "Masalah konkret dari data.",
-      "reason": "Risiko finansial dan langkah mitigasi konkret."
-    },
-    {
-      "type": "gold",
-      "icon": "💡",
-      "title": "Peluang dengan potensi Rp",
-      "text": "Peluang dari pola data.",
-      "reason": "Cara memanfaatkan peluang ini dengan step konkret."
-    }
+    {"type": "ok", "icon": "✅", "title": "Insight dengan angka dari data", "text": "2-3 kalimat dengan angka nyata, benchmark industri Indonesia, implikasi bisnis konkret."},
+    {"type": "warn", "icon": "⚠️", "title": "Warning dengan angka spesifik", "text": "Masalah konkret dari data akuntansi."},
+    {"type": "gold", "icon": "💡", "title": "Peluang dengan potensi Rp", "text": "Peluang dari pola data dengan estimasi Rp."},
+    {"type": "warn", "icon": "⚠️", "title": "Insight keempat jika relevan", "text": "Temuan keempat dari data."}
   ],
   "recs": [
-    {
-      "priority": "critical",
-      "title": "Aksi darurat minggu ini",
-      "desc": "Langkah spesifik dengan target angka",
-      "impact": "Estimasi dampak Rp dalam 3 bulan"
-    },
-    {
-      "priority": "high",
-      "title": "Aksi prioritas bulan ini",
-      "desc": "Langkah konkret",
-      "impact": "Estimasi dampak"
-    },
-    {
-      "priority": "med",
-      "title": "Optimasi 3 bulan",
-      "desc": "Strategi menengah",
-      "impact": "Estimasi dampak"
-    },
-    {
-      "priority": "low",
-      "title": "Quick win",
-      "desc": "Effort rendah, dampak cepat",
-      "impact": "Estimasi dampak"
-    }
+    {"priority": "critical", "title": "Aksi minggu ini", "desc": "Langkah spesifik dengan target angka", "impact": "Estimasi dampak Rp 3 bulan"},
+    {"priority": "high", "title": "Aksi bulan ini", "desc": "Langkah konkret", "impact": "Estimasi dampak"},
+    {"priority": "med", "title": "Optimasi 3 bulan", "desc": "Strategi menengah", "impact": "Estimasi dampak"},
+    {"priority": "low", "title": "Quick win", "desc": "Effort rendah dampak cepat", "impact": "Estimasi dampak"}
   ],
   "fraudAlerts": ${JSON.stringify(d.fraudFlags.slice(0,5))},
   "fraudScore": ${d.fraudFlags.length === 0 ? 95 : d.fraudFlags.some(f=>f.severity==='critical') ? 45 : 70},
-  "fraudSummary": "Ringkasan fraud: berapa anomali, total nilai berisiko, rekomendasi tindak lanjut.",
-  "trendInsight": "Analisis tren 3-4 kalimat: bulan mana paling bagus dan kenapa, bulan mana drop dan kemungkinan penyebabnya, apakah tren secara keseluruhan naik/turun/flat, dan 1 rekomendasi konkret dari pola tren ini."
+  "fraudSummary": "1 paragraf: berapa anomali, total risiko, rekomendasi.",
+  "trendInsight": "3 kalimat: bulan terbaik/terburuk dan penyebabnya, tren naik/turun/flat, 1 rekomendasi konkret."
 }
 
-ATURAN:
-- Gunakan data akuntansi ini sepenuhnya — ini bukan estimasi, ini data nyata dari software
-- Setiap insight WAJIB menyebut angka dari data di atas
-- Bandingkan Current Ratio, D/E Ratio dengan benchmark: Current Ratio ideal >1.5, D/E ideal <1
-- Gross Margin dan Operating Margin bandingkan dengan industri relevan
-- Identifikasi customer concentration risk jika top 1 customer >30% revenue
-- Identifikasi apakah burn rate sustainable vs revenue
-- DILARANG membuat rekomendasi tentang topik yang tidak ada datanya — setiap insight dan rekomendasi harus bisa dijustifikasi langsung dari angka di atas
-- Return HANYA JSON mentah, tidak ada markdown`;
+ATURAN: Setiap insight WAJIB ada angka dari data. Bandingkan Current Ratio (ideal >1.5x), D/E (ideal <1x), Gross/Op Margin dengan benchmark industri. Cek customer concentration jika top 1 customer >30% revenue. DILARANG rekomendasi yang tidak ada datanya. Return JSON mentah saja.`;
 
   const res = await fetch(API_BASE + '/api/analyze', {
     method: 'POST',
