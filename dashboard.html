@@ -1313,23 +1313,16 @@ tbody tr:hover td { background: var(--bg); }
     </div>
 
     <!-- CFO 4-Layer Analysis -->
+    <!-- CFO 4-Layer Analysis -->
     <div class="card" id="cfo-layer-analysis" style="margin-bottom:16px;margin-top:16px;display:none;">
       <div class="card-header">
         <div class="card-title">
           <div class="icon">🔍</div>
-          Analisis CFO: Kenapa Angka Berubah?
+          Kenapa Angka Berubah?
         </div>
         <div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:0.5px;padding:4px 10px;background:var(--blue-light);border-radius:20px;border:1px solid var(--blue-mid);">4-LAYER CFO FRAMEWORK</div>
       </div>
-      <div style="padding:16px 24px;">
-        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:#EEF1FD;color:var(--blue);border:1px solid var(--blue-mid);">① Volume</span>
-          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:#ECFDF5;color:var(--green);border:1px solid var(--green-border);">② Value</span>
-          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:#FFFBEB;color:var(--orange);border:1px solid var(--orange-border);">③ Customer Mix</span>
-          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:#FEF2F2;color:var(--red);border:1px solid var(--red-border);">④ Product Mix</span>
-        </div>
-        <div id="cfo-layer-text" style="font-size:13px;color:var(--text2);line-height:1.7;"></div>
-      </div>
+      <div id="cfo-layers-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 24px;"></div>
     </div>
 
     <!-- AI Insights full width -->
@@ -2343,7 +2336,12 @@ Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
   "monthlyData": [{"month": "Jan", "income": 10000000, "expense": 8000000}],
   "cfWeeks": [{"week": "W1", "val": 3000000}],
   "topTransactions": [{"desc": "kategori terbesar", "amt": 50000000}],
-  "cfoLayerAnalysis": "Analisis 4-layer CFO dalam 4-6 kalimat: jelaskan perubahan revenue/expense menggunakan layer mana yang datanya tersedia. Sebut angka spesifik. Contoh: Revenue turun 15% — terutama dari turunnya volume transaksi kategori X (-20%), bukan dari penurunan nilai per transaksi. Customer concentration: kategori Y menyumbang 45% revenue bulan lalu namun turun 30% bulan ini.",
+  "cfoLayers": [
+    {"layer": "Volume", "icon": "📦", "available": true, "status": "ok", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "1-2 kalimat penjelasan spesifik dengan angka."},
+    {"layer": "Value", "icon": "💵", "available": true, "status": "warn", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "1-2 kalimat penjelasan spesifik."},
+    {"layer": "Customer Mix", "icon": "👥", "available": true, "status": "ok", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "1-2 kalimat penjelasan."},
+    {"layer": "Product Mix", "icon": "📊", "available": false, "status": "na", "headline": null, "detail": null}
+  ],
   "insights": [
     {"type": "ok", "icon": "✅", "title": "Judul dengan angka spesifik", "text": "2-3 kalimat dengan angka nyata dan benchmark industri Indonesia."},
     {"type": "warn", "icon": "⚠️", "title": "Warning dengan angka konkret", "text": "Masalah dari data dengan angka spesifik."},
@@ -2362,7 +2360,13 @@ Return HANYA JSON valid (tanpa markdown, tanpa teks lain):
   "fraudScore": 75,
   "fraudSummary": "1 paragraf: berapa anomali, total risiko, rekomendasi.",
   "trendInsight": "3 kalimat: bulan terbaik/terburuk dan penyebabnya, tren naik/turun/flat, 1 rekomendasi konkret.",
-  "cfoLayerAnalysis": "4-6 kalimat analisis 4-layer: (1) Volume — apakah jumlah transaksi/produk berubah? (2) Value — apakah avg nilai per transaksi berubah? (3) Customer Mix — apakah ada customer/produk besar yang hilang atau naik dominasinya? (4) Product Mix — apakah komposisi produk margin tinggi vs rendah berubah? Gunakan angka spesifik dari data. Jika layer tidak ada datanya, skip."
+  "cfoLayers": [
+    {"layer": "Volume", "icon": "📦", "available": true, "status": "ok", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "1-2 kalimat penjelasan dengan angka nyata."},
+    {"layer": "Value", "icon": "💵", "available": true, "status": "ok", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "1-2 kalimat penjelasan."},
+    {"layer": "Customer Mix", "icon": "👥", "available": true, "status": "warn", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "Customer concentration: ada customer/produk besar yang hilang atau dominasi berubah?"},
+    {"layer": "Product Mix", "icon": "📊", "available": true, "status": "gold", "headline": "1 kalimat dengan angka — null jika tidak ada data", "detail": "Apakah komposisi produk margin tinggi vs rendah berubah?"}
+  ],
+  "trendInsight": "3 kalimat: bulan terbaik/terburuk dan penyebabnya, tren naik/turun/flat, 1 rekomendasi konkret."
 }
 
 ATURAN: totalIncome/totalExpense/profit HARUS sama persis angka di atas. Jika tidak ada fraud, fraudAlerts=[]. Setiap insight HARUS ada angkanya. Return JSON mentah saja.`;
@@ -3492,10 +3496,39 @@ function renderResult(r) {
   }
 
   // ── CFO 4-Layer Analysis ───────────────────────────────────
+  // ── CFO 4-Layer Analysis ──────────────────────────────────
   const layerEl = document.getElementById('cfo-layer-analysis');
-  if (layerEl && r.cfoLayerAnalysis) {
+  const layersGrid = document.getElementById('cfo-layers-grid');
+  const layers = r.cfoLayers || [];
+  if (layerEl && layersGrid && layers.length > 0) {
     layerEl.style.display = 'block';
-    document.getElementById('cfo-layer-text').textContent = r.cfoLayerAnalysis;
+    const layerNums = ['①','②','③','④'];
+    const statusStyles = {
+      ok:   { bg: 'var(--green-bg)',  border: 'var(--green-border)',  color: 'var(--green)',  dot: '#16A362' },
+      warn: { bg: 'var(--orange-bg)', border: 'var(--orange-border)', color: 'var(--orange)', dot: '#D97706' },
+      bad:  { bg: 'var(--red-bg)',    border: 'var(--red-border)',    color: 'var(--red)',    dot: '#DC2626' },
+      gold: { bg: '#FFFDF0',          border: '#FDE68A',              color: 'var(--orange)', dot: '#D97706' },
+      na:   { bg: 'var(--surface2)',  border: 'var(--border)',        color: 'var(--text3)',  dot: '#9CA3AF' },
+    };
+    layersGrid.innerHTML = layers.map((l, i) => {
+      const avail = l.available !== false && l.headline;
+      const s = avail ? (statusStyles[l.status] || statusStyles.ok) : statusStyles.na;
+      return `
+        <div style="background:${s.bg};border:1px solid ${s.border};border-radius:12px;padding:16px;min-height:130px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="font-size:20px;line-height:1;">${l.icon || '📊'}</span>
+            <div>
+              <div style="font-size:9px;font-weight:700;color:${s.color};letter-spacing:0.8px;text-transform:uppercase;">${layerNums[i]} ${l.layer}</div>
+              <div style="width:5px;height:5px;border-radius:50%;background:${s.dot};margin-top:3px;"></div>
+            </div>
+          </div>
+          ${avail
+            ? `<div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:6px;">${l.headline}</div>
+               <div style="font-size:11px;color:var(--text2);line-height:1.6;">${l.detail || ''}</div>`
+            : `<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px;">Data tidak tersedia</div>
+               <div style="font-size:11px;color:var(--text3);line-height:1.5;">Butuh kolom jumlah transaksi, avg order, atau ID customer/produk.</div>`}
+        </div>`;
+    }).join('');
   }
 
   // ── Cashflow — historis + proyeksi ───────────────────────
