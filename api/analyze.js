@@ -53,13 +53,21 @@ export default async function handler(req, res) {
       throw new Error(err.error?.message || `Claude API error ${claudeRes.status}`);
     }
 
-    const claudeData = await claudeRes.json();
+    const rawBody = await claudeRes.text();
+    let claudeData;
+    try {
+      claudeData = JSON.parse(rawBody);
+    } catch(e) {
+      console.error('Claude non-JSON response:', rawBody.substring(0, 300));
+      throw new Error('Claude API returned non-JSON: ' + rawBody.substring(0, 100));
+    }
     const stopReason = claudeData.stop_reason;
     const inputTokens = claudeData.usage?.input_tokens;
     const outputTokens = claudeData.usage?.output_tokens;
     console.log(`Claude OK — stop_reason: ${stopReason}, tokens: ${inputTokens}in/${outputTokens}out`);
 
-    let text = claudeData.content[0].text.trim();
+    let text = claudeData.content?.[0]?.text?.trim();
+    if (!text) throw new Error('Claude returned empty content: ' + JSON.stringify(claudeData));
     // Strip markdown fences if any
     text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
 
