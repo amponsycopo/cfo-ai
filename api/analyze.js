@@ -49,7 +49,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 2000,
+        max_tokens: 4096,
         temperature: 0.1,
         messages: [{ role: 'user', content: summaryText }]
       })
@@ -57,6 +57,7 @@ export default async function handler(req, res) {
 
     if (!claudeRes.ok) {
       const err = await claudeRes.json();
+      console.error('Claude API response:', JSON.stringify(err));
       throw new Error(err.error?.message || 'Claude API error');
     }
 
