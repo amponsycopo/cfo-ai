@@ -474,6 +474,45 @@ tbody tr:hover td { background: var(--bg); }
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+  /* ═══════════════════════════════════
+     FINDI CHAT
+  ═══════════════════════════════════ */
+  #findi-chat-section { display:none; margin-top:20px; }
+  .findi-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .findi-avatar { width:40px;height:40px;background:linear-gradient(135deg,var(--blue),#5b7fff);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(27,63,228,0.25); }
+  .findi-title { font-size:16px;font-weight:700;color:var(--text); }
+  .findi-subtitle { font-size:12px;color:var(--text3);margin-top:2px; }
+  .findi-credits-badge { margin-left:auto;font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:100px;padding:4px 10px; }
+  .findi-tabs { display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap; }
+  .findi-tab { padding:7px 14px;border-radius:100px;border:1.5px solid var(--border2);background:var(--surface2);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px; }
+  .findi-tab:hover { border-color:var(--blue);background:var(--blue-light);color:var(--blue); }
+  .findi-tab.active { border-color:var(--blue);background:var(--blue);color:white; }
+  .findi-tab .tab-dot { width:6px;height:6px;border-radius:50%;background:currentColor;opacity:0.7;display:none; }
+  .findi-tab.has-alert .tab-dot { display:block; }
+  .findi-presets { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px; }
+  .findi-preset-btn { padding:10px 12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;text-align:left;line-height:1.4;transition:all 0.15s; }
+  .findi-preset-btn:hover { border-color:var(--blue);background:var(--blue-light);color:var(--blue); }
+  .findi-messages { max-height:320px;overflow-y:auto;margin-bottom:12px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth; }
+  .findi-messages:empty { display:none; }
+  .msg-user { align-self:flex-end;background:var(--blue);color:white;padding:10px 14px;border-radius:14px 14px 4px 14px;font-size:13px;max-width:80%;line-height:1.5; }
+  .msg-findi { align-self:flex-start;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:4px 14px 14px 14px;font-size:13px;max-width:90%;line-height:1.6; }
+  .msg-findi strong { color:var(--blue); }
+  .msg-findi ul { margin:6px 0 0 16px;font-size:12px;color:var(--text2); }
+  .msg-findi ul li { margin-bottom:4px; }
+  .msg-typing { align-self:flex-start;background:var(--surface2);border:1px solid var(--border);padding:12px 16px;border-radius:4px 14px 14px 14px;display:flex;gap:4px;align-items:center; }
+  .msg-typing span { width:7px;height:7px;background:var(--text3);border-radius:50%;animation:typing-bounce 1s infinite; }
+  .msg-typing span:nth-child(2) { animation-delay:0.15s; }
+  .msg-typing span:nth-child(3) { animation-delay:0.3s; }
+  @keyframes typing-bounce { 0%,60%,100%{transform:translateY(0);opacity:0.4} 30%{transform:translateY(-5px);opacity:1} }
+  .findi-input-row { display:flex;gap:8px;align-items:flex-end; }
+  .findi-input { flex:1;padding:10px 14px;border:1.5px solid var(--border2);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;resize:none;min-height:42px;max-height:100px;transition:border-color 0.15s;background:white; }
+  .findi-input:focus { border-color:var(--blue); }
+  .findi-send-btn { width:42px;height:42px;background:var(--blue);border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s; }
+  .findi-send-btn:hover { background:var(--blue-dark); }
+  .findi-send-btn:disabled { opacity:0.5;cursor:not-allowed; }
+  .findi-chat-limit { font-size:11px;color:var(--text3);text-align:center;margin-top:8px; }
+  @media(max-width:600px){ .findi-presets{grid-template-columns:1fr} }
 </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -798,6 +837,62 @@ tbody tr:hover td { background: var(--bg); }
       <div class="fraud-wrap" id="fraud-section"></div>
     </div>
 
+
+
+    <!-- ═══════════════════════════════════
+         FINDI CHAT SECTION
+    ═══════════════════════════════════ -->
+    <div id="findi-chat-section">
+      <div class="card" style="padding:20px 24px;">
+
+        <!-- Header -->
+        <div class="findi-header">
+          <div class="findi-avatar">🤖</div>
+          <div>
+            <div class="findi-title">Tanya Findi</div>
+            <div class="findi-subtitle">AI CFO yang tahu kondisi bisnis kamu</div>
+          </div>
+          <div class="findi-credits-badge" id="findi-credits-badge">5 pertanyaan gratis</div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="findi-tabs" id="findi-tabs">
+          <button class="findi-tab active" onclick="switchFindiTab('profit',this)">
+            <span class="tab-dot"></span>💰 Profit
+          </button>
+          <button class="findi-tab" onclick="switchFindiTab('cash',this)">
+            <span class="tab-dot"></span>💵 Cashflow
+          </button>
+          <button class="findi-tab" onclick="switchFindiTab('ops',this)">
+            <span class="tab-dot"></span>⚙️ Operasional
+          </button>
+          <button class="findi-tab" onclick="switchFindiTab('decision',this)">
+            <span class="tab-dot"></span>🎯 Keputusan
+          </button>
+        </div>
+
+        <!-- Preset Questions -->
+        <div class="findi-presets" id="findi-presets"></div>
+
+        <!-- Messages -->
+        <div class="findi-messages" id="findi-messages"></div>
+
+        <!-- Input -->
+        <div class="findi-input-row">
+          <textarea class="findi-input" id="findi-input" placeholder="Atau ketik pertanyaan sendiri..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendFindiMessage()}"
+            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+          <button class="findi-send-btn" id="findi-send-btn" onclick="sendFindiMessage()">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M14 8L2 2L5.5 8L2 14L14 8Z" fill="white"/>
+            </svg>
+          </button>
+        </div>
+        <div class="findi-chat-limit" id="findi-chat-limit">5 pertanyaan gratis · setelah itu menggunakan 1 kredit per pertanyaan</div>
+
+      </div>
+    </div>
+
     <!-- Email status -->
     <div class="card" style="padding:20px 24px;">
       <div class="section-label">Status Pengiriman Laporan</div>
@@ -861,7 +956,32 @@ let balanceSheetData = null;
 let gsheetToken = null;
 let gsheetConnected = false;
 let gsheetSpreadsheetId = null;
+let userPlan = 'starter'; // 'starter' | 'pro' | 'business'
 
+
+
+function showUpgradePrompt(reason) {
+  const existing = document.getElementById('upgrade-prompt');
+  if (existing) existing.remove();
+
+  const div = document.createElement('div');
+  div.id = 'upgrade-prompt';
+  div.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:white;border:1.5px solid var(--blue);border-radius:16px;padding:20px 24px;max-width:320px;box-shadow:0 8px 32px rgba(27,63,228,0.2);animation:fadeUp 0.3s ease both;';
+  div.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+      <div style="font-size:24px;flex-shrink:0;">⭐</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">Fitur Pro</div>
+        <div style="font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:12px;">${reason}</div>
+        <div style="display:flex;gap:8px;">
+          <a href="pricing.html" target="_blank" style="padding:8px 16px;background:var(--blue);color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;">Lihat Paket</a>
+          <button onclick="document.getElementById('upgrade-prompt').remove()" style="padding:8px 12px;background:var(--surface2);border:none;border-radius:8px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;">Nanti</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(div);
+  setTimeout(() => { if(div.parentNode) div.remove(); }, 6000);
+}
 
 // ==================== GOOGLE SHEETS ====================
 function initGoogleAuth() {
@@ -990,6 +1110,13 @@ function showAutoReportToggle(spreadsheetId, sheetName) {
 }
 
 async function saveAutoReport(enabled, spreadsheetId, sheetName) {
+  // Check plan
+  if (enabled && userPlan === 'starter') {
+    const toggle = document.getElementById('auto-report-toggle');
+    if (toggle) toggle.checked = false;
+    showUpgradePrompt('Laporan otomatis hanya tersedia untuk paket Pro dan Business.');
+    return;
+  }
   const slider = document.getElementById('auto-report-slider');
   const knob   = document.getElementById('auto-report-knob');
   const statusEl = document.getElementById('auto-report-status');
@@ -1115,6 +1242,272 @@ async function fetchAndLoadSheet(spreadsheetId, sheetName, btnEl) {
   }
 }
 
+
+// ══════════════════════════════════════════════════════
+// FINDI CHAT ENGINE
+// ══════════════════════════════════════════════════════
+
+const FINDI_PRESETS = {
+  profit: [
+    { icon: '📉', text: 'Kenapa profit saya turun bulan ini?' },
+    { icon: '🏆', text: 'Kategori apa yang paling profitable?' },
+    { icon: '💸', text: 'Biaya apa yang paling menekan profit?' },
+    { icon: '📊', text: 'Apa penyebab margin saya berubah?' },
+    { icon: '🚀', text: 'Bagaimana cara meningkatkan profit saya?' },
+    { icon: '⚖️', text: 'Seberapa sehat bisnis saya dibanding rata-rata?' },
+  ],
+  cash: [
+    { icon: '⏳', text: 'Cash bisnis saya cukup sampai kapan?' },
+    { icon: '🔴', text: 'Apa pengeluaran terbesar saya bulan ini?' },
+    { icon: '✂️', text: 'Apa yang harus saya kurangi untuk jaga cashflow?' },
+    { icon: '📬', text: 'Invoice mana yang harus segera ditagih?' },
+    { icon: '⚠️', text: 'Apa risiko cashflow saya bulan depan?' },
+    { icon: '💰', text: 'Berapa cash minimum yang harus saya jaga?' },
+  ],
+  ops: [
+    { icon: '🔍', text: 'Pengeluaran mana yang tidak efisien?' },
+    { icon: '🏭', text: 'Vendor mana yang paling mahal?' },
+    { icon: '📈', text: 'Biaya apa yang naik paling signifikan?' },
+    { icon: '🚨', text: 'Apa anomali dalam transaksi saya?' },
+    { icon: '🕵️', text: 'Apa pengeluaran yang mencurigakan?' },
+    { icon: '⚡', text: 'Di mana pemborosan terbesar saya?' },
+  ],
+  decision: [
+    { icon: '🎯', text: '3 keputusan finansial terbaik yang harus saya ambil' },
+    { icon: '🛠️', text: 'Apa yang harus saya perbaiki di bisnis saya?' },
+    { icon: '⚠️', text: 'Apa risiko terbesar bisnis saya saat ini?' },
+    { icon: '💡', text: 'Apa peluang untuk meningkatkan profit?' },
+    { icon: '📌', text: 'Apa yang harus saya fokuskan bulan ini?' },
+    { icon: '🏁', text: 'Kalau target profit naik 20%, harus gimana?' },
+  ],
+};
+
+let findiChatHistory = [];
+let findiMsgCount = 0;
+const FINDI_FREE_LIMIT = 5;
+let currentFindiTab = 'profit';
+let findiContext = null;
+
+function initFindiChat(analysisResult, summaryData) {
+  // Build context from analysis result
+  const fmtM = (n) => {
+    const a = Math.abs(n);
+    if (a >= 1000000000) return 'Rp ' + (n/1000000000).toFixed(2) + ' Miliar';
+    if (a >= 1000000)    return 'Rp ' + (n/1000000).toFixed(2) + ' Juta';
+    if (a >= 1000)       return 'Rp ' + (n/1000).toFixed(0) + ' Ribu';
+    return 'Rp ' + n;
+  };
+
+  findiContext = {
+    totalIncome:  analysisResult.totalIncome,
+    totalExpense: analysisResult.totalExpense,
+    profit:       analysisResult.profit,
+    margin:       analysisResult.margin,
+    score:        analysisResult.score,
+    scoreLabel:   analysisResult.scoreLabel,
+    trendInsight: analysisResult.trendInsight,
+    insights:     analysisResult.insights || [],
+    recs:         analysisResult.recs || [],
+    fraudAlerts:  analysisResult.fraudAlerts || [],
+    monthlyData:  analysisResult.monthlyData || [],
+    fmtIncome:    fmtM(analysisResult.totalIncome),
+    fmtExpense:   fmtM(analysisResult.totalExpense),
+    fmtProfit:    fmtM(analysisResult.profit),
+  };
+
+  findiChatHistory = [];
+  findiMsgCount = 0;
+
+  // Show section
+  document.getElementById('findi-chat-section').style.display = 'block';
+  document.getElementById('findi-messages').innerHTML = '';
+  updateFindiCreditsBadge();
+
+  // Dynamic alert dots — highlight tabs based on conditions
+  if (findiContext.fraudAlerts.length > 0) {
+    document.querySelectorAll('.findi-tab')[2].classList.add('has-alert'); // ops tab
+  }
+  if (findiContext.margin < 10) {
+    document.querySelectorAll('.findi-tab')[0].classList.add('has-alert'); // profit tab
+  }
+
+  // Load default tab
+  switchFindiTab('profit', document.querySelectorAll('.findi-tab')[0]);
+
+  // Show welcome message
+  const welcomeEl = document.createElement('div');
+  welcomeEl.className = 'msg-findi';
+  welcomeEl.innerHTML = `Halo! Saya <strong>Findi</strong>, AI CFO kamu 👋<br><br>
+Saya sudah analisis laporan keuangan kamu. Skor kesehatan bisnis kamu <strong>${findiContext.score}/100 (${findiContext.scoreLabel})</strong> dengan profit <strong>${findiContext.fmtProfit}</strong>.<br><br>
+Mau tanya apa dulu?`;
+  document.getElementById('findi-messages').appendChild(welcomeEl);
+  document.getElementById('findi-chat-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function switchFindiTab(tab, btnEl) {
+  currentFindiTab = tab;
+
+  // Update tab styles
+  document.querySelectorAll('.findi-tab').forEach(t => t.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+
+  // Render presets
+  const presets = FINDI_PRESETS[tab] || [];
+  const container = document.getElementById('findi-presets');
+  container.innerHTML = presets.map(p =>
+    `<button class="findi-preset-btn" onclick="sendFindiMessage('${p.text.replace(/'/g, "\'")}')">${p.icon} ${p.text}</button>`
+  ).join('');
+}
+
+function updateFindiCreditsBadge() {
+  const badge = document.getElementById('findi-credits-badge');
+  const remaining = Math.max(0, FINDI_FREE_LIMIT - findiMsgCount);
+  if (badge) {
+    if (remaining > 0) {
+      badge.textContent = remaining + ' pertanyaan gratis';
+      badge.style.background = 'var(--blue-light)';
+      badge.style.color = 'var(--blue)';
+    } else {
+      badge.textContent = '1 kredit per pertanyaan';
+      badge.style.background = '#FEF3C7';
+      badge.style.color = '#92400E';
+    }
+  }
+}
+
+async function sendFindiMessage(presetText) {
+  const inputEl = document.getElementById('findi-input');
+  const question = presetText || inputEl?.value?.trim();
+  if (!question) return;
+
+  // Clear input
+  if (inputEl) { inputEl.value = ''; inputEl.style.height = 'auto'; }
+
+  // Check credits
+  const isFree = findiMsgCount < FINDI_FREE_LIMIT;
+  if (!isFree && (!currentUser || (userCredits || 0) <= 0)) {
+    addFindiMessage('findi', '⚠️ Kredit kamu habis. Tambah kredit untuk lanjut ngobrol dengan Findi.');
+    return;
+  }
+
+  // Add user message
+  addFindiMessage('user', question);
+  findiMsgCount++;
+  updateFindiCreditsBadge();
+
+  // Disable send btn + show typing
+  const sendBtn = document.getElementById('findi-send-btn');
+  if (sendBtn) sendBtn.disabled = true;
+  const typingEl = addTypingIndicator();
+
+  try {
+    // Build system prompt dengan context keuangan
+    const contextStr = `Data keuangan bisnis ini:
+- Total Pendapatan: ${findiContext.fmtIncome}
+- Total Pengeluaran: ${findiContext.fmtExpense}
+- Laba Bersih: ${findiContext.fmtProfit}
+- Margin: ${findiContext.margin}%
+- Skor Kesehatan: ${findiContext.score}/100 (${findiContext.scoreLabel})
+- Trend: ${findiContext.trendInsight}
+- Insights: ${findiContext.insights.map(i => i.title + ': ' + i.text).join('; ')}
+- Rekomendasi: ${findiContext.recs.map(r => r.title + ': ' + r.desc).join('; ')}
+- Fraud Alerts: ${findiContext.fraudAlerts.length > 0 ? findiContext.fraudAlerts.map(f => f.desc).join('; ') : 'Tidak ada'}
+- Data Bulanan: ${findiContext.monthlyData.map(m => m.month + ': income=' + m.income + ' expense=' + m.expense).join(', ')}`;
+
+    // Build messages with history
+    const messages = [
+      ...findiChatHistory,
+      { role: 'user', content: question }
+    ];
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 600,
+        system: `Kamu adalah Findi, AI CFO personal untuk pemilik bisnis Indonesia. Kamu sudah menganalisis laporan keuangan mereka.
+
+${contextStr}
+
+ATURAN MENJAWAB:
+- Jawab dalam Bahasa Indonesia, santai tapi profesional
+- Maksimal 5-6 poin, JANGAN panjang seperti laporan
+- Struktur: 1 insight utama → penyebab → rekomendasi konkret
+- Selalu gunakan angka dari data di atas kalau relevan
+- Format angka: "Rp X Juta/Miliar" BUKAN "Rp XM" atau "Rp Xjt"
+- Kalau ditanya benchmark vs bisnis lain, gunakan data industri umum Indonesia
+- Jangan tambah disclaimer panjang, langsung ke poin`,
+        messages,
+      })
+    });
+
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    const answer = data.content?.[0]?.text?.trim() || 'Maaf, coba lagi ya.';
+
+    // Update history (keep last 6 turns max)
+    findiChatHistory.push({ role: 'user', content: question });
+    findiChatHistory.push({ role: 'assistant', content: answer });
+    if (findiChatHistory.length > 12) findiChatHistory = findiChatHistory.slice(-12);
+
+    // Remove typing, show answer
+    typingEl.remove();
+    addFindiMessage('findi', answer);
+
+    // Deduct credit if past free limit
+    if (!isFree && currentUser) {
+      await supabaseClient.from('profiles')
+        .update({ credits: Math.max(0, (userCredits || 1) - 1) })
+        .eq('id', currentUser.id);
+      userCredits = Math.max(0, (userCredits || 1) - 1);
+    }
+
+  } catch (err) {
+    typingEl.remove();
+    addFindiMessage('findi', '⚠️ Gagal terhubung ke Findi. Coba lagi ya.');
+    console.error('Findi error:', err);
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+  }
+}
+
+function addFindiMessage(role, text) {
+  const el = document.createElement('div');
+  el.className = role === 'user' ? 'msg-user' : 'msg-findi';
+
+  // Parse markdown-like formatting
+  let formatted = text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/
+- /g, '
+• ')
+    .split('
+')
+    .map(line => {
+      if (line.startsWith('• ')) return `<li>${line.slice(2)}</li>`;
+      return line;
+    })
+    .join('
+')
+    .replace(/(<li>.*<\/li>
+?)+/g, match => `<ul>${match}</ul>`);
+
+  el.innerHTML = formatted;
+  document.getElementById('findi-messages').appendChild(el);
+  el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  return el;
+}
+
+function addTypingIndicator() {
+  const el = document.createElement('div');
+  el.className = 'msg-typing';
+  el.innerHTML = '<span></span><span></span><span></span>';
+  document.getElementById('findi-messages').appendChild(el);
+  el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  return el;
+}
+
 // ── Auth ──
 async function initAuth() {
   try {
@@ -1129,6 +1522,7 @@ async function initAuth() {
         userCredits = 3;
       } else {
         userCredits = profile.credits ?? 3;
+        userPlan = profile.plan || 'starter';
         userBusinessType = profile.business_type || 'general';
       }
     } catch(e) { userCredits = 3; }
@@ -1851,6 +2245,9 @@ function renderResult(r) {
 
   // ── Fraud ──
   renderFraudAlerts(r);
+
+  // ── Findi Chat ──
+  initFindiChat(r, null);
 }
 
 function renderFraudAlerts(r) {
@@ -1907,6 +2304,8 @@ function goToStep(n) {
 function resetApp() {
   parsedData=null; analysisResult=null; targetEmail=''; accurateData=null; balanceSheetData=null;
   gsheetToken=null; gsheetConnected=false; gsheetSpreadsheetId=null;
+  const findiSection=document.getElementById('findi-chat-section'); if(findiSection) findiSection.style.display='none';
+  findiChatHistory=[]; findiMsgCount=0;
   const gsu=document.getElementById('gsheet-url-section'); if(gsu)gsu.remove();
   const gsp=document.getElementById('gsheet-picker'); if(gsp)gsp.remove();
   const gss=document.getElementById('gsheets-status'); if(gss){gss.style.display='none';}
