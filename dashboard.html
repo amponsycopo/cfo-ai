@@ -1443,7 +1443,7 @@ ATURAN MENJAWAB:
       body: JSON.stringify({
         messages,
         systemPrompt,
-        isFree: findiSessionQuestions < FINDI_FREE_LIMIT,
+        isFree: findiMsgCount < FINDI_FREE_LIMIT,
       })
     });
     if (!res.ok) throw new Error('API error');
