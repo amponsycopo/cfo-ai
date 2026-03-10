@@ -1486,8 +1486,7 @@ function addFindiMessage(role, text) {
       return line;
     })
     .join('\n')
-    .replace(/(<li>.*<\/li>
-?)+/g, match => `<ul>${match}</ul>`);
+    .replace(/(<li>.*<\/li>[\n]?)+/g, match => `<ul>${match}</ul>`);
 
   el.innerHTML = formatted;
   document.getElementById('findi-messages').appendChild(el);
