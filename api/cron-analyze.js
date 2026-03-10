@@ -315,11 +315,11 @@ async function sendReportEmail(toEmail, businessName, result, sessionLabel) {
     <div style="font-size:14px;font-weight:700;margin-bottom:12px;margin-top:20px;">🎯 Rekomendasi</div>
     ${recRows}
     <div style="margin-top:24px;text-align:center;">
-      <a href="https://findible.vercel.app" style="display:inline-block;padding:12px 28px;background:#1B3FE4;color:white;border-radius:10px;font-weight:600;font-size:14px;text-decoration:none;">Buka Dashboard Findible</a>
+      <a href="https://findible.pro" style="display:inline-block;padding:12px 28px;background:#1B3FE4;color:white;border-radius:10px;font-weight:600;font-size:14px;text-decoration:none;">Buka Dashboard Findible</a>
     </div>
   </div>
   <div style="padding:16px 32px;background:#F4F6FB;font-size:11px;color:#9CA3AF;text-align:center;">
-    Laporan otomatis Findible · findible.vercel.app · <a href="https://findible.vercel.app" style="color:#9CA3AF;">Kelola notifikasi</a>
+    Laporan otomatis Findible · findible.pro · <a href="https://findible.pro" style="color:#9CA3AF;">Kelola notifikasi</a>
   </div>
 </div>
 </body></html>`;
@@ -328,7 +328,7 @@ async function sendReportEmail(toEmail, businessName, result, sessionLabel) {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: 'Findible <laporan@findible.vercel.app>',
+      from: 'Findible <laporan@findible.pro>',
       to: toEmail,
       subject: `${sessionLabel} — ${businessName || 'Bisnis Anda'} · Skor ${result.score}/100`,
       html
@@ -342,7 +342,7 @@ async function sendDisconnectEmail(toEmail, businessName) {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: 'Findible <laporan@findible.vercel.app>',
+      from: 'Findible <laporan@findible.pro>',
       to: toEmail,
       subject: '⚠️ Koneksi Google Sheets Findible Terputus',
       html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:32px;">
@@ -350,7 +350,7 @@ async function sendDisconnectEmail(toEmail, businessName) {
         <p>Halo ${businessName || ''},</p>
         <p>Koneksi Google Sheets lo ke Findible terputus — mungkin karena password Google berubah atau akses dicabut.</p>
         <p>Klik tombol di bawah untuk reconnect dan aktifkan kembali laporan otomatis:</p>
-        <a href="https://findible.vercel.app" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#1B3FE4;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Reconnect Google Sheets</a>
+        <a href="https://findible.pro" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#1B3FE4;color:white;border-radius:8px;text-decoration:none;font-weight:600;">Reconnect Google Sheets</a>
       </div>`
     })
   });
