@@ -1,10 +1,12 @@
 {
-  "rewrites": [
-    { "source": "/dashboard", "destination": "/dashboard.html" }
-  ],
-  "functions": {
-    "api/analyze.js": {
-      "maxDuration": 60
+  "crons": [
+    {
+      "path": "/api/cron-analyze?session=morning",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron-analyze?session=evening",
+      "schedule": "0 11 * * *"
     }
-  }
+  ]
 }
