@@ -1479,17 +1479,13 @@ function addFindiMessage(role, text) {
   // Parse markdown-like formatting
   let formatted = text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/
-- /g, '
-• ')
-    .split('
-')
+    .replace(/\n- /g, '\n• ')
+    .split('\n')
     .map(line => {
       if (line.startsWith('• ')) return `<li>${line.slice(2)}</li>`;
       return line;
     })
-    .join('
-')
+    .join('\n')
     .replace(/(<li>.*<\/li>
 ?)+/g, match => `<ul>${match}</ul>`);
 
