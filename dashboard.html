@@ -497,6 +497,19 @@ tbody tr:hover td { background: var(--bg); }
   .findi-messages:empty { display:none; }
   .msg-user { align-self:flex-end;background:var(--blue);color:white;padding:10px 14px;border-radius:14px 14px 4px 14px;font-size:13px;max-width:80%;line-height:1.5; }
   .msg-findi { align-self:flex-start;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:4px 14px 14px 14px;font-size:13px;max-width:90%;line-height:1.6; }
+.findi-heading {
+  font-size: 13px; font-weight: 700; color: var(--blue);
+  margin: 10px 0 4px; letter-spacing: 0.1px;
+}
+.findi-title {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  margin: 8px 0 4px;
+}
+.msg-findi ul { list-style: disc; padding-left: 18px; margin: 6px 0; }
+.msg-findi li { margin: 3px 0; line-height: 1.5; }
+.msg-findi p { line-height: 1.6; }
+.msg-findi strong { color: var(--text); }
+.msg-findi em { color: var(--text2); font-style: italic; }
   .msg-findi strong { color:var(--blue); }
   .msg-findi ul { margin:6px 0 0 16px;font-size:12px;color:var(--text2); }
   .msg-findi ul li { margin-bottom:4px; }
@@ -1481,19 +1494,41 @@ function addFindiMessage(role, text) {
   const el = document.createElement('div');
   el.className = role === 'user' ? 'msg-user' : 'msg-findi';
 
-  // Parse markdown-like formatting
-  let formatted = text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n- /g, '\n• ')
-    .split('\n')
-    .map(line => {
-      if (line.startsWith('• ')) return `<li>${line.slice(2)}</li>`;
-      return line;
-    })
-    .join('\n')
-    .replace(/(<li>.*<\/li>[\n]?)+/g, match => `<ul>${match}</ul>`);
+  if (role === 'user') {
+    el.textContent = text;
+  } else {
+    // Full markdown renderer
+    let html = text
+      // Horizontal rule
+      .replace(/---+/g, '<hr style="border:none;border-top:1px solid #e2e5f0;margin:10px 0;">')
+      // ## Heading
+      .replace(/^##\s+(.+)$/gm, '<div class="findi-heading">$1</div>')
+      // # Heading
+      .replace(/^#\s+(.+)$/gm, '<div class="findi-title">$1</div>')
+      // **bold**
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      // *italic*
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Bullet lines: - item or • item
+      .replace(/^[\-•]\s+(.+)$/gm, '<li>$1</li>')
+      // Numbered: 1. item
+      .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>')
+      // Wrap consecutive <li> in <ul>
+      .replace(/(<li>.*?<\/li>\n?)+/gs, m => `<ul style="margin:6px 0 6px 16px;padding:0;">${m}</ul>`)
+      // Line breaks → paragraphs (split on double newline)
+      .split('\n\n')
+      .map(para => {
+        para = para.trim();
+        if (!para) return '';
+        if (para.startsWith('<div') || para.startsWith('<ul') || para.startsWith('<hr')) return para;
+        // Single newlines within para → <br>
+        return `<p style="margin:4px 0;">${para.replace(/\n/g, '<br>')}</p>`;
+      })
+      .filter(Boolean)
+      .join('');
 
-  el.innerHTML = formatted;
+    el.innerHTML = html;
+  }
   document.getElementById('findi-messages').appendChild(el);
   el.scrollIntoView({ behavior: 'smooth', block: 'end' });
   return el;
