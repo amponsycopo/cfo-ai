@@ -1420,13 +1420,11 @@ async function sendFindiMessage(presetText) {
       { role: 'user', content: question }
     ];
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 600,
-        system: `Kamu adalah Findi, AI CFO personal untuk pemilik bisnis Indonesia. Kamu sudah menganalisis laporan keuangan mereka.
+    // Get session token for server auth
+    const { data: { session } } = await _supabase.auth.getSession();
+    const token = session?.access_token || '';
+
+    const systemPrompt = `Kamu adalah Findi, AI CFO personal untuk pemilik bisnis Indonesia. Kamu sudah menganalisis laporan keuangan mereka.
 
 ${contextStr}
 
@@ -1437,14 +1435,21 @@ ATURAN MENJAWAB:
 - Selalu gunakan angka dari data di atas kalau relevan
 - Format angka: "Rp X Juta/Miliar" BUKAN "Rp XM" atau "Rp Xjt"
 - Kalau ditanya benchmark vs bisnis lain, gunakan data industri umum Indonesia
-- Jangan tambah disclaimer panjang, langsung ke poin`,
+- Jangan tambah disclaimer panjang, langsung ke poin`;
+
+    const res = await fetch('/api/findi-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
         messages,
+        systemPrompt,
+        isFree: findiSessionQuestions < FINDI_FREE_LIMIT,
       })
     });
-
     if (!res.ok) throw new Error('API error');
     const data = await res.json();
-    const answer = data.content?.[0]?.text?.trim() || 'Maaf, coba lagi ya.';
+    if (data.error === 'insufficient_credits') { addFindiMessage('findi', '⚠️ Kredit kamu habis. Tambah kredit untuk lanjut.'); return; }
+    const answer = data.text?.trim() || 'Maaf, coba lagi ya.';
 
     // Update history (keep last 6 turns max)
     findiChatHistory.push({ role: 'user', content: question });
