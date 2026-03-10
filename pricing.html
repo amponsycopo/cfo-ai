@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harga — Findible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #1B3FE4;
+    --blue-dark: #1230B0;
+    --blue-light: #EEF1FD;
+    --blue-mid: #D0D8F8;
+    --text: #0D1226;
+    --text2: #374151;
+    --text3: #6B7280;
+    --border: #E2E5F0;
+    --surface: #F4F6FB;
+    --white: #fff;
+    --green: #16A362;
+    --green-bg: #F0FDF4;
+    --off-white: #F7F8FC;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(247,248,252,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+  }
+
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto; padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+  .brand-mark { width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center; }
+  .brand-mark svg { width:18px;height:18px; }
+  .brand-name { font-family:'Instrument Serif',serif;font-size:20px;color:var(--text);letter-spacing:-0.3px; }
+
+  .nav-links { display:flex;align-items:center;gap:20px; }
+  .nav-links a { font-size:13px;font-weight:500;color:var(--text3);text-decoration:none;transition:color 0.15s; }
+  .nav-links a:hover { color:var(--blue); }
+  .nav-btn { padding:8px 18px;background:var(--blue);color:white!important;border-radius:8px;font-weight:600!important; }
+
+  /* HERO */
+  .hero {
+    padding: 72px 32px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(27,63,228,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--blue-light); border: 1px solid var(--blue-mid);
+    border-radius: 100px; padding: 6px 16px;
+    font-size: 12px; font-weight: 600; color: var(--blue);
+    letter-spacing: 0.5px; text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 56px; letter-spacing: -2px; line-height: 1.05;
+    color: var(--text); margin-bottom: 16px;
+  }
+
+  .hero h1 em { font-style: italic; color: var(--blue); }
+
+  .hero-sub {
+    font-size: 16px; color: var(--text3); font-weight: 300;
+    max-width: 480px; margin: 0 auto 32px; line-height: 1.6;
+  }
+
+  /* Toggle billing */
+  .billing-toggle {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 100px; padding: 6px 8px; margin-bottom: 56px;
+  }
+
+  .billing-opt {
+    padding: 7px 18px; border-radius: 100px; font-size: 13px;
+    font-weight: 600; color: var(--text3); cursor: pointer;
+    transition: all 0.2s; border: none; background: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .billing-opt.active {
+    background: var(--blue); color: white;
+    box-shadow: 0 2px 8px rgba(27,63,228,0.3);
+  }
+
+  .billing-save {
+    font-size: 11px; font-weight: 700; color: var(--green);
+    background: var(--green-bg); border-radius: 100px;
+    padding: 3px 8px; margin-left: -4px;
+  }
+
+  /* PRICING CARDS */
+  .pricing-grid {
+    max-width: 1100px; margin: 0 auto; padding: 0 32px 80px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;
+    align-items: start;
+  }
+
+  .plan-card {
+    background: white; border: 1.5px solid var(--border);
+    border-radius: 20px; padding: 32px 28px;
+    position: relative; transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .plan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.08);
+  }
+
+  .plan-card.featured {
+    border-color: var(--blue);
+    box-shadow: 0 8px 32px rgba(27,63,228,0.15);
+    transform: translateY(-8px);
+  }
+
+  .plan-card.featured:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 56px rgba(27,63,228,0.2);
+  }
+
+  .featured-badge {
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    background: var(--blue); color: white;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; padding: 5px 16px; border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  .plan-name {
+    font-size: 13px; font-weight: 700; color: var(--text3);
+    letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
+  }
+
+  .plan-price {
+    font-family: 'Instrument Serif', serif;
+    font-size: 48px; color: var(--text); letter-spacing: -2px;
+    line-height: 1; margin-bottom: 4px;
+  }
+
+  .plan-price sup { font-size: 20px; vertical-align: super; letter-spacing: 0; }
+  .plan-price .period { font-size: 16px; color: var(--text3); font-family: 'DM Sans', sans-serif; font-weight: 400; letter-spacing: 0; }
+
+  .plan-price-annual { font-size: 12px; color: var(--green); font-weight: 600; margin-bottom: 4px; min-height: 18px; }
+
+  .plan-desc {
+    font-size: 13px; color: var(--text3); line-height: 1.5;
+    margin-bottom: 24px; padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .plan-features { list-style: none; margin-bottom: 28px; }
+
+  .plan-features li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13px; color: var(--text2); padding: 7px 0;
+    border-bottom: 1px solid var(--surface);
+    line-height: 1.4;
+  }
+
+  .plan-features li:last-child { border-bottom: none; }
+
+  .feat-icon {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px; font-size: 10px;
+  }
+
+  .feat-icon.yes { background: var(--green-bg); color: var(--green); }
+  .feat-icon.no  { background: var(--surface); color: var(--text3); }
+  .feat-icon.pro { background: var(--blue-light); color: var(--blue); }
+
+  .feat-text { flex: 1; }
+  .feat-text .feat-highlight { font-weight: 700; color: var(--text); }
+  .feat-text .feat-sub { font-size: 11px; color: var(--text3); display: block; margin-top: 1px; }
+
+  .feat-na { opacity: 0.4; }
+
+  /* CTA Buttons */
+  .btn-plan {
+    width: 100%; padding: 13px;
+    border-radius: 12px; border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    letter-spacing: 0.1px;
+  }
+
+  .btn-plan-outline {
+    background: white; color: var(--blue);
+    border: 1.5px solid var(--blue-mid);
+  }
+  .btn-plan-outline:hover { border-color: var(--blue); background: var(--blue-light); }
+
+  .btn-plan-primary {
+    background: var(--blue); color: white;
+    box-shadow: 0 4px 16px rgba(27,63,228,0.3);
+  }
+  .btn-plan-primary:hover { background: var(--blue-dark); box-shadow: 0 6px 20px rgba(27,63,228,0.4); }
+
+  .btn-plan-dark {
+    background: var(--text); color: white;
+  }
+  .btn-plan-dark:hover { background: #1a1f36; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(13,18,38,0.6); backdrop-filter: blur(4px);
+    z-index: 1000; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: white; border-radius: 20px;
+    padding: 32px; max-width: 460px; width: 100%;
+    position: relative;
+    animation: modal-in 0.25s ease both;
+  }
+
+  @keyframes modal-in {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-close {
+    position: absolute; top: 20px; right: 20px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--surface); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--text3); transition: background 0.15s;
+  }
+  .modal-close:hover { background: var(--border); }
+
+  .modal-plan-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--blue-light); border: 1px solid var(--blue-mid);
+    border-radius: 100px; padding: 5px 14px;
+    font-size: 12px; font-weight: 700; color: var(--blue);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 16px;
+  }
+
+  .modal h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px; color: var(--text); letter-spacing: -0.8px;
+    margin-bottom: 6px;
+  }
+
+  .modal-sub { font-size: 13px; color: var(--text3); margin-bottom: 24px; }
+
+  .bank-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px; margin-bottom: 16px;
+  }
+
+  .bank-label { font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px; }
+
+  .bank-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .bank-row:last-child { margin-bottom: 0; }
+
+  .bank-key { font-size:12px;color:var(--text3); }
+  .bank-val {
+    font-size:14px;font-weight:700;color:var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .copy-btn {
+    padding: 3px 8px; background: white; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 11px; font-weight: 600;
+    color: var(--blue); cursor: pointer; transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .copy-btn:hover { background: var(--blue-light); border-color: var(--blue); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); background: var(--green-bg); }
+
+  .modal-amount {
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    border-radius: 12px; padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .modal-amount .label { font-size:12px;color:rgba(255,255,255,0.7); margin-bottom:4px; }
+  .modal-amount .amount { font-family:'Instrument Serif',serif;font-size:28px;color:white;letter-spacing:-0.5px; }
+  .modal-amount .period-note { font-size:11px;color:rgba(255,255,255,0.6); margin-top:2px; }
+
+  .wa-btn {
+    width: 100%; padding: 14px;
+    background: #25D366; color: white;
+    border: none; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 10px;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+  .wa-btn:hover { background: #1fbe5a; }
+
+  .modal-note {
+    font-size: 11px; color: var(--text3); text-align: center;
+    margin-top: 12px; line-height: 1.5;
+  }
+
+  /* FAQ */
+  .faq-section {
+    max-width: 680px; margin: 0 auto; padding: 0 32px 80px;
+  }
+
+  .faq-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 36px; color: var(--text); letter-spacing: -1px;
+    text-align: center; margin-bottom: 32px;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--border); padding: 20px 0;
+    cursor: pointer;
+  }
+
+  .faq-q {
+    font-size: 14px; font-weight: 600; color: var(--text);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+
+  .faq-icon { font-size: 18px; color: var(--text3); transition: transform 0.2s; flex-shrink: 0; }
+  .faq-item.open .faq-icon { transform: rotate(45deg); }
+
+  .faq-a {
+    font-size: 13px; color: var(--text2); line-height: 1.7;
+    max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s;
+  }
+
+  .faq-item.open .faq-a { max-height: 200px; padding-top: 12px; }
+
+  /* Footer */
+  footer {
+    background: var(--text); padding: 32px;
+    text-align: center;
+  }
+  .footer-brand { font-family:'Instrument Serif',serif;font-size:20px;color:white;margin-bottom:8px; }
+  .footer-sub { font-size:12px;color:rgba(255,255,255,0.4); }
+
+  @media (max-width: 900px) {
+    .pricing-grid { grid-template-columns: 1fr; max-width: 420px; }
+    .plan-card.featured { transform: none; }
+    .hero h1 { font-size: 40px; }
+  }
+
+  /* Animations */
+  .plan-card { animation: fadeUp 0.5s ease both; }
+  .plan-card:nth-child(1) { animation-delay: 0.1s; }
+  .plan-card:nth-child(2) { animation-delay: 0.2s; }
+  .plan-card:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 20 20" fill="none">
+          <path d="M4 14L8 10L11 13L16 7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="7" r="1.5" fill="white"/>
+        </svg>
+      </div>
+      <span class="brand-name">Findible</span>
+    </a>
+    <div class="nav-links">
+      <a href="privacy.html">Privasi</a>
+      <a href="index.html" class="nav-btn">Masuk</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">💰 Pricing</div>
+  <h1>CFO Pribadi Anda.<br><em>Harga yang Masuk Akal.</em></h1>
+  <div class="hero-sub">Mulai gratis, upgrade kapan saja. Tidak ada kontrak, tidak ada biaya tersembunyi.</div>
+
+  <div class="billing-toggle">
+    <button class="billing-opt active" onclick="setBilling('monthly', this)">Bulanan</button>
+    <button class="billing-opt" onclick="setBilling('annual', this)">
+      Tahunan <span class="billing-save">Hemat 20%</span>
+    </button>
+  </div>
+</div>
+
+<!-- PRICING GRID -->
+<div class="pricing-grid">
+
+  <!-- STARTER -->
+  <div class="plan-card">
+    <div class="plan-name">Starter</div>
+    <div class="plan-price"><sup>Rp</sup><span id="price-starter">99</span><span class="period">.000<span style="font-size:13px;">/bulan</span></span></div>
+    <div class="plan-price-annual" id="annual-starter"></div>
+    <div class="plan-desc">Untuk pemilik bisnis yang baru mulai memantau keuangan secara serius.</div>
+
+    <ul class="plan-features">
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">5 analisis</span> per bulan<span class="feat-sub">Upload Excel/CSV/Google Sheets</span></div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">Fraud detection</span> otomatis<span class="feat-sub">9 pola anomali terdeteksi</span></div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">Chat Findi</span> 5 pertanyaan/analisis</div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text">Export laporan PDF</div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text">Connect Google Sheets<span class="feat-sub">Analisis manual, bukan otomatis</span></div>
+      </li>
+      <li>
+        <div class="feat-icon no feat-na">—</div>
+        <div class="feat-text feat-na">Laporan otomatis harian</div>
+      </li>
+      <li>
+        <div class="feat-icon no feat-na">—</div>
+        <div class="feat-text feat-na">Chat Findi unlimited</div>
+      </li>
+    </ul>
+
+    <button class="btn-plan btn-plan-outline" onclick="openModal('starter')">Mulai dengan Starter</button>
+  </div>
+
+  <!-- PRO (FEATURED) -->
+  <div class="plan-card featured">
+    <div class="featured-badge">⭐ Paling Populer</div>
+    <div class="plan-name" style="color:var(--blue);">Pro</div>
+    <div class="plan-price"><sup>Rp</sup><span id="price-pro">249</span><span class="period">.000<span style="font-size:13px;">/bulan</span></span></div>
+    <div class="plan-price-annual" id="annual-pro"></div>
+    <div class="plan-desc">Untuk bisnis yang ingin laporan keuangan berjalan otomatis setiap hari.</div>
+
+    <ul class="plan-features">
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">20 analisis</span> per bulan<span class="feat-sub">Upload Excel/CSV/Google Sheets</span></div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">Fraud detection</span> otomatis</div>
+      </li>
+      <li>
+        <div class="feat-icon pro">★</div>
+        <div class="feat-text"><span class="feat-highlight">Chat Findi</span> 30 pertanyaan/bulan<span class="feat-sub">+ 5 gratis per analisis</span></div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text">Export laporan PDF</div>
+      </li>
+      <li>
+        <div class="feat-icon pro">★</div>
+        <div class="feat-text"><span class="feat-highlight">Laporan otomatis 1x sehari</span><span class="feat-sub">Dikirim ke email jam 09:00 WIB</span></div>
+      </li>
+      <li>
+        <div class="feat-icon pro">★</div>
+        <div class="feat-text"><span class="feat-highlight">Connect Google Sheets</span><span class="feat-sub">Auto-sync & analisis otomatis</span></div>
+      </li>
+      <li>
+        <div class="feat-icon no feat-na">—</div>
+        <div class="feat-text feat-na">Laporan 2x sehari & multi-user</div>
+      </li>
+    </ul>
+
+    <button class="btn-plan btn-plan-primary" onclick="openModal('pro')">Upgrade ke Pro</button>
+  </div>
+
+  <!-- BUSINESS -->
+  <div class="plan-card">
+    <div class="plan-name">Business</div>
+    <div class="plan-price"><sup>Rp</sup><span id="price-business">499</span><span class="period">.000<span style="font-size:13px;">/bulan</span></span></div>
+    <div class="plan-price-annual" id="annual-business"></div>
+    <div class="plan-desc">Untuk tim keuangan yang butuh monitoring penuh dan kolaborasi.</div>
+
+    <ul class="plan-features">
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">Analisis unlimited</span><span class="feat-sub">Tidak ada batasan upload</span></div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">Fraud detection</span> advanced</div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">Chat Findi unlimited</span></div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text">Export laporan PDF</div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">Laporan otomatis 2x sehari</span><span class="feat-sub">Jam 09:00 & 18:00 WIB</span></div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">Multi Google Sheets</span><span class="feat-sub">Connect beberapa spreadsheet</span></div>
+      </li>
+      <li>
+        <div class="feat-icon yes">✓</div>
+        <div class="feat-text"><span class="feat-highlight">3 user</span> dalam 1 akun<span class="feat-sub">Untuk tim keuangan kecil</span></div>
+      </li>
+    </ul>
+
+    <button class="btn-plan btn-plan-dark" onclick="openModal('business')">Mulai Business</button>
+  </div>
+
+</div>
+
+<!-- FAQ -->
+<div class="faq-section">
+  <div class="faq-title">Pertanyaan Umum</div>
+
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Apakah ada uji coba gratis? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Ya! Setiap akun baru mendapat 3 analisis gratis untuk mencoba semua fitur Findible sebelum memutuskan upgrade.</div>
+  </div>
+
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Bagaimana cara upgrade atau downgrade paket? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Hubungi kami via WhatsApp. Upgrade berlaku langsung, downgrade berlaku di awal bulan berikutnya. Tidak ada penalti atau biaya tersembunyi.</div>
+  </div>
+
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Apakah data keuangan saya aman? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Data keuangan Anda diproses langsung dan tidak disimpan permanen di server kami. Kami menggunakan enkripsi SSL dan infrastruktur Supabase (AWS) yang memenuhi standar keamanan enterprise. Data Anda tidak pernah dijual atau digunakan untuk iklan.</div>
+  </div>
+
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Format file apa yang didukung? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Findible mendukung Excel (.xlsx, .xls), CSV, dan Google Sheets. Kami juga mendukung format ekspor dari software akuntansi populer seperti Accurate.</div>
+  </div>
+
+  <div class="faq-item" onclick="toggleFaq(this)">
+    <div class="faq-q">Bagaimana jika kredit saya habis? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Kredit direset setiap awal bulan sesuai paket Anda. Jika habis di tengah bulan, Anda bisa membeli kredit tambahan atau upgrade ke paket yang lebih tinggi via WhatsApp.</div>
+  </div>
+</div>
+
+<!-- UPGRADE MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <div class="modal-plan-badge" id="modal-plan-badge">⭐ Pro</div>
+    <h2 id="modal-title">Upgrade ke Pro</h2>
+    <div class="modal-sub" id="modal-sub">Transfer ke rekening di bawah, lalu konfirmasi via WhatsApp.</div>
+
+    <div class="modal-amount">
+      <div>
+        <div class="label">Total yang ditransfer</div>
+        <div class="amount" id="modal-amount-val">Rp 249.000</div>
+        <div class="period-note" id="modal-period-note">per bulan · aktif langsung setelah konfirmasi</div>
+      </div>
+      <div style="font-size:36px;">💳</div>
+    </div>
+
+    <div class="bank-card">
+      <div class="bank-label">Rekening Tujuan</div>
+      <div class="bank-row">
+        <span class="bank-key">Bank</span>
+        <span class="bank-val">BCA</span>
+      </div>
+      <div class="bank-row">
+        <span class="bank-key">No. Rekening</span>
+        <span class="bank-val">
+          1234567890
+          <button class="copy-btn" onclick="copyText('1234567890', this)">Salin</button>
+        </span>
+      </div>
+      <div class="bank-row">
+        <span class="bank-key">Atas Nama</span>
+        <span class="bank-val">Erlan Findible</span>
+      </div>
+    </div>
+
+    <a class="wa-btn" id="modal-wa-btn" href="#" target="_blank">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M10 1.5C5.31 1.5 1.5 5.31 1.5 10c0 1.52.41 2.94 1.12 4.16L1.5 18.5l4.45-1.09A8.46 8.46 0 0010 18.5c4.69 0 8.5-3.81 8.5-8.5S14.69 1.5 10 1.5z" fill="white" fill-opacity=".2" stroke="white" stroke-width="1.2"/>
+        <path d="M7.5 6.5c-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.07-.7.35C5.5 6.6 4.5 7.5 4.5 9.3s1.1 3.5 1.25 3.75c.15.2 2.1 3.3 5.15 4.5 2.5.95 3.1.75 3.6.7.5-.05 1.6-.65 1.85-1.3.2-.6.2-1.15.15-1.25-.05-.1-.2-.15-.45-.25-.25-.1-1.6-.8-1.85-.9-.25-.1-.4-.15-.6.15-.2.3-.75.9-.9 1.05-.15.15-.3.17-.55.05-.25-.1-1.05-.4-2-1.25-.74-.65-1.24-1.45-1.4-1.7-.15-.25-.01-.4.11-.52.11-.12.25-.3.37-.45.12-.15.16-.25.25-.42.08-.17.04-.32-.02-.45L7.5 6.5z" fill="white"/>
+      </svg>
+      Konfirmasi via WhatsApp
+    </a>
+
+    <div class="modal-note">Aktivasi dalam 1×24 jam kerja setelah konfirmasi diterima.<br>Ada pertanyaan? Chat kami di WhatsApp.</div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-brand">Findible</div>
+  <div class="footer-sub">© 2026 Findible · findible.pro · <a href="privacy.html" style="color:rgba(255,255,255,0.4);">Privasi</a></div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const WA_NUMBER = '62XXXXXXXXXX'; // Ganti dengan nomor WA lo
+
+  const PLANS = {
+    starter:  { name: 'Starter',  badge: '🚀 Starter',  monthly: 99000,  annual: 79000  },
+    pro:      { name: 'Pro',      badge: '⭐ Pro',       monthly: 249000, annual: 199000 },
+    business: { name: 'Business', badge: '🏢 Business', monthly: 499000, annual: 399000 },
+  };
+
+  let currentBilling = 'monthly';
+  let currentPlan = null;
+
+  function formatRp(n) {
+    return 'Rp ' + n.toLocaleString('id');
+  }
+
+  function setBilling(type, btn) {
+    currentBilling = type;
+    document.querySelectorAll('.billing-opt').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    Object.entries(PLANS).forEach(([key, plan]) => {
+      const price = type === 'annual' ? plan.annual : plan.monthly;
+      const priceStr = (price / 1000).toString();
+      document.getElementById('price-' + key).textContent = priceStr;
+
+      const annualEl = document.getElementById('annual-' + key);
+      if (type === 'annual') {
+        annualEl.textContent = `Hemat Rp ${((plan.monthly - plan.annual) * 12).toLocaleString('id')}/tahun`;
+      } else {
+        annualEl.textContent = '';
+      }
+    });
+  }
+
+  function openModal(planKey) {
+    currentPlan = planKey;
+    const plan = PLANS[planKey];
+    const price = currentBilling === 'annual' ? plan.annual : plan.monthly;
+
+    document.getElementById('modal-plan-badge').textContent = plan.badge;
+    document.getElementById('modal-title').textContent = 'Upgrade ke ' + plan.name;
+    document.getElementById('modal-sub').textContent = 'Transfer ke rekening di bawah, lalu konfirmasi via WhatsApp kami.';
+    document.getElementById('modal-amount-val').textContent = formatRp(price);
+    document.getElementById('modal-period-note').textContent =
+      (currentBilling === 'annual' ? 'per bulan (bayar tahunan)' : 'per bulan') + ' · aktif langsung setelah konfirmasi';
+
+    // Build WA message
+    const msg = encodeURIComponent(
+      `Halo Findible! Saya mau upgrade ke paket *${plan.name}* (${currentBilling === 'annual' ? 'Tahunan' : 'Bulanan'}).\n\nSudah transfer ${formatRp(price)} ke BCA 1234567890.\n\nEmail akun: `
+    );
+    document.getElementById('modal-wa-btn').href = `https://wa.me/${WA_NUMBER}?text=${msg}`;
+
+    document.getElementById('modal-overlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Tersalin!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Salin'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  function toggleFaq(el) {
+    el.classList.toggle('open');
+  }
+
+  // Check if user already logged in — customize CTA
+  const SUPABASE_URL = 'https://pqpvtlfhewutpjwqdyqt.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcHZ0bGZoZXd1dHBqd3FkeXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTM4MzcsImV4cCI6MjA4ODQ4OTgzN30.cW9U7vgHV7OqJ0h3NXkiXgcos25-7y0246LDpjTITK4';
+  const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  _sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+      // User logged in — update nav
+      const navLinks = document.querySelector('.nav-links');
+      navLinks.innerHTML = `
+        <a href="dashboard.html">Dashboard</a>
+        <a href="dashboard.html" class="nav-btn">Buka App →</a>
+      `;
+    }
+  });
+</script>
+</body>
+</html>
