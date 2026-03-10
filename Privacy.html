@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kebijakan Privasi — Findible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #1B3FE4;
+    --blue-dark: #1230B0;
+    --blue-light: #EEF1FD;
+    --blue-mid: #D0D8F8;
+    --white: #FFFFFF;
+    --off-white: #F7F8FC;
+    --text: #0D1226;
+    --text2: #374151;
+    --text3: #6B7280;
+    --border: #E2E5F0;
+    --surface: #F4F6FB;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(247,248,252,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 0;
+  }
+
+  .nav-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .brand-mark {
+    width: 32px; height: 32px;
+    background: var(--blue);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .brand-mark svg { width: 18px; height: 18px; }
+
+  .brand-name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .nav-back {
+    font-size: 13px;
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.15s;
+  }
+
+  .nav-back:hover { opacity: 0.7; }
+
+  /* HERO */
+  .hero {
+    background: var(--blue);
+    padding: 64px 32px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -60px;
+    width: 300px; height: 300px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 48px;
+    color: white;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 300;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* CONTENT */
+  .content-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 56px 32px 80px;
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 48px;
+  }
+
+  .toc-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .toc-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .toc-list li a {
+    font-size: 13px;
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.15s;
+  }
+
+  .toc-list li a:hover { opacity: 0.7; }
+
+  .toc-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    min-width: 20px;
+  }
+
+  /* SECTIONS */
+  .section {
+    margin-bottom: 48px;
+    scroll-margin-top: 80px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    width: 32px; height: 32px;
+    background: var(--blue);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .section h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  .section p {
+    font-size: 14px;
+    color: var(--text2);
+    margin-bottom: 14px;
+    line-height: 1.75;
+  }
+
+  .section p:last-child { margin-bottom: 0; }
+
+  .section ul, .section ol {
+    padding-left: 0;
+    list-style: none;
+    margin-bottom: 14px;
+  }
+
+  .section ul li, .section ol li {
+    font-size: 14px;
+    color: var(--text2);
+    padding: 8px 0 8px 24px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.6;
+  }
+
+  .section ul li:last-child, .section ol li:last-child { border-bottom: none; }
+
+  .section ul li::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 16px;
+    width: 6px; height: 6px;
+    background: var(--blue);
+    border-radius: 50%;
+  }
+
+  .section ol {
+    counter-reset: item;
+  }
+
+  .section ol li::before {
+    counter-increment: item;
+    content: counter(item);
+    position: absolute;
+    left: 0;
+    top: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue);
+    width: 18px;
+    height: 18px;
+    background: var(--blue-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 18px;
+  }
+
+  /* Highlight box */
+  .highlight-box {
+    background: var(--blue-light);
+    border: 1px solid var(--blue-mid);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .highlight-box p {
+    color: var(--blue-dark) !important;
+    margin-bottom: 0 !important;
+    font-weight: 500;
+  }
+
+  /* Warning box */
+  .warn-box {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .warn-box p {
+    color: #92400E !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Contact card */
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .contact-icon {
+    width: 40px; height: 40px;
+    background: var(--blue-light);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .contact-info .label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .contact-info a {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .contact-info .sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  /* Footer */
+  footer {
+    background: var(--text);
+    padding: 32px;
+    text-align: center;
+  }
+
+  .footer-brand {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    color: white;
+    margin-bottom: 8px;
+  }
+
+  .footer-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* Updated date badge */
+  .updated-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--text3);
+    font-weight: 500;
+    margin-bottom: 32px;
+  }
+
+  .updated-badge span {
+    width: 6px; height: 6px;
+    background: #16A362;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 36px; }
+    .toc-list { grid-template-columns: 1fr; }
+    .content-wrap { padding: 40px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 20 20" fill="none">
+          <path d="M4 14L8 10L11 13L16 7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="7" r="1.5" fill="white"/>
+        </svg>
+      </div>
+      <span class="brand-name">Findible</span>
+    </a>
+    <a href="index.html" class="nav-back">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 12L6 8L10 4" stroke="#1B3FE4" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      Kembali ke Beranda
+    </a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">📋 Legal Document</div>
+  <h1>Kebijakan Privasi</h1>
+  <div class="hero-sub">Terakhir diperbarui: 10 Maret 2026</div>
+</div>
+
+<div class="content-wrap">
+
+  <div class="updated-badge">
+    <span></span>
+    Dokumen ini berlaku sejak 10 Maret 2026
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">Daftar Isi</div>
+    <ul class="toc-list">
+      <li><a href="#s1"><span class="toc-num">01</span> Informasi yang Kami Kumpulkan</a></li>
+      <li><a href="#s2"><span class="toc-num">02</span> Cara Kami Menggunakan Data</a></li>
+      <li><a href="#s3"><span class="toc-num">03</span> Integrasi Google Sheets</a></li>
+      <li><a href="#s4"><span class="toc-num">04</span> Penyimpanan & Keamanan Data</a></li>
+      <li><a href="#s5"><span class="toc-num">05</span> Berbagi Data dengan Pihak Ketiga</a></li>
+      <li><a href="#s6"><span class="toc-num">06</span> Hak Pengguna</a></li>
+      <li><a href="#s7"><span class="toc-num">07</span> Retensi Data</a></li>
+      <li><a href="#s8"><span class="toc-num">08</span> Perubahan Kebijakan</a></li>
+      <li><a href="#s9"><span class="toc-num">09</span> Hubungi Kami</a></li>
+    </ul>
+  </div>
+
+  <!-- Intro -->
+  <div class="section">
+    <div class="highlight-box">
+      <p>Findible ("kami") berkomitmen untuk melindungi privasi Anda. Kebijakan ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi informasi Anda saat menggunakan layanan Findible di <strong>findible.vercel.app</strong>.</p>
+    </div>
+  </div>
+
+  <!-- Section 1 -->
+  <div class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Informasi yang Kami Kumpulkan</h2>
+    </div>
+    <p>Kami mengumpulkan informasi berikut untuk menyediakan layanan analisis keuangan:</p>
+    <ul>
+      <li><strong>Informasi Akun:</strong> Alamat email dan password (disimpan terenkripsi melalui Supabase Auth)</li>
+      <li><strong>Data Keuangan:</strong> File laporan keuangan (XLSX, XLS, CSV) yang Anda unggah untuk dianalisis — data ini diproses secara langsung dan tidak disimpan permanen di server kami</li>
+      <li><strong>Data Google Sheets:</strong> Jika Anda menghubungkan Google Sheets, kami mengakses data spreadsheet yang Anda pilih dengan izin <code>spreadsheets.readonly</code> (hanya baca, tidak bisa mengubah data Anda)</li>
+      <li><strong>Data Penggunaan:</strong> Jumlah kredit yang digunakan, tanggal koneksi Google Sheets, dan preferensi laporan otomatis</li>
+      <li><strong>Informasi Bisnis:</strong> Nama bisnis dan jenis industri yang Anda masukkan secara sukarela</li>
+    </ul>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Cara Kami Menggunakan Data</h2>
+    </div>
+    <p>Data yang kami kumpulkan digunakan semata-mata untuk:</p>
+    <ul>
+      <li>Menganalisis laporan keuangan Anda menggunakan AI (Claude oleh Anthropic) dan menghasilkan laporan insight bisnis</li>
+      <li>Mengirimkan laporan analisis otomatis ke email Anda sesuai jadwal yang Anda pilih</li>
+      <li>Mengelola akun dan saldo kredit Anda</li>
+      <li>Meningkatkan kualitas layanan Findible</li>
+    </ul>
+    <div class="highlight-box">
+      <p>🔒 Data keuangan Anda <strong>tidak pernah</strong> digunakan untuk melatih model AI, dijual kepada pihak ketiga, atau digunakan untuk tujuan iklan.</p>
+    </div>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Integrasi Google Sheets</h2>
+    </div>
+    <p>Saat Anda menghubungkan Google Sheets ke Findible, berlaku ketentuan berikut:</p>
+    <ul>
+      <li><strong>Izin yang diminta:</strong> Hanya <code>spreadsheets.readonly</code> — kami hanya dapat membaca spreadsheet yang Anda pilih, tidak dapat mengubah, menghapus, atau mengakses file Google lainnya</li>
+      <li><strong>Data yang diakses:</strong> Hanya data dari sheet yang Anda pilih secara eksplisit</li>
+      <li><strong>Token akses:</strong> Refresh token Google Anda disimpan terenkripsi di database kami (Supabase) dan hanya digunakan untuk mengambil data sheet secara otomatis sesuai jadwal yang Anda aktifkan</li>
+      <li><strong>Pencabutan akses:</strong> Anda dapat mencabut akses Findible ke Google Sheets kapan saja melalui <a href="https://myaccount.google.com/permissions" target="_blank" style="color:var(--blue);">Google Account Settings → Security → Third-party apps</a></li>
+    </ul>
+    <div class="warn-box">
+      <p>⚠️ Penggunaan informasi yang diterima dari Google API mematuhi <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" style="color:#92400E;font-weight:600;">Google API Services User Data Policy</a>, termasuk persyaratan Limited Use.</p>
+    </div>
+    <p>Findible menggunakan data Google Sheets <strong>hanya</strong> untuk tujuan yang secara eksplisit diminta pengguna: menghasilkan laporan analisis keuangan. Data ini tidak digunakan untuk tujuan lain, tidak dibagikan kepada pihak ketiga, dan tidak digunakan untuk iklan atau pemasaran.</p>
+  </div>
+
+  <!-- Section 4 -->
+  <div class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Penyimpanan & Keamanan Data</h2>
+    </div>
+    <ul>
+      <li><strong>Database:</strong> Data akun disimpan di Supabase (infrastruktur AWS, region ap-southeast-1 / Singapore), dengan enkripsi at-rest dan in-transit</li>
+      <li><strong>Transfer data:</strong> Semua komunikasi menggunakan HTTPS/TLS</li>
+      <li><strong>API Keys:</strong> Kunci API pihak ketiga (Anthropic, Resend, Google) disimpan sebagai environment variable server-side dan tidak pernah terekspos ke browser</li>
+      <li><strong>Data keuangan:</strong> File yang diunggah diproses langsung di server dan tidak disimpan permanen — data hanya ada selama sesi analisis berlangsung</li>
+    </ul>
+  </div>
+
+  <!-- Section 5 -->
+  <div class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Berbagi Data dengan Pihak Ketiga</h2>
+    </div>
+    <p>Kami bekerja sama dengan layanan pihak ketiga terpercaya berikut:</p>
+    <ul>
+      <li><strong>Anthropic (Claude AI):</strong> Data keuangan dikirim ke Anthropic API untuk menghasilkan analisis. Data ini tunduk pada <a href="https://www.anthropic.com/privacy" target="_blank" style="color:var(--blue);">Kebijakan Privasi Anthropic</a>. Anthropic tidak menggunakan data API untuk melatih model.</li>
+      <li><strong>Supabase:</strong> Penyedia database dan autentikasi. Data tunduk pada <a href="https://supabase.com/privacy" target="_blank" style="color:var(--blue);">Kebijakan Privasi Supabase</a>.</li>
+      <li><strong>Resend:</strong> Layanan pengiriman email laporan. Data tunduk pada <a href="https://resend.com/privacy" target="_blank" style="color:var(--blue);">Kebijakan Privasi Resend</a>.</li>
+      <li><strong>Vercel:</strong> Platform hosting. Data tunduk pada <a href="https://vercel.com/legal/privacy-policy" target="_blank" style="color:var(--blue);">Kebijakan Privasi Vercel</a>.</li>
+    </ul>
+    <p>Kami <strong>tidak menjual, menyewakan, atau membagikan</strong> data pribadi Anda kepada pihak lain di luar yang disebutkan di atas.</p>
+  </div>
+
+  <!-- Section 6 -->
+  <div class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>Hak Pengguna</h2>
+    </div>
+    <p>Anda memiliki hak berikut terkait data pribadi Anda:</p>
+    <ul>
+      <li><strong>Akses:</strong> Meminta informasi tentang data pribadi yang kami simpan</li>
+      <li><strong>Koreksi:</strong> Memperbarui data yang tidak akurat</li>
+      <li><strong>Penghapusan:</strong> Meminta penghapusan akun dan semua data terkait</li>
+      <li><strong>Portabilitas:</strong> Meminta salinan data Anda dalam format yang dapat dibaca mesin</li>
+      <li><strong>Pencabutan izin Google:</strong> Mencabut akses Google Sheets kapan saja tanpa mempengaruhi akun Findible Anda</li>
+    </ul>
+    <p>Untuk menggunakan hak-hak ini, hubungi kami melalui email di bawah.</p>
+  </div>
+
+  <!-- Section 7 -->
+  <div class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Retensi Data</h2>
+    </div>
+    <ul>
+      <li><strong>Data akun:</strong> Disimpan selama akun aktif</li>
+      <li><strong>Data keuangan yang diunggah:</strong> Tidak disimpan permanen — dihapus setelah analisis selesai</li>
+      <li><strong>Token Google:</strong> Disimpan selama fitur laporan otomatis aktif; dihapus saat Anda menonaktifkan fitur atau menghapus akun</li>
+      <li><strong>Setelah penghapusan akun:</strong> Semua data dihapus dalam 30 hari</li>
+    </ul>
+  </div>
+
+  <!-- Section 8 -->
+  <div class="section" id="s8">
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>Perubahan Kebijakan</h2>
+    </div>
+    <p>Kami dapat memperbarui kebijakan ini sewaktu-waktu. Perubahan signifikan akan diberitahukan melalui email atau notifikasi di aplikasi minimal 14 hari sebelum berlaku.</p>
+    <p>Penggunaan Findible setelah tanggal efektif perubahan dianggap sebagai persetujuan terhadap kebijakan yang diperbarui.</p>
+  </div>
+
+  <!-- Section 9 -->
+  <div class="section" id="s9">
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>Hubungi Kami</h2>
+    </div>
+    <p>Jika Anda memiliki pertanyaan tentang kebijakan privasi ini atau ingin menggunakan hak-hak Anda:</p>
+    <div class="contact-card">
+      <div class="contact-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 5.5L10 11L17 5.5" stroke="#1B3FE4" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="2" y="4" width="16" height="12" rx="2" stroke="#1B3FE4" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="contact-info">
+        <div class="label">Email Privasi</div>
+        <a href="mailto:privacy@findible.id">privacy@findible.id</a>
+        <div class="sub">Kami merespons dalam 2-3 hari kerja</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-brand">Findible</div>
+  <div class="footer-sub">© 2026 Findible · findible.vercel.app · Kebijakan Privasi</div>
+</footer>
+
+</body>
+</html>
