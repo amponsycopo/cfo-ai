@@ -1437,18 +1437,7 @@ async function sendFindiMessage(presetText) {
     const { data: { session } } = await supabaseClient.auth.getSession();
     const token = session?.access_token || '';
 
-    const systemPrompt = `Kamu adalah Findi, AI CFO personal untuk pemilik bisnis Indonesia. Kamu sudah menganalisis laporan keuangan mereka.
-
-${contextStr}
-
-ATURAN MENJAWAB:
-- Jawab dalam Bahasa Indonesia, santai tapi profesional
-- Maksimal 5-6 poin, JANGAN panjang seperti laporan
-- Struktur: 1 insight utama → penyebab → rekomendasi konkret
-- Selalu gunakan angka dari data di atas kalau relevan
-- Format angka: "Rp X Juta/Miliar" BUKAN "Rp XM" atau "Rp Xjt"
-- Kalau ditanya benchmark vs bisnis lain, gunakan data industri umum Indonesia
-- Jangan tambah disclaimer panjang, langsung ke poin`;
+    const systemPrompt = `Kamu adalah Findi, AI CFO personal untuk pemilik bisnis Indonesia. Kamu sudah menganalisis laporan keuangan mereka.\n\n${contextStr}\n\nATURAN MENJAWAB:\n- Jawab dalam Bahasa Indonesia, santai tapi profesional\n- Untuk setiap poin utama, gunakan format:\n  **Judul Poin**\n  Penjelasan singkat dengan angka konkret.\n  - Aksi spesifik 1\n  - Aksi spesifik 2\n- Pisahkan poin dengan baris kosong\n- Selalu gunakan angka dari data di atas\n- Format angka: "Rp X Juta/Miliar" BUKAN "Rp XM"\n- JANGAN gunakan ## heading atau --- separator\n- Jangan tambah disclaimer, langsung ke poin`;
 
     const res = await fetch('/api/findi-chat', {
       method: 'POST',
@@ -1500,6 +1489,10 @@ function addFindiMessage(role, text) {
     // Full markdown renderer
     let html = text
       // Horizontal rule
+      // Normalize: ensure --- and ## are on their own lines
+      .replace(/(\S)\s*---/g, '$1\n---')
+      .replace(/---\s*(\S)/g, '---\n$1')
+      .replace(/(\S)\s*(##)/g, '$1\n$2')
       .replace(/---+/g, '<hr style="border:none;border-top:1px solid #e2e5f0;margin:10px 0;">')
       // ## Heading
       .replace(/^##\s+(.+)$/gm, '<div class="findi-heading">$1</div>')
