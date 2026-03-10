@@ -1421,7 +1421,7 @@ async function sendFindiMessage(presetText) {
     ];
 
     // Get session token for server auth
-    const { data: { session } } = await _supabase.auth.getSession();
+    const { data: { session } } = await supabaseClient.auth.getSession();
     const token = session?.access_token || '';
 
     const systemPrompt = `Kamu adalah Findi, AI CFO personal untuk pemilik bisnis Indonesia. Kamu sudah menganalisis laporan keuangan mereka.
