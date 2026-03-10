@@ -475,6 +475,7 @@ tbody tr:hover td { background: var(--bg); }
   to   { opacity: 1; transform: translateY(0); }
 }
 </style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -550,6 +551,25 @@ tbody tr:hover td { background: var(--bg); }
             <span class="format-chip">CSV</span>
           </div>
         </div>
+        <!-- Google Sheets Connect -->
+        <div id="gsheets-section" style="margin-top:16px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+            <span style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.5px;">ATAU</span>
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+          </div>
+          <button onclick="connectGoogleSheets()" id="btn-gsheets" style="width:100%;padding:14px;background:white;border:1.5px solid var(--border2);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);transition:border-color 0.15s,background 0.15s;" onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='white'">
+            <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
+              <path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" fill="#FFC107"/>
+              <path d="M6.3 14.7l7.4 5.4C15.5 16.1 19.4 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z" fill="#FF3D00"/>
+              <path d="M24 46c5.5 0 10.5-1.9 14.4-5.1l-6.7-5.5C29.5 37 26.9 38 24 38c-6.1 0-10.7-3.9-11.8-9.3L4.8 34c3.3 7.4 10 12 19.2 12z" fill="#4CAF50"/>
+              <path d="M44.5 20H24v8.5h11.8c-.9 2.5-2.6 4.5-4.8 5.9l6.7 5.5C42.1 36.2 46 30.6 46 24c0-1.3-.2-2.7-.5-4z" fill="#1565C0"/>
+            </svg>
+            Connect Google Sheets
+          </button>
+          <div id="gsheets-status" style="display:none;margin-top:8px;padding:10px 14px;border-radius:8px;font-size:12px;"></div>
+        </div>
+
         <div class="preview-wrap" id="preview-wrap">
           <div class="preview-stats" id="preview-stats"></div>
           <div class="table-wrap">
@@ -824,6 +844,7 @@ tbody tr:hover td { background: var(--bg); }
 const SUPABASE_URL = 'https://pqpvtlfhewutpjwqdyqt.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcHZ0bGZoZXd1dHBqd3FkeXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTM4MzcsImV4cCI6MjA4ODQ4OTgzN30.cW9U7vgHV7OqJ0h3NXkiXgcos25-7y0246LDpjTITK4';
 const API_BASE     = 'https://findible.vercel.app';
+const GOOGLE_CLIENT_ID = '102196737326-5d2nl627tmkad6gqbjrf0sv7v58emsqq.apps.googleusercontent.com';
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser  = null;
@@ -837,6 +858,189 @@ let analysisResult = null;
 let targetEmail = '';
 let accurateData = null;
 let balanceSheetData = null;
+let gsheetToken = null;
+let gsheetConnected = false;
+let gsheetSpreadsheetId = null;
+
+
+// ==================== GOOGLE SHEETS ====================
+function initGoogleAuth() {
+  if (typeof google === 'undefined') {
+    setTimeout(initGoogleAuth, 500);
+    return;
+  }
+  // GIS loaded — ready
+  console.log('Google Identity Services loaded');
+}
+
+function connectGoogleSheets() {
+  if (typeof google === 'undefined') {
+    alert('Google API belum dimuat. Refresh halaman dan coba lagi.');
+    return;
+  }
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    callback: async (tokenResponse) => {
+      if (tokenResponse.error) {
+        showGsheetsStatus('error', '❌ Login gagal: ' + tokenResponse.error);
+        return;
+      }
+      gsheetToken = tokenResponse.access_token;
+      gsheetConnected = true;
+      showGsheetsStatus('success', '✅ Terhubung ke Google! Masukkan URL atau ID spreadsheet di bawah.');
+      showSheetUrlInput();
+    },
+  });
+  client.requestAccessToken();
+}
+
+function showGsheetsStatus(type, msg) {
+  const el = document.getElementById('gsheets-status');
+  if (!el) return;
+  el.style.display = 'block';
+  const colors = {
+    success: { bg: 'var(--green-bg)', border: 'var(--green-border)', color: 'var(--green)' },
+    error:   { bg: 'var(--red-bg)',   border: 'var(--red-border)',   color: 'var(--red)'   },
+    info:    { bg: 'var(--blue-light)',border: 'var(--blue-mid)',     color: 'var(--blue)'  },
+    loading: { bg: 'var(--surface2)', border: 'var(--border)',       color: 'var(--text2)' },
+  }[type] || colors.info;
+  el.style.background  = colors.bg;
+  el.style.border      = '1px solid ' + colors.border;
+  el.style.color       = colors.color;
+  el.textContent       = msg;
+}
+
+function showSheetUrlInput() {
+  const section = document.getElementById('gsheets-section');
+  if (!section) return;
+  // Replace button with URL input
+  const inputHtml = `
+    <div style="margin-top:0;">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">URL atau ID Google Spreadsheet</div>
+      <div style="display:flex;gap:8px;">
+        <input id="gsheet-url-input" type="text" placeholder="https://docs.google.com/spreadsheets/d/..." 
+          style="flex:1;padding:11px 14px;border:1.5px solid var(--border2);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);outline:none;"
+          onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border2)'">
+        <button onclick="loadGoogleSheet()" style="padding:11px 20px;background:var(--blue);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">
+          Load Sheet
+        </button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;">💡 Pastikan sheet sudah di-share atau lo punya akses view ke spreadsheet ini</div>
+    </div>`;
+  // Insert after status div
+  const statusEl = document.getElementById('gsheets-status');
+  if (statusEl) {
+    const div = document.createElement('div');
+    div.id = 'gsheet-url-section';
+    div.innerHTML = inputHtml;
+    statusEl.insertAdjacentElement('afterend', div);
+  }
+  // Hide connect button
+  const btn = document.getElementById('btn-gsheets');
+  if (btn) btn.style.display = 'none';
+}
+
+async function loadGoogleSheet() {
+  const input = document.getElementById('gsheet-url-input');
+  if (!input || !input.value.trim()) {
+    showGsheetsStatus('error', '❌ Masukkan URL atau ID spreadsheet dulu');
+    return;
+  }
+  const raw = input.value.trim();
+  // Extract spreadsheet ID from URL or use directly
+  let spreadsheetId = raw;
+  const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (match) spreadsheetId = match[1];
+
+  gsheetSpreadsheetId = spreadsheetId;
+  showGsheetsStatus('loading', '⏳ Memuat daftar sheet...');
+
+  try {
+    // First get spreadsheet metadata to list sheets
+    const metaRes = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties`,
+      { headers: { Authorization: 'Bearer ' + gsheetToken } }
+    );
+    if (!metaRes.ok) {
+      const err = await metaRes.json();
+      throw new Error(err.error?.message || 'Gagal akses spreadsheet');
+    }
+    const meta = await metaRes.json();
+    const sheets = meta.sheets?.map(s => s.properties?.title) || [];
+
+    if (sheets.length === 0) throw new Error('Spreadsheet kosong atau tidak bisa diakses');
+
+    if (sheets.length === 1) {
+      // Only one sheet — load directly
+      await fetchAndLoadSheet(spreadsheetId, sheets[0]);
+    } else {
+      // Multiple sheets — show picker
+      showSheetPicker(spreadsheetId, sheets);
+    }
+  } catch (err) {
+    showGsheetsStatus('error', '❌ ' + err.message);
+    console.error('GSheets error:', err);
+  }
+}
+
+function showSheetPicker(spreadsheetId, sheets) {
+  const urlSection = document.getElementById('gsheet-url-section');
+  if (!urlSection) return;
+  const pickerHtml = `
+    <div style="margin-top:12px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">Pilih Sheet</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;">
+        ${sheets.map(s => `
+          <button onclick="fetchAndLoadSheet('${spreadsheetId}','${s.replace(/'/g,"\'")}',this)"
+            style="padding:10px 12px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;transition:all 0.15s;"
+            onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'"
+            onmouseout="this.style.borderColor='var(--border2)';this.style.background='var(--surface2)'">
+            📋 ${s}
+          </button>`).join('')}
+      </div>
+    </div>`;
+  const div = document.createElement('div');
+  div.id = 'gsheet-picker';
+  div.innerHTML = pickerHtml;
+  urlSection.insertAdjacentElement('afterend', div);
+  showGsheetsStatus('info', `✅ Ditemukan ${sheets.length} sheet — pilih yang mau dianalisis`);
+}
+
+async function fetchAndLoadSheet(spreadsheetId, sheetName, btnEl) {
+  if (btnEl) {
+    btnEl.style.background = 'var(--blue-light)';
+    btnEl.style.borderColor = 'var(--blue)';
+    btnEl.style.color = 'var(--blue)';
+  }
+  showGsheetsStatus('loading', `⏳ Memuat data dari sheet "${sheetName}"...`);
+  try {
+    const range = encodeURIComponent(sheetName);
+    const dataRes = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}`,
+      { headers: { Authorization: 'Bearer ' + gsheetToken } }
+    );
+    if (!dataRes.ok) {
+      const err = await dataRes.json();
+      throw new Error(err.error?.message || 'Gagal baca data sheet');
+    }
+    const data = await dataRes.json();
+    const values = data.values || [];
+    if (values.length < 2) throw new Error('Sheet terlalu sedikit data — minimal 2 baris (header + data)');
+
+    // Convert to same format as file upload (array of arrays)
+    parsedData = values;
+    accurateData = null;
+    balanceSheetData = null;
+
+    showGsheetsStatus('success', `✅ "${sheetName}" berhasil dimuat — ${values.length} baris data`);
+    showPreview(values, `Google Sheets: ${sheetName}`, false);
+    document.getElementById('email-section').style.display = 'block';
+  } catch (err) {
+    showGsheetsStatus('error', '❌ ' + err.message);
+    console.error('Sheet fetch error:', err);
+  }
+}
 
 // ── Auth ──
 async function initAuth() {
@@ -877,6 +1081,7 @@ function updateCreditsUI() {
 async function doLogout() { await supabaseClient.auth.signOut(); window.location.href = 'index.html'; }
 
 initAuth();
+initGoogleAuth();
 
 function toggleSettings() {
   const modal = document.getElementById('settings-modal');
@@ -1246,7 +1451,7 @@ async function analyzeWithGroq(data) {
   const fraudStr = summary.anomalies.length>0?summary.anomalies.map(a=>`[${a.type}] ${a.desc||'Anomali'} (${a.date||''} Rp ${fmtM(a.amount||0)})`).join('\n'):'Tidak ada anomali terdeteksi';
   let bsAppend='';
   if(balanceSheetData){const b=balanceSheetData;bsAppend=`\n\nNERACA:\n- Total Aset: Rp ${Math.round(b.totalAssets).toLocaleString('id')}\n- Total Liabilitas: Rp ${Math.round(b.totalLiab).toLocaleString('id')}\n- Current Ratio: ${b.currentRatio?b.currentRatio.toFixed(2)+'x':'N/A'}`;}
-  const summaryText=`RINGKASAN KEUANGAN (pre-processed dari ${summary.totalRows} baris):\nTotal Pendapatan: Rp ${fmtM(summary.totalIncome)}\nTotal Pengeluaran: Rp ${fmtM(summary.totalExpense)}\nLaba Bersih: Rp ${fmtM(summary.profit)}\nMargin: ${summary.margin.toFixed(1)}%\nPeriode: ${summary.dateRange}\n\nBREAKDOWN BULANAN:\n${monthStr}\n\nTOTAL PER KATEGORI:\n${catStr}\n\nANOMALI:\n${fraudStr}${bsAppend}`.trim();
+  const summaryText=`RINGKASAN KEUANGAN (pre-processed dari ${summary.totalRows} baris):\nTotal Pendapatan: Rp ${summary.totalIncome}\nTotal Pengeluaran: Rp ${summary.totalExpense}\nLaba Bersih: Rp ${summary.profit}\nMargin: ${summary.margin.toFixed(1)}%\nPeriode: ${summary.dateRange}\n\nBREAKDOWN BULANAN:\n${monthStr}\n\nTOTAL PER KATEGORI:\n${catStr}\n\nANOMALI:\n${fraudStr}${bsAppend}`.trim();
   const momDeltas=(()=>{const m=summary.monthly;if(m.length<2)return'Hanya 1 bulan data.';const last=m[m.length-1];const prev=m[m.length-2];const revDelta=prev.income>0?((last.income-prev.income)/prev.income*100).toFixed(1):null;return`Bulan terakhir (${last.month}): Revenue Rp ${last.income.toLocaleString('id')} vs sebelumnya Rp ${prev.income.toLocaleString('id')} → ${revDelta!==null?revDelta+'%':'N/A'}.\nTop kategori pendapatan: ${summary.topIncomeCategories?.map(c=>c.desc+' Rp '+c.income.toLocaleString('id')).join(' | ')||'N/A'}`;})();
   const prompt=`Kamu AI CFO senior Indonesia. Analisis data keuangan dengan framework 4-layer CFO.\n${getIndustryContext()}\n${summaryText}\n\nANALISIS MoM:\n${momDeltas}\n\nReturn HANYA JSON valid (tanpa markdown):\n{"totalIncome":${summary.totalIncome},"totalExpense":${summary.totalExpense},"profit":${summary.profit},"margin":${summary.margin.toFixed(1)},"score":72,"scoreLabel":"Cukup Sehat","scoreBasis":"1 kalimat kenapa skor ini","monthlyData":[{"month":"Jan","income":10000000,"expense":8000000}],"cfWeeks":[{"week":"W1","val":3000000}],"topTransactions":[{"desc":"kategori terbesar","amt":50000000}],"cfoLayers":[{"layer":"Volume","icon":"📦","available":true,"status":"ok","headline":"1 kalimat dengan angka","detail":"1-2 kalimat"},{"layer":"Value","icon":"💵","available":true,"status":"warn","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Customer Mix","icon":"👥","available":true,"status":"ok","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Product Mix","icon":"📊","available":false,"status":"na","headline":null,"detail":null}],"insights":[{"type":"ok","icon":"✅","title":"Judul dengan angka","text":"2-3 kalimat dengan angka nyata"},{"type":"warn","icon":"⚠️","title":"Warning","text":"Masalah dengan angka"},{"type":"gold","icon":"💡","title":"Peluang","text":"Peluang dengan estimasi Rp"},{"type":"warn","icon":"⚠️","title":"Insight keempat","text":"Temuan keempat"}],"recs":[{"priority":"critical","title":"Aksi minggu ini","desc":"Langkah spesifik","impact":"Estimasi dampak Rp"},{"priority":"high","title":"Aksi bulan ini","desc":"Langkah konkret","impact":"Estimasi dampak"},{"priority":"med","title":"Optimasi 3 bulan","desc":"Strategi menengah","impact":"Estimasi dampak"},{"priority":"low","title":"Quick win","desc":"Effort rendah","impact":"Estimasi dampak"}],"fraudAlerts":[],"fraudScore":75,"fraudSummary":"1 paragraf ringkasan.","trendInsight":"3 kalimat TERPISAH. Kalimat 1: kondisi bisnis dan angka kunci. Kalimat 2: kenapa bisa begitu. Kalimat 3: 1 aksi paling penting. Bahasa santai Indonesia."}`;
   const res=await fetch(API_BASE+'/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({summaryText:prompt,userId:currentUser.id,userToken:(await supabaseClient.auth.getSession()).data.session?.access_token})});
@@ -1353,7 +1558,7 @@ function detectAnomalies(txList,categories) {
   const sorted=[...txList].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   for(let i=0;i<sorted.length-1;i++){const a=sorted[i],b=sorted[i+1];if(!a.expense||!b.expense)continue;const sameVendor=(a.desc||'').toLowerCase()===(b.desc||'').toLowerCase();const similarAmt=Math.abs(a.expense-b.expense)/Math.max(a.expense,b.expense)<0.05;if(sameVendor&&similarAmt&&a.expense>1000000){anomalies.push({type:'Near-Duplicate Transaction',severity:'warning',desc:`"${a.desc}" muncul 2x berdekatan: Rp ${a.expense.toLocaleString('id')} (${a.date}) dan Rp ${b.expense.toLocaleString('id')} (${b.date})`,amount:a.expense+b.expense,date:a.date,action:'Bandingkan kedua invoice.'});i++;}}
   const catExpense={};
-  txList.forEach(tx=>{if(tx.expense>0){const k=tx.cat||tx.desc||'Lainnya';catExpense[k]=catExpense[k]||[];catExpense[k].push({amt:tx.expense,date:tx.date||'',desc:tx.desc||tx.cat||'',vendor:tx.vendor||tx.desc||tx.cat||'Tidak bernama'});}});
+  txList.forEach(tx=>{if(tx.expense>0){const k=tx.cat||'Lainnya';catExpense[k]=catExpense[k]||[];catExpense[k].push({amt:tx.expense,date:tx.date||'',desc:tx.desc||tx.cat||'',vendor:tx.vendor||tx.desc||tx.cat||'Tidak bernama'});}});
   Object.entries(catExpense).forEach(([cat,txs])=>{if(txs.length<3)return;const sorted2=[...txs].map(t=>t.amt).sort((a,b)=>a-b);const median=sorted2[Math.floor(sorted2.length/2)];txs.forEach(t=>{const vn=t.vendor||t.desc||'Transaksi tidak bernama';if(t.amt>median*3&&t.amt>5000000)anomalies.push({type:'Spike Pengeluaran Tidak Wajar',severity:'critical',desc:`[${cat}] "${vn}" pada ${t.date||'tanggal tidak diketahui'}: Rp ${t.amt.toLocaleString('id')} — ${(t.amt/median).toFixed(1)}x di atas median`,amount:t.amt,date:t.date||'',action:`Minta invoice asli + bukti penerimaan untuk "${vn}".`});});});
   const vendorDateMap={};
   txList.forEach(tx=>{if(!tx.expense||tx.expense<=0)return;const key=`${tx.desc||''}|${tx.date||''}`;vendorDateMap[key]=vendorDateMap[key]||[];vendorDateMap[key].push(tx);});
@@ -1628,6 +1833,11 @@ function goToStep(n) {
 
 function resetApp() {
   parsedData=null; analysisResult=null; targetEmail=''; accurateData=null; balanceSheetData=null;
+  gsheetToken=null; gsheetConnected=false; gsheetSpreadsheetId=null;
+  const gsu=document.getElementById('gsheet-url-section'); if(gsu)gsu.remove();
+  const gsp=document.getElementById('gsheet-picker'); if(gsp)gsp.remove();
+  const gss=document.getElementById('gsheets-status'); if(gss){gss.style.display='none';}
+  const gsb=document.getElementById('btn-gsheets'); if(gsb){gsb.style.display='flex';}
   document.getElementById('preview-wrap').classList.remove('visible');
   document.getElementById('email-section').style.display='none';
   document.getElementById('email-input').value='';
