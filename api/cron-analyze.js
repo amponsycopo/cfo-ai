@@ -34,6 +34,7 @@ export default async function handler(req, res) {
       .from('profiles')
       .select('id, email, gsheet_refresh_token, gsheet_spreadsheet_id, gsheet_sheet_name, business_type, business_name, credits')
       .eq('gsheet_auto_report', true)
+      .in('plan', ['pro', 'business'])
       .not('gsheet_refresh_token', 'is', null)
       .not('gsheet_spreadsheet_id', 'is', null);
 
