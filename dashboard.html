@@ -1096,7 +1096,7 @@ function showAutoReportToggle(spreadsheetId, sheetName) {
           <div style="font-size:11px;color:var(--text3);margin-top:2px;">Setiap jam 09:00 dan 18:00 WIB</div>
         </div>
         <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
-          <input type="checkbox" id="auto-report-toggle" onchange="saveAutoReport(this.checked,'${spreadsheetId}','${sheetName.replace(/'/g,"\'")}')" style="opacity:0;width:0;height:0;position:absolute;">
+          <input type="checkbox" id="auto-report-toggle" data-sheet-id="${spreadsheetId}" data-sheet-name="${sheetName}" onchange="saveAutoReport(this.checked,this.dataset.sheetId,this.dataset.sheetName)" style="opacity:0;width:0;height:0;position:absolute;">
           <span id="auto-report-slider" style="position:absolute;inset:0;background:var(--border2);border-radius:24px;transition:0.2s;"></span>
           <span id="auto-report-knob" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:white;border-radius:50%;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
         </label>
@@ -1191,7 +1191,7 @@ function showSheetPicker(spreadsheetId, sheets) {
       <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;">Pilih Sheet</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;">
         ${sheets.map(s => `
-          <button onclick="fetchAndLoadSheet('${spreadsheetId}','${s.replace(/'/g,"\'")}',this)"
+          <button data-sid="${spreadsheetId}" data-sname="${s}" onclick="fetchAndLoadSheet(this.dataset.sid,this.dataset.sname,this),this)"
             style="padding:10px 12px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;transition:all 0.15s;"
             onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light)'"
             onmouseout="this.style.borderColor='var(--border2)';this.style.background='var(--surface2)'">
@@ -1355,7 +1355,7 @@ function switchFindiTab(tab, btnEl) {
   const presets = FINDI_PRESETS[tab] || [];
   const container = document.getElementById('findi-presets');
   container.innerHTML = presets.map(p =>
-    `<button class="findi-preset-btn" onclick="sendFindiMessage('${p.text.replace(/'/g, "\'")}')">${p.icon} ${p.text}</button>`
+    `<button class="findi-preset-btn" data-q="${p.text}" onclick="sendFindiMessage(this.dataset.q)">${p.icon} ${p.text}</button>`
   ).join('');
 }
 
