@@ -878,21 +878,42 @@ function connectGoogleSheets() {
     alert('Google API belum dimuat. Refresh halaman dan coba lagi.');
     return;
   }
-  const client = google.accounts.oauth2.initTokenClient({
+  const client = google.accounts.oauth2.initCodeClient({
     client_id: GOOGLE_CLIENT_ID,
     scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
-    callback: async (tokenResponse) => {
-      if (tokenResponse.error) {
-        showGsheetsStatus('error', '❌ Login gagal: ' + tokenResponse.error);
+    ux_mode: 'popup',
+    callback: async (response) => {
+      if (response.error) {
+        showGsheetsStatus('error', '❌ Login gagal: ' + response.error);
         return;
       }
-      gsheetToken = tokenResponse.access_token;
-      gsheetConnected = true;
-      showGsheetsStatus('success', '✅ Terhubung ke Google! Masukkan URL atau ID spreadsheet di bawah.');
-      showSheetUrlInput();
+      showGsheetsStatus('loading', '⏳ Menghubungkan ke Google Sheets...');
+      try {
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        const res = await fetch(API_BASE + '/api/gsheet-connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: response.code,
+            userId: currentUser.id,
+            userToken: sessionData.session?.access_token
+          })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Gagal connect');
+        }
+        const data = await res.json();
+        gsheetToken = data.accessToken;
+        gsheetConnected = true;
+        showGsheetsStatus('success', '✅ Terhubung ke Google! Masukkan URL spreadsheet di bawah.');
+        showSheetUrlInput();
+      } catch (err) {
+        showGsheetsStatus('error', '❌ ' + err.message);
+      }
     },
   });
-  client.requestAccessToken();
+  client.requestCode();
 }
 
 function showGsheetsStatus(type, msg) {
@@ -939,6 +960,57 @@ function showSheetUrlInput() {
   // Hide connect button
   const btn = document.getElementById('btn-gsheets');
   if (btn) btn.style.display = 'none';
+}
+
+function showAutoReportToggle(spreadsheetId, sheetName) {
+  const existing = document.getElementById('gsheet-auto-section');
+  if (existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'gsheet-auto-section';
+  div.innerHTML = `
+    <div style="margin-top:16px;padding:16px;background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:12px;">🤖 Laporan Otomatis</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);">Kirim laporan 2x sehari</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Setiap jam 09:00 dan 18:00 WIB</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:44px;height:24px;cursor:pointer;">
+          <input type="checkbox" id="auto-report-toggle" onchange="saveAutoReport(this.checked,'${spreadsheetId}','${sheetName.replace(/'/g,"\'")}')" style="opacity:0;width:0;height:0;position:absolute;">
+          <span id="auto-report-slider" style="position:absolute;inset:0;background:var(--border2);border-radius:24px;transition:0.2s;"></span>
+          <span id="auto-report-knob" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:white;border-radius:50%;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+        </label>
+      </div>
+      <div id="auto-report-status" style="font-size:11px;color:var(--text3);">Aktifkan untuk terima laporan otomatis di email lo setiap hari.</div>
+    </div>`;
+  const picker = document.getElementById('gsheet-picker');
+  const urlSection = document.getElementById('gsheet-url-section');
+  const anchor = picker || urlSection;
+  if (anchor) anchor.insertAdjacentElement('afterend', div);
+}
+
+async function saveAutoReport(enabled, spreadsheetId, sheetName) {
+  const slider = document.getElementById('auto-report-slider');
+  const knob   = document.getElementById('auto-report-knob');
+  const statusEl = document.getElementById('auto-report-status');
+  if (slider) slider.style.background = enabled ? 'var(--blue)' : 'var(--border2)';
+  if (knob)   knob.style.left = enabled ? '23px' : '3px';
+  if (statusEl) statusEl.textContent = '⏳ Menyimpan...';
+  try {
+    const { error } = await supabaseClient.from('profiles').update({
+      gsheet_auto_report:     enabled,
+      gsheet_spreadsheet_id:  spreadsheetId,
+      gsheet_sheet_name:      sheetName,
+      gsheet_connected_at:    new Date().toISOString()
+    }).eq('id', currentUser.id);
+    if (error) throw error;
+    const emailVal = document.getElementById('email-input')?.value || '';
+    if (statusEl) statusEl.textContent = enabled
+      ? '✅ Aktif — laporan otomatis jam 09:00 & 18:00 WIB' + (emailVal ? ' ke ' + emailVal : '')
+      : '⭕ Nonaktif — laporan otomatis dimatikan';
+  } catch (err) {
+    if (statusEl) statusEl.textContent = '❌ Gagal simpan: ' + err.message;
+  }
 }
 
 async function loadGoogleSheet() {
@@ -1036,6 +1108,7 @@ async function fetchAndLoadSheet(spreadsheetId, sheetName, btnEl) {
     showGsheetsStatus('success', `✅ "${sheetName}" berhasil dimuat — ${values.length} baris data`);
     showPreview(values, `Google Sheets: ${sheetName}`, false);
     document.getElementById('email-section').style.display = 'block';
+    showAutoReportToggle(spreadsheetId, sheetName);
   } catch (err) {
     showGsheetsStatus('error', '❌ ' + err.message);
     console.error('Sheet fetch error:', err);
@@ -1838,6 +1911,7 @@ function resetApp() {
   const gsp=document.getElementById('gsheet-picker'); if(gsp)gsp.remove();
   const gss=document.getElementById('gsheets-status'); if(gss){gss.style.display='none';}
   const gsb=document.getElementById('btn-gsheets'); if(gsb){gsb.style.display='flex';}
+  const gsa=document.getElementById('gsheet-auto-section'); if(gsa)gsa.remove();
   document.getElementById('preview-wrap').classList.remove('visible');
   document.getElementById('email-section').style.display='none';
   document.getElementById('email-input').value='';
