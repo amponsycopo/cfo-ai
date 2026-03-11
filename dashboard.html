@@ -1235,7 +1235,7 @@ function showXlsxGuide() {
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
         <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:white;border-radius:8px;border:1px solid #FDE68A;">
           <div style="width:22px;height:22px;background:#F59E0B;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;margin-top:1px;">1</div>
-          <div style="font-size:12px;color:#374151;line-height:1.6;">Buka file Excel anda di <strong>Google Drive</strong> — klik dua kali file .xlsx-nya sampai terbuka di browser</div>
+          <div style="font-size:12px;color:#374151;line-height:1.6;">Buka file Excel lo di <strong>Google Drive</strong> — klik dua kali file .xlsx-nya sampai terbuka di browser</div>
         </div>
         <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:white;border-radius:8px;border:1px solid #FDE68A;">
           <div style="width:22px;height:22px;background:#F59E0B;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;margin-top:1px;">2</div>
@@ -1251,7 +1251,7 @@ function showXlsxGuide() {
         </div>
       </div>
       <div style="padding:10px 12px;background:#FEF3C7;border-radius:8px;font-size:11px;color:#92400E;line-height:1.6;">
-        💡 <strong>Tips:</strong> Atau anda bisa langsung <strong>upload file Excel</strong>-nya lewat drag & drop di area atas — tidak perlu convert, langsung bisa dianalisis!
+        💡 <strong>Tips:</strong> Atau lo bisa langsung <strong>upload file Excel</strong>-nya lewat drag & drop di area atas — tidak perlu convert, langsung bisa dianalisis!
       </div>
     </div>`;
 
@@ -2015,7 +2015,7 @@ async function analyzeWithGroq(data) {
   const bsNote = balanceSheetData
     ? `\n\nData neraca tersedia — sertakan analisis Current Ratio (${balanceSheetData.currentRatio?.toFixed(2) || 'N/A'}x), D/E Ratio (${balanceSheetData.deRatio?.toFixed(2) || 'N/A'}x), dan likuiditas dalam insights dan rekomendasi.`
     : '';
-  const prompt=`Kamu AI CFO senior Indonesia. Analisis data keuangan dengan framework 4-layer CFO.\n${getIndustryContext()}\n${summaryText}${bsNote}\n\nANALISIS MoM:\n${momDeltas}\n\nReturn HANYA JSON valid (tanpa markdown):\n{"totalIncome":${summary.totalIncome},"totalExpense":${summary.totalExpense},"profit":${summary.profit},"margin":${summary.margin.toFixed(1)},"score":72,"scoreLabel":"Cukup Sehat","scoreBasis":"1 kalimat kenapa skor ini","monthlyData":[{"month":"Jan","income":10000000,"expense":8000000}],"cfWeeks":[{"week":"W1","val":3000000}],"topTransactions":[{"desc":"kategori terbesar","amt":50000000}],"cfoLayers":[{"layer":"Volume","icon":"📦","available":true,"status":"ok","headline":"1 kalimat dengan angka","detail":"1-2 kalimat"},{"layer":"Value","icon":"💵","available":true,"status":"warn","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Customer Mix","icon":"👥","available":true,"status":"ok","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Product Mix","icon":"📊","available":false,"status":"na","headline":null,"detail":null}],"insights":[{"type":"ok","icon":"✅","title":"Judul dengan angka","text":"2-3 kalimat dengan angka nyata"},{"type":"warn","icon":"⚠️","title":"Warning","text":"Masalah dengan angka"},{"type":"gold","icon":"💡","title":"Peluang","text":"Peluang dengan estimasi Rp"},{"type":"warn","icon":"⚠️","title":"Insight keempat","text":"Temuan keempat"}],"recs":[{"priority":"critical","title":"Aksi minggu ini","desc":"Langkah spesifik","impact":"Estimasi dampak Rp"},{"priority":"high","title":"Aksi bulan ini","desc":"Langkah konkret","impact":"Estimasi dampak"},{"priority":"med","title":"Optimasi 3 bulan","desc":"Strategi menengah","impact":"Estimasi dampak"},{"priority":"low","title":"Quick win","desc":"Effort rendah","impact":"Estimasi dampak"}],"fraudAlerts":[],"fraudScore":75,"fraudSummary":"1 paragraf ringkasan.","trendInsight":"3 kalimat TERPISAH. Kalimat 1: kondisi bisnis dan angka kunci. Kalimat 2: kenapa bisa begitu. Kalimat 3: 1 aksi paling penting. Bahasa santai Indonesia."}`;
+  const prompt=`Kamu AI CFO senior Indonesia. Analisis data keuangan dengan framework 4-layer CFO.\n${getIndustryContext()}\n${summaryText}${bsNote}\n\nANALISIS MoM:\n${momDeltas}\n\nReturn HANYA JSON valid (tanpa markdown):\n{"totalIncome":${summary.totalIncome},"totalExpense":${summary.totalExpense},"profit":${summary.profit},"margin":${summary.margin.toFixed(1)},"score":72,"scoreLabel":"Cukup Sehat","scoreBasis":"1 kalimat kenapa skor ini","monthlyData":[{"month":"Jan","income":10000000,"expense":8000000}],"cfWeeks":[{"week":"W1","val":3000000}],"topTransactions":[{"desc":"kategori terbesar","amt":50000000}],"cfoLayers":[{"layer":"Volume","icon":"📦","available":true,"status":"ok","headline":"1 kalimat dengan angka","detail":"1-2 kalimat"},{"layer":"Value","icon":"💵","available":true,"status":"warn","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Customer Mix","icon":"👥","available":true,"status":"ok","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Product Mix","icon":"📊","available":false,"status":"na","headline":null,"detail":null}],"insights":[{"type":"ok","icon":"✅","title":"Judul dengan angka","text":"2-3 kalimat dengan angka nyata"},{"type":"warn","icon":"⚠️","title":"Warning","text":"Masalah dengan angka"},{"type":"gold","icon":"💡","title":"Peluang","text":"Peluang dengan estimasi Rp"},{"type":"warn","icon":"⚠️","title":"Insight keempat","text":"Temuan keempat"}],"recs":[{"priority":"critical","title":"Aksi minggu ini","desc":"Langkah spesifik","impact":"Estimasi dampak Rp"},{"priority":"high","title":"Aksi bulan ini","desc":"Langkah konkret","impact":"Estimasi dampak"},{"priority":"med","title":"Optimasi 3 bulan","desc":"Strategi menengah","impact":"Estimasi dampak"},{"priority":"low","title":"Quick win","desc":"Effort rendah","impact":"Estimasi dampak"}],"fraudAlerts":[{"severity":"critical","type":"Nama tipe anomali","desc":"Deskripsi detail anomali dengan angka","amount":5000000,"date":"2024-01-15","action":"Langkah konkret yang harus dilakukan"}],"fraudScore":75,"fraudSummary":"1 paragraf ringkasan.","trendInsight":"3 kalimat TERPISAH. Kalimat 1: kondisi bisnis dan angka kunci. Kalimat 2: kenapa bisa begitu. Kalimat 3: 1 aksi paling penting. Bahasa santai Indonesia."}`;
   const res=await fetch(API_BASE+'/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({summaryText:prompt,userId:currentUser.id,userToken:(await supabaseClient.auth.getSession()).data.session?.access_token})});
   if(!res.ok){const err=await res.json();if(err.code==='NO_CREDITS'){userCredits=0;updateCreditsUI();document.getElementById('no-credits-overlay').classList.add('show');throw new Error('NO_CREDITS');}throw new Error(err.error||'Server error');}
   const json=await res.json(); const result=json.result;
@@ -2036,6 +2036,17 @@ async function analyzeWithGroq(data) {
     // Untuk render tabel top produk/expense di accurate grid
     result.topProducts = summary.topIncomeCategories.map(c => ({ name: c.desc, val: c.income, pct: summary.totalIncome > 0 ? Math.round(c.income/summary.totalIncome*100) : 0 }));
     result.topExpenses = summary.topExpenseCategories.map(c => ({ name: c.desc, val: c.expense, pct: summary.totalExpense > 0 ? Math.round(c.expense/summary.totalExpense*100) : 0 }));
+  }
+  // Normalize fraudAlerts dari Claude — handle kalau field names beda
+  if (result.fraudAlerts) {
+    result.fraudAlerts = result.fraudAlerts.map(a => ({
+      severity: a.severity || 'warning',
+      type: a.type || a.title || a.category || 'Anomali',
+      desc: a.desc || a.description || a.detail || a.message || a.reason || 'Transaksi mencurigakan',
+      amount: a.amount || a.value || a.total || 0,
+      date: a.date || a.tanggal || '',
+      action: a.action || a.recommendation || a.tindakan || a.rekomendasi || 'Verifikasi manual.'
+    }));
   }
   summary.anomalies.forEach(a=>{const alreadyIn=(result.fraudAlerts||[]).some(f=>f.type===a.type&&f.date===a.date);if(!alreadyIn){result.fraudAlerts=result.fraudAlerts||[];result.fraudAlerts.push({severity:a.severity||'warning',type:a.type,desc:a.desc,amount:a.amount||0,date:a.date||'',action:a.action||'Verifikasi manual.'});}});
   return result;
