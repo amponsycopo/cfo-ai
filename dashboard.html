@@ -779,11 +779,12 @@ tbody tr:hover td { background: var(--bg); }
           <div class="chart-legend" style="margin:0;">
             <div class="legend-item"><div class="legend-dot" style="background:var(--blue);opacity:0.85;"></div>Pendapatan</div>
             <div class="legend-item"><div class="legend-dot" style="background:var(--red);opacity:0.6;"></div>Pengeluaran</div>
+            <div class="legend-item"><div style="width:20px;height:3px;background:#6366F1;border-radius:2px;margin-right:4px;"></div>Profit</div>
           </div>
         </div>
       </div>
       <div id="trend-badges" style="display:flex;gap:8px;flex-wrap:wrap;padding:0 4px 12px;"></div>
-      <div class="chart-wrap" style="height:160px;">
+      <div class="chart-wrap" style="height:180px;position:relative;overflow:visible;">
         <div class="mini-chart" id="mini-chart" style="gap:4px;"></div>
         <div class="mini-chart-labels" id="mini-chart-labels"></div>
       </div>
@@ -2334,6 +2335,103 @@ function renderResult(r) {
     const lbl=document.createElement('div'); lbl.className='mini-chart-label'; lbl.textContent=m.month?m.month.substring(5):''; lbl.style.fontWeight=isBestRev||isWorstRev?'700':''; lbl.style.color=isBestRev?'var(--green)':isWorstRev?'var(--red)':''; labelsEl.appendChild(lbl);
     setTimeout(()=>{b1.style.height=Math.max((m.income/maxVal*100),2)+'%';b2.style.height=Math.max((m.expense/maxVal*100),2)+'%';},80);
   });
+
+  // Profit line overlay
+  if (months.length > 1) {
+    setTimeout(() => {
+      const profits = months.map(m => (m.income||0) - (m.expense||0));
+      const maxProfit = Math.max(...profits.map(Math.abs), 1);
+      const chartRect = chartEl.getBoundingClientRect();
+      const chartH = chartEl.offsetHeight || 100;
+      const chartW = chartEl.offsetWidth || 300;
+      if (!chartW || !chartH) return;
+
+      // Remove existing SVG if any
+      const existing = chartEl.parentElement.querySelector('.profit-line-svg');
+      if (existing) existing.remove();
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('profit-line-svg');
+      svg.setAttribute('width', chartW);
+      svg.setAttribute('height', chartH);
+      svg.style.cssText = `position:absolute;top:0;left:0;pointer-events:none;overflow:visible;`;
+
+      const n = months.length;
+      const barW = chartW / n;
+      const midLine = chartH * 0.5; // zero line in middle
+
+      // Build points
+      const points = profits.map((p, i) => {
+        const x = barW * i + barW / 2;
+        // Map profit to Y: positive = above mid, negative = below mid
+        const y = midLine - (p / maxProfit) * (chartH * 0.42);
+        return [x, y];
+      });
+
+      // Zero line
+      const zeroLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      zeroLine.setAttribute('x1', 0); zeroLine.setAttribute('x2', chartW);
+      zeroLine.setAttribute('y1', midLine); zeroLine.setAttribute('y2', midLine);
+      zeroLine.setAttribute('stroke', 'rgba(100,100,100,0.2)');
+      zeroLine.setAttribute('stroke-width', '1');
+      zeroLine.setAttribute('stroke-dasharray', '4,3');
+      svg.appendChild(zeroLine);
+
+      // Smooth polyline using bezier
+      const d = points.map((p, i) => {
+        if (i === 0) return `M ${p[0]},${p[1]}`;
+        const prev = points[i-1];
+        const cpx = (prev[0] + p[0]) / 2;
+        return `C ${cpx},${prev[1]} ${cpx},${p[1]} ${p[0]},${p[1]}`;
+      }).join(' ');
+
+      // Shadow path
+      const shadowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      shadowPath.setAttribute('d', d);
+      shadowPath.setAttribute('fill', 'none');
+      shadowPath.setAttribute('stroke', 'rgba(99,102,241,0.15)');
+      shadowPath.setAttribute('stroke-width', '5');
+      shadowPath.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(shadowPath);
+
+      // Main profit line
+      const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      linePath.setAttribute('d', d);
+      linePath.setAttribute('fill', 'none');
+      linePath.setAttribute('stroke', '#6366F1');
+      linePath.setAttribute('stroke-width', '2.5');
+      linePath.setAttribute('stroke-linecap', 'round');
+      linePath.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(linePath);
+
+      // Dots at each point
+      points.forEach((p, i) => {
+        const profit = profits[i];
+        const color = profit >= 0 ? '#10B981' : '#EF4444';
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', p[0]); circle.setAttribute('cy', p[1]);
+        circle.setAttribute('r', '4');
+        circle.setAttribute('fill', color);
+        circle.setAttribute('stroke', 'white');
+        circle.setAttribute('stroke-width', '1.5');
+        circle.style.cssText = 'cursor:pointer;';
+        // Tooltip via title
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = `${months[i].month}: ${profit >= 0 ? '+' : ''}${formatRp(profit)}`;
+        circle.appendChild(title);
+        svg.appendChild(circle);
+      });
+
+      // Position SVG relative to chart container
+      chartEl.style.position = 'relative';
+      const wrapper = chartEl.parentElement;
+      wrapper.style.position = 'relative';
+      wrapper.appendChild(svg);
+      // Position svg to overlap chart
+      const chartTop = chartEl.offsetTop;
+      svg.style.top = chartTop + 'px';
+    }, 250);
+  }
 
   const momTbody=document.getElementById('mom-tbody');
   if(momTbody&&months.length>0){
