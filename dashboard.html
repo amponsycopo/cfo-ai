@@ -2163,10 +2163,11 @@ function handleBalanceSheet(event) {
 // ==================== HELPERS ====================
 function formatRp(num) {
   const abs=Math.abs(num);
-  if(abs>=1000000000)return'Rp '+(abs/1000000000).toFixed(1)+' Miliar';
-  if(abs>=1000000)return'Rp '+(abs/1000000).toFixed(1)+' Juta';
-  if(abs>=1000)return'Rp '+(abs/1000).toFixed(0)+' Ribu';
-  return'Rp '+abs.toFixed(0);
+  const prefix=num<0?'-':'';
+  if(abs>=1000000000)return prefix+'Rp '+(abs/1000000000).toFixed(1)+' Miliar';
+  if(abs>=1000000)return prefix+'Rp '+(abs/1000000).toFixed(1)+' Juta';
+  if(abs>=1000)return prefix+'Rp '+(abs/1000).toFixed(0)+' Ribu';
+  return prefix+'Rp '+abs.toFixed(0);
 }
   
 function textToBullets(text) {
