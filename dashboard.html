@@ -1170,7 +1170,7 @@ async function loadGoogleSheet() {
   let spreadsheetId = raw;
   const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
   if (match) spreadsheetId = match[1];
-
+  spreadsheetId = spreadsheetId.split('#')[0].split('?')[0];
   gsheetSpreadsheetId = spreadsheetId;
   showGsheetsStatus('loading', '⏳ Memuat daftar sheet...');
 
