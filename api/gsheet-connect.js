@@ -37,7 +37,7 @@ export default async function handler(req, res) {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: 'postmessage', // Untuk popup/ux_mode popup
+        redirect_uri: 'postmessage', // Untuk popup/ux_mode popup — support spreadsheets.readonly + drive.readonly
         grant_type: 'authorization_code',
       }),
     });
