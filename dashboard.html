@@ -623,7 +623,7 @@ tbody tr:hover td { background: var(--bg); }
               <path d="M24 46c5.5 0 10.5-1.9 14.4-5.1l-6.7-5.5C29.5 37 26.9 38 24 38c-6.1 0-10.7-3.9-11.8-9.3L4.8 34c3.3 7.4 10 12 19.2 12z" fill="#4CAF50"/>
               <path d="M44.5 20H24v8.5h11.8c-.9 2.5-2.6 4.5-4.8 5.9l6.7 5.5C42.1 36.2 46 30.6 46 24c0-1.3-.2-2.7-.5-4z" fill="#1565C0"/>
             </svg>
-            Connect Google Sheets
+            Connect Google Sheets / Excel
           </button>
           <div id="gsheets-status" style="display:none;margin-top:8px;padding:10px 14px;border-radius:8px;font-size:12px;"></div>
         </div>
@@ -1019,7 +1019,7 @@ function connectGoogleSheets() {
   }
   const client = google.accounts.oauth2.initCodeClient({
     client_id: GOOGLE_CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.readonly',
     ux_mode: 'popup',
     callback: async (response) => {
       if (response.error) {
@@ -1086,7 +1086,7 @@ function showSheetUrlInput() {
           Load Sheet
         </button>
       </div>
-      <div style="font-size:11px;color:var(--text3);margin-top:6px;">💡 Pastikan sheet sudah di-share atau anda punya akses view ke spreadsheet ini</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;">💡 Support Google Sheets native, Excel (.xlsx/.xls), dan CSV yang ada di Google Drive</div>
     </div>`;
   // Insert after status div
   const statusEl = document.getElementById('gsheets-status');
@@ -1166,39 +1166,96 @@ async function loadGoogleSheet() {
     return;
   }
   const raw = input.value.trim();
-  // Extract spreadsheet ID from URL or use directly
-  let spreadsheetId = raw;
-  const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  if (match) spreadsheetId = match[1];
-  spreadsheetId = spreadsheetId.split('#')[0].split('?')[0];
-  gsheetSpreadsheetId = spreadsheetId;
-  showGsheetsStatus('loading', '⏳ Memuat daftar sheet...');
+
+  // Extract ID — support both /spreadsheets/d/ID dan /file/d/ID (Drive URL)
+  let fileId = raw;
+  const matchSheets = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  const matchDrive  = raw.match(/\/file\/d\/([a-zA-Z0-9-_]+)/);
+  const matchOpen   = raw.match(/\/open\?id=([a-zA-Z0-9-_]+)/);
+  if (matchSheets)   fileId = matchSheets[1];
+  else if (matchDrive) fileId = matchDrive[1];
+  else if (matchOpen)  fileId = matchOpen[1];
+  // Strip query params & hash
+  fileId = fileId.split('#')[0].split('?')[0];
+
+  gsheetSpreadsheetId = fileId;
+  showGsheetsStatus('loading', '⏳ Mengecek tipe file...');
 
   try {
-    // First get spreadsheet metadata to list sheets
-    const metaRes = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties`,
+    // Step 1: Cek metadata file via Drive API — untuk tau mimeType
+    const driveMetaRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?fields=id,name,mimeType`,
       { headers: { Authorization: 'Bearer ' + gsheetToken } }
     );
-    if (!metaRes.ok) {
-      const err = await metaRes.json();
-      throw new Error(err.error?.message || 'Gagal akses spreadsheet');
+    if (!driveMetaRes.ok) {
+      const err = await driveMetaRes.json();
+      throw new Error(err.error?.message || 'File tidak ditemukan atau tidak punya akses');
     }
-    const meta = await metaRes.json();
-    const sheets = meta.sheets?.map(s => s.properties?.title) || [];
+    const fileMeta = await driveMetaRes.json();
+    const mimeType = fileMeta.mimeType || '';
+    console.log('File mimeType:', mimeType, 'name:', fileMeta.name);
 
-    if (sheets.length === 0) throw new Error('Spreadsheet kosong atau tidak bisa diakses');
+    // Step 2: Bedain handling berdasarkan mimeType
+    if (mimeType === 'application/vnd.google-apps.spreadsheet') {
+      // Native Google Sheets — pakai Sheets API
+      showGsheetsStatus('loading', '⏳ Memuat daftar sheet...');
+      const metaRes = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${fileId}?fields=sheets.properties`,
+        { headers: { Authorization: 'Bearer ' + gsheetToken } }
+      );
+      if (!metaRes.ok) {
+        const err = await metaRes.json();
+        throw new Error(err.error?.message || 'Gagal akses spreadsheet');
+      }
+      const meta = await metaRes.json();
+      const sheets = meta.sheets?.map(s => s.properties?.title) || [];
+      if (sheets.length === 0) throw new Error('Spreadsheet kosong');
+      if (sheets.length === 1) await fetchAndLoadSheet(fileId, sheets[0]);
+      else showSheetPicker(fileId, sheets);
 
-    if (sheets.length === 1) {
-      // Only one sheet — load directly
-      await fetchAndLoadSheet(spreadsheetId, sheets[0]);
+    } else if (
+      mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || // .xlsx
+      mimeType === 'application/vnd.ms-excel' || // .xls
+      mimeType === 'text/csv'
+    ) {
+      // Excel / CSV — download via Drive API lalu parse dengan XLSX.js
+      showGsheetsStatus('loading', `⏳ Mengunduh file Excel "${fileMeta.name}"...`);
+      const dlRes = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+        { headers: { Authorization: 'Bearer ' + gsheetToken } }
+      );
+      if (!dlRes.ok) throw new Error('Gagal download file Excel');
+
+      const arrayBuffer = await dlRes.arrayBuffer();
+      const wb = XLSX.read(arrayBuffer, { type: 'array' });
+
+      if (wb.SheetNames.length === 0) throw new Error('File Excel kosong');
+
+      // Simpan ke workbookSheets dan proses seperti upload biasa
+      workbookSheets = {};
+      wb.SheetNames.forEach(name => {
+        workbookSheets[name] = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '' });
+      });
+
+      showGsheetsStatus('success', `✅ "${fileMeta.name}" berhasil dimuat dari Google Drive`);
+
+      if (wb.SheetNames.length === 1) {
+        parsedData = workbookSheets[wb.SheetNames[0]];
+        showPreview(parsedData, fileMeta.name, false);
+        document.getElementById('email-section').style.display = 'block';
+      } else if (isAccurateFormat(wb.SheetNames)) {
+        parseAccurateFile(wb.SheetNames, fileMeta.name);
+      } else {
+        showSheetMapper(wb.SheetNames, fileMeta.name);
+      }
+
     } else {
-      // Multiple sheets — show picker
-      showSheetPicker(spreadsheetId, sheets);
+      throw new Error(`Format file tidak didukung (${mimeType}). Gunakan Google Sheets, Excel (.xlsx), atau CSV.`);
     }
+
   } catch (err) {
     showGsheetsStatus('error', '❌ ' + err.message);
-    console.error('GSheets error:', err);
+    console.error('GSheets/Drive error:', err);
   }
 }
 
