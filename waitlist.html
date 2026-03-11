@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftar Demo Eksklusif — Findible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue: #1B3FE4;
+  --blue-dark: #1230B0;
+  --blue-light: #EEF1FD;
+  --blue-mid: #C7D0F7;
+  --text: #0D1226;
+  --text2: #374151;
+  --text3: #6B7280;
+  --border: #E2E5F0;
+  --surface: #F4F6FB;
+  --white: #fff;
+  --green: #16A362;
+  --red: #DC2626;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #F7F8FC;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── HERO ── */
+.hero {
+  background: var(--blue);
+  padding: 48px 24px 64px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse 60% 80% at 20% 50%, rgba(255,255,255,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 20%, rgba(255,255,255,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.hero-logo {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-bottom: 32px; text-decoration: none;
+}
+
+.logo-mark {
+  width: 36px; height: 36px; background: rgba(255,255,255,0.15);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2);
+}
+
+.logo-name {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px; color: white; letter-spacing: -0.3px;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 100px; padding: 6px 16px;
+  font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.9);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 20px;
+  animation: fadeDown 0.5s ease both;
+}
+
+.hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(32px, 6vw, 52px);
+  color: white; letter-spacing: -1.5px; line-height: 1.1;
+  margin-bottom: 16px;
+  animation: fadeDown 0.5s 0.1s ease both;
+}
+
+.hero h1 em { font-style: italic; opacity: 0.85; }
+
+.hero-sub {
+  font-size: 15px; color: rgba(255,255,255,0.7);
+  max-width: 480px; margin: 0 auto 28px;
+  line-height: 1.6; font-weight: 300;
+  animation: fadeDown 0.5s 0.2s ease both;
+}
+
+.hero-slots {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 100px; padding: 8px 20px;
+  font-size: 13px; font-weight: 600; color: white;
+  animation: fadeDown 0.5s 0.3s ease both;
+}
+
+.slot-dot {
+  width: 8px; height: 8px; background: #4ADE80;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.8); }
+}
+
+/* ── FORM CONTAINER ── */
+.form-wrap {
+  max-width: 640px; margin: -24px auto 0;
+  padding: 0 16px 80px;
+  position: relative; z-index: 10;
+}
+
+.form-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 40px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* ── PROGRESS BAR ── */
+.progress-bar {
+  height: 4px; background: var(--border);
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%; background: var(--blue);
+  border-radius: 0 2px 2px 0;
+  transition: width 0.4s ease;
+  width: 10%;
+}
+
+.progress-label {
+  padding: 12px 24px 0;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; color: var(--text3); font-weight: 600;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+
+/* ── STEPS ── */
+.step {
+  display: none; padding: 24px;
+  animation: stepIn 0.3s ease both;
+}
+
+.step.active { display: block; }
+
+@keyframes stepIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.step-q {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px; color: var(--text);
+  letter-spacing: -0.5px; line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+.step-hint {
+  font-size: 12px; color: var(--text3);
+  margin-bottom: 20px; line-height: 1.5;
+}
+
+/* ── OPTIONS ── */
+.options { display: flex; flex-direction: column; gap: 8px; }
+
+.option-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 12px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500; color: var(--text2);
+  text-align: left; transition: all 0.15s;
+  width: 100%;
+}
+
+.option-btn:hover {
+  border-color: var(--blue-mid);
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+.option-btn.selected {
+  border-color: var(--blue);
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+.option-check {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; font-size: 11px;
+}
+
+.option-btn.selected .option-check {
+  background: var(--blue); border-color: var(--blue); color: white;
+}
+
+/* ── TEXT INPUT ── */
+.text-input {
+  width: 100%; padding: 14px 16px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 12px; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; color: var(--text); resize: vertical;
+  min-height: 100px; transition: border 0.15s;
+  outline: none;
+}
+
+.text-input:focus { border-color: var(--blue); background: white; }
+.text-input::placeholder { color: var(--text3); }
+
+/* ── NAME + EMAIL ── */
+.field-row { display: flex; flex-direction: column; gap: 12px; }
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: 12px; font-weight: 600; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; }
+.field-input {
+  padding: 12px 16px; background: var(--surface);
+  border: 1.5px solid var(--border); border-radius: 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+  outline: none; transition: border 0.15s;
+}
+.field-input:focus { border-color: var(--blue); background: white; }
+
+/* ── NAVIGATION ── */
+.step-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.btn-back {
+  padding: 10px 20px; background: none; border: 1.5px solid var(--border);
+  border-radius: 10px; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600; color: var(--text3);
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-back:hover { border-color: var(--text3); color: var(--text); }
+
+.btn-next {
+  padding: 11px 28px; background: var(--blue); border: none;
+  border-radius: 10px; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 700; color: white;
+  cursor: pointer; transition: all 0.15s;
+  box-shadow: 0 4px 14px rgba(27,63,228,0.3);
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-next:hover { background: var(--blue-dark); transform: translateY(-1px); }
+.btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ── SUCCESS ── */
+.success-screen {
+  display: none; padding: 48px 24px;
+  text-align: center;
+  animation: stepIn 0.4s ease both;
+}
+
+.success-screen.show { display: block; }
+
+.success-icon {
+  width: 72px; height: 72px; background: #F0FDF4;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 32px; margin: 0 auto 24px;
+  border: 2px solid #BBF7D0;
+}
+
+.success-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 28px; color: var(--text); letter-spacing: -0.8px;
+  margin-bottom: 10px;
+}
+
+.success-sub {
+  font-size: 14px; color: var(--text3); line-height: 1.6;
+  max-width: 380px; margin: 0 auto 32px;
+}
+
+.success-wa {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 28px; background: #25D366; color: white;
+  border-radius: 12px; text-decoration: none;
+  font-size: 14px; font-weight: 700;
+  box-shadow: 0 4px 16px rgba(37,211,102,0.3);
+  transition: background 0.15s;
+}
+.success-wa:hover { background: #1fbe5a; }
+
+.success-note {
+  font-size: 11px; color: var(--text3); margin-top: 16px;
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── FOOTER ── */
+footer {
+  text-align: center; padding: 24px;
+  font-size: 11px; color: var(--text3);
+}
+footer a { color: var(--text3); text-decoration: none; }
+footer a:hover { color: var(--blue); }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <a href="index.html" class="hero-logo">
+    <div class="logo-mark">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <path d="M4 14L8 10L11 13L16 7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="16" cy="7" r="1.5" fill="white"/>
+      </svg>
+    </div>
+    <span class="logo-name">Findible</span>
+  </a>
+  <div class="hero-badge">🔒 Demo Eksklusif</div>
+  <h1>Hanya <em>20 bisnis</em><br>pertama yang lolos.</h1>
+  <div class="hero-sub">Kami membuka demo terbatas untuk pemilik bisnis yang punya laporan keuangan dan siap melihat kondisi bisnis mereka secara real-time.</div>
+  <div class="hero-slots">
+    <div class="slot-dot"></div>
+    <span id="slot-counter">14 slot tersisa dari 20</span>
+  </div>
+</div>
+
+<!-- FORM -->
+<div class="form-wrap">
+  <div class="form-card">
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-label">
+      <span id="step-label">Langkah 1 dari 10</span>
+      <span id="step-pct">10%</span>
+    </div>
+
+    <!-- STEP 0: Nama + Email -->
+    <div class="step active" data-step="0">
+      <div class="step-q">Halo! Kenalan dulu yuk 👋</div>
+      <div class="step-hint">Kami butuh ini untuk mengirimkan undangan demo Anda.</div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Nama Lengkap</label>
+          <input type="text" class="field-input" id="input-name" placeholder="Contoh: Budi Santoso">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Email Aktif</label>
+          <input type="email" class="field-input" id="input-email" placeholder="budi@bisnis.com">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Nomor WhatsApp</label>
+          <input type="tel" class="field-input" id="input-wa" placeholder="08xxxxxxxx">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Nama Bisnis</label>
+          <input type="text" class="field-input" id="input-biz" placeholder="Contoh: Rumah Makan Pak Budi">
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step" data-step="1">
+      <div class="step-q">Apa peran Anda di bisnis ini?</div>
+      <div class="step-hint">Kami hanya membuka demo untuk pengambil keputusan bisnis.</div>
+      <div class="options">
+        <button class="option-btn" onclick="selectOption(this, 1)"><span class="option-check"></span>Owner / Founder</button>
+        <button class="option-btn" onclick="selectOption(this, 1)"><span class="option-check"></span>Co-Founder</button>
+        <button class="option-btn" onclick="selectOption(this, 1)"><span class="option-check"></span>Finance / Accounting</button>
+        <button class="option-btn" onclick="selectOption(this, 1)"><span class="option-check"></span>Manager</button>
+        <button class="option-btn" onclick="selectOption(this, 1)"><span class="option-check"></span>Lainnya</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step" data-step="2">
+      <div class="step-q">Berapa rata-rata omzet bisnis Anda per bulan?</div>
+      <div class="step-hint">Ini membantu kami memastikan Findible cocok untuk skala bisnis Anda.</div>
+      <div class="options">
+        <button class="option-btn" onclick="selectOption(this, 2)"><span class="option-check"></span>Di bawah Rp 50 juta</button>
+        <button class="option-btn" onclick="selectOption(this, 2)"><span class="option-check"></span>Rp 50 – 200 juta</button>
+        <button class="option-btn" onclick="selectOption(this, 2)"><span class="option-check"></span>Rp 200 – 500 juta</button>
+        <button class="option-btn" onclick="selectOption(this, 2)"><span class="option-check"></span>Rp 500 juta – 1 Miliar</button>
+        <button class="option-btn" onclick="selectOption(this, 2)"><span class="option-check"></span>Di atas Rp 1 Miliar</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step" data-step="3">
+      <div class="step-q">Pencatatan keuangan bisnis Anda pakai apa?</div>
+      <div class="step-hint">Ini penting untuk integrasi Findible dengan sistem yang sudah Anda pakai.</div>
+      <div class="options">
+        <button class="option-btn" onclick="selectOption(this, 3)"><span class="option-check"></span>Excel / Google Sheet</button>
+        <button class="option-btn" onclick="selectOption(this, 3)"><span class="option-check"></span>Software akuntansi (Accurate, Jurnal, dll)</button>
+        <button class="option-btn" onclick="selectOption(this, 3)"><span class="option-check"></span>Masih manual / buku</button>
+        <button class="option-btn" onclick="selectOption(this, 3)"><span class="option-check"></span>Tidak tahu / belum ada</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step" data-step="4">
+      <div class="step-q">Masalah terbesar Anda dalam membaca laporan keuangan?</div>
+      <div class="step-hint">Pilih yang paling terasa.</div>
+      <div class="options">
+        <button class="option-btn" onclick="selectOption(this, 4)"><span class="option-check"></span>Tidak sempat membaca laporan</button>
+        <button class="option-btn" onclick="selectOption(this, 4)"><span class="option-check"></span>Tidak tahu apa yang harus dianalisis</button>
+        <button class="option-btn" onclick="selectOption(this, 4)"><span class="option-check"></span>Sulit tahu kondisi bisnis sebenarnya</button>
+        <button class="option-btn" onclick="selectOption(this, 4)"><span class="option-check"></span>Cashflow sering tiba-tiba seret</button>
+        <button class="option-btn" onclick="selectOption(this, 4)"><span class="option-check"></span>Sulit tahu biaya mana yang bocor</button>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step" data-step="5">
+      <div class="step-q">Seberapa sering Anda cek laporan keuangan?</div>
+      <div class="step-hint">Tidak ada jawaban yang salah.</div>
+      <div class="options">
+        <button class="option-btn" onclick="selectOption(this, 5)"><span class="option-check"></span>Setiap hari</button>
+        <button class="option-btn" onclick="selectOption(this, 5)"><span class="option-check"></span>Mingguan</button>
+        <button class="option-btn" onclick="selectOption(this, 5)"><span class="option-check"></span>Bulanan</button>
+        <button class="option-btn" onclick="selectOption(this, 5)"><span class="option-check"></span>Jarang / hampir tidak pernah</button>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="step" data-step="6">
+      <div class="step-q">Siapa yang membuat laporan keuangan bisnis Anda?</div>
+      <div class="step-hint">Ini penting untuk positioning AI CFO Findible.</div>
+      <div class="options">
+        <button class="option-btn" onclick="selectOption(this, 6)"><span class="option-check"></span>Saya sendiri</button>
+        <button class="option-btn" onclick="selectOption(this, 6)"><span class="option-check"></span>Staff finance / accounting</button>
+        <button class="option-btn" onclick="selectOption(this, 6)"><span class="option-check"></span>Akuntan eksternal</button>
+        <button class="option-btn" onclick="selectOption(this, 6)"><span class="option-check"></span>Belum ada yang khusus</button>
+      </div>
+    </div>
+
+    <!-- STEP 7 -->
+    <div class="step" data-step="7">
+      <div class="step-q">Seberapa tertarik Anda mencoba AI yang bisa menganalisis laporan keuangan otomatis?</div>
+      <div class="step-hint">Jujur saja — kami butuh feedback yang real.</div>
+      <div class="options">
+        <button class="option-btn" onclick="selectOption(this, 7)"><span class="option-check"></span>Sangat tertarik — langsung mau coba</button>
+        <button class="option-btn" onclick="selectOption(this, 7)"><span class="option-check"></span>Cukup tertarik — tapi perlu lihat dulu</button>
+        <button class="option-btn" onclick="selectOption(this, 7)"><span class="option-check"></span>Biasa saja</button>
+        <button class="option-btn" onclick="selectOption(this, 7)"><span class="option-check"></span>Tidak terlalu tertarik</button>
+      </div>
+    </div>
+
+    <!-- STEP 8 -->
+    <div class="step" data-step="8">
+      <div class="step-q">Bersedia menghubungkan laporan keuangan Anda untuk dianalisis saat demo?</div>
+      <div class="step-hint">Demo hanya bisa dilakukan kalau ada data nyata untuk dianalisis.</div>
+      <div class="options">
+        <button class="option-btn" onclick="selectOption(this, 8)"><span class="option-check"></span>Ya, siap 💪</button>
+        <button class="option-btn" onclick="selectOption(this, 8)"><span class="option-check"></span>Mungkin — tergantung situasi</button>
+        <button class="option-btn" onclick="selectOption(this, 8)"><span class="option-check"></span>Tidak, lebih nyaman pakai data dummy</button>
+      </div>
+    </div>
+
+    <!-- STEP 9: Open question -->
+    <div class="step" data-step="9">
+      <div class="step-q">Kalau punya finance analyst pribadi, apa yang paling ingin Anda tanyakan tentang bisnis Anda?</div>
+      <div class="step-hint">Contoh: "Kenapa profit saya kecil padahal omzet besar?" — tulis dengan bebas.</div>
+      <textarea class="text-input" id="input-openq" placeholder="Tulis pertanyaan Anda di sini..."></textarea>
+    </div>
+
+    <!-- STEP 10: Pricing -->
+    <div class="step" data-step="10">
+      <div class="step-q">Kalau Findible benar-benar membantu, berapa budget yang masuk akal?</div>
+      <div class="step-hint">Ini untuk riset produk — tidak ada kewajiban apapun.</div>
+      <div class="options">
+        <button class="option-btn" onclick="selectOption(this, 10)"><span class="option-check"></span>Di bawah Rp 200 ribu / bulan</button>
+        <button class="option-btn" onclick="selectOption(this, 10)"><span class="option-check"></span>Rp 200 – 500 ribu / bulan</button>
+        <button class="option-btn" onclick="selectOption(this, 10)"><span class="option-check"></span>Rp 500 ribu – 1 juta / bulan</button>
+        <button class="option-btn" onclick="selectOption(this, 10)"><span class="option-check"></span>Di atas Rp 1 juta / bulan</button>
+      </div>
+    </div>
+
+    <!-- NAV BUTTONS -->
+    <div class="step-nav" id="step-nav">
+      <button class="btn-back" id="btn-back" onclick="prevStep()" style="visibility:hidden">← Kembali</button>
+      <button class="btn-next" id="btn-next" onclick="nextStep()">
+        Lanjut <span>→</span>
+      </button>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Pendaftaran diterima!</div>
+      <div class="success-sub" id="success-msg">
+        Terima kasih <strong id="success-name"></strong>! Kami akan menghubungi Anda dalam 1–2 hari kerja untuk menjadwalkan demo eksklusif Findible.
+      </div>
+      <a class="success-wa" id="success-wa-btn" href="#" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+          <path d="M10 1.5C5.31 1.5 1.5 5.31 1.5 10c0 1.52.41 2.94 1.12 4.16L1.5 18.5l4.45-1.09A8.46 8.46 0 0010 18.5c4.69 0 8.5-3.81 8.5-8.5S14.69 1.5 10 1.5z" fill="white" fill-opacity=".2" stroke="white" stroke-width="1.2"/>
+          <path d="M7.5 6.5c-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.07-.7.35C5.5 6.6 4.5 7.5 4.5 9.3s1.1 3.5 1.25 3.75c.15.2 2.1 3.3 5.15 4.5 2.5.95 3.1.75 3.6.7.5-.05 1.6-.65 1.85-1.3.2-.6.2-1.15.15-1.25-.05-.1-.2-.15-.45-.25-.25-.1-1.6-.8-1.85-.9-.25-.1-.4-.15-.6.15-.2.3-.75.9-.9 1.05-.15.15-.3.17-.55.05-.25-.1-1.05-.4-2-1.25-.74-.65-1.24-1.45-1.4-1.7-.15-.25-.01-.4.11-.52.11-.12.25-.3.37-.45.12-.15.16-.25.25-.42.08-.17.04-.32-.02-.45L7.5 6.5z" fill="white"/>
+        </svg>
+        Konfirmasi via WhatsApp
+      </a>
+      <div class="success-note">Atau tunggu email konfirmasi dari tim Findible.</div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <a href="index.html">Findible</a> · <a href="privacy.html">Kebijakan Privasi</a> · © 2026
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL = 'https://pqpvtlfhewutpjwqdyqt.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcHZ0bGZoZXd1dHBqd3FkeXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTM4MzcsImV4cCI6MjA4ODQ4OTgzN30.cW9U7vgHV7OqJ0h3NXkiXgcos25-7y0246LDpjTITK4';
+const WA_NUMBER = '6285161165654'; // Ganti dengan nomor WA lo
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const TOTAL_STEPS = 10; // 0..10
+let currentStep = 0;
+const answers = {};
+
+// Simulate slot countdown (kosmetik)
+const baseSlots = 14;
+document.getElementById('slot-counter').textContent = `${baseSlots} slot tersisa dari 20`;
+
+function updateProgress() {
+  const pct = Math.round(((currentStep) / TOTAL_STEPS) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('step-label').textContent = `Langkah ${currentStep + 1} dari ${TOTAL_STEPS + 1}`;
+  document.getElementById('step-pct').textContent = pct + '%';
+  document.getElementById('btn-back').style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+
+  // Last step — change button text
+  const btnNext = document.getElementById('btn-next');
+  if (currentStep === TOTAL_STEPS) {
+    btnNext.innerHTML = 'Daftar Sekarang 🚀';
+  } else {
+    btnNext.innerHTML = 'Lanjut <span>→</span>';
+  }
+}
+
+function selectOption(btn, step) {
+  document.querySelectorAll(`.step[data-step="${step}"] .option-btn`).forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  btn.querySelector('.option-check').textContent = '✓';
+  document.querySelectorAll(`.step[data-step="${step}"] .option-btn:not(.selected) .option-check`).forEach(c => c.textContent = '');
+  answers[`step_${step}`] = btn.textContent.trim().replace('✓', '').trim();
+}
+
+function validateStep() {
+  if (currentStep === 0) {
+    const name = document.getElementById('input-name').value.trim();
+    const email = document.getElementById('input-email').value.trim();
+    const wa = document.getElementById('input-wa').value.trim();
+    if (!name || !email || !wa) {
+      alert('Mohon isi nama, email, dan nomor WhatsApp terlebih dahulu.');
+      return false;
+    }
+    if (!email.includes('@')) {
+      alert('Format email tidak valid.');
+      return false;
+    }
+    answers.name = name;
+    answers.email = email;
+    answers.whatsapp = wa;
+    answers.business_name = document.getElementById('input-biz').value.trim();
+    return true;
+  }
+  if (currentStep === 9) {
+    answers.open_question = document.getElementById('input-openq').value.trim();
+    return true;
+  }
+  if (answers[`step_${currentStep}`]) return true;
+  alert('Pilih salah satu jawaban terlebih dahulu.');
+  return false;
+}
+
+function nextStep() {
+  if (!validateStep()) return;
+
+  if (currentStep === TOTAL_STEPS) {
+    submitForm();
+    return;
+  }
+
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+  currentStep++;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+  updateProgress();
+}
+
+function prevStep() {
+  if (currentStep === 0) return;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+  currentStep--;
+  document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+  updateProgress();
+}
+
+async function submitForm() {
+  const btnNext = document.getElementById('btn-next');
+  btnNext.disabled = true;
+  btnNext.textContent = 'Mengirim...';
+
+  const payload = {
+    name:           answers.name,
+    email:          answers.email,
+    whatsapp:       answers.whatsapp,
+    business_name:  answers.business_name || null,
+    role:           answers.step_1 || null,
+    revenue_range:  answers.step_2 || null,
+    accounting_tool: answers.step_3 || null,
+    pain_point:     answers.step_4 || null,
+    report_freq:    answers.step_5 || null,
+    report_maker:   answers.step_6 || null,
+    ai_interest:    answers.step_7 || null,
+    demo_readiness: answers.step_8 || null,
+    open_question:  answers.open_question || null,
+    budget:         answers.step_10 || null,
+    created_at:     new Date().toISOString(),
+  };
+
+  try {
+    const { error } = await sb.from('waitlist').insert([payload]);
+    if (error) throw error;
+
+    // Show success
+    document.querySelector('.form-card').querySelector('.progress-bar').style.display = 'none';
+    document.querySelector('.progress-label').style.display = 'none';
+    document.getElementById('step-nav').style.display = 'none';
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+    document.getElementById('success-screen').classList.add('show');
+    document.getElementById('success-name').textContent = answers.name.split(' ')[0];
+
+    // WA confirmation link
+    const msg = encodeURIComponent(`Halo Findible! Saya baru daftar demo.\nNama: ${answers.name}\nBisnis: ${answers.business_name || '-'}\nEmail: ${answers.email}`);
+    document.getElementById('success-wa-btn').href = `https://wa.me/${WA_NUMBER}?text=${msg}`;
+
+    // Decrease slot counter cosmetically
+    document.getElementById('slot-counter').textContent = `${baseSlots - 1} slot tersisa dari 20`;
+
+  } catch (err) {
+    console.error(err);
+    btnNext.disabled = false;
+    btnNext.textContent = 'Daftar Sekarang 🚀';
+    alert('Gagal mendaftar. Coba lagi atau hubungi kami via WhatsApp.');
+  }
+}
+
+updateProgress();
+</script>
+</body>
+</html>
