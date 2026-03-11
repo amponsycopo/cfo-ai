@@ -93,9 +93,9 @@ export default async function handler(req, res) {
           .map(([k,v]) => `${k}: pendapatan=Rp ${fmtM(v.income)} pengeluaran=Rp ${fmtM(v.expense)}`)
           .join(', ');
 
-        const prompt = `Kamu AI CFO senior Indonesia. Analisis data keuangan bisnis "${user.business_name || 'SME'}".
+        const prompt = `Kamu AI CFO senior Indonesia. Analisis data keuangan bisnis "${user.business_name || 'SME'}" untuk ${sessionLabel}.
 
-RINGKASAN KEUANGAN (${sessionLabel}):
+RINGKASAN KEUANGAN:
 Total Pendapatan: Rp ${fmtM(summary.totalIncome)}
 Total Pengeluaran: Rp ${fmtM(summary.totalExpense)}
 Laba Bersih: Rp ${fmtM(summary.profit)}
@@ -105,8 +105,35 @@ Periode: ${summary.dateRange}
 BREAKDOWN BULANAN: ${monthStr}
 TOP KATEGORI: ${catStr}
 
-Return HANYA JSON valid:
-{"totalIncome":${summary.totalIncome},"totalExpense":${summary.totalExpense},"profit":${summary.profit},"margin":${summary.margin.toFixed(1)},"score":72,"scoreLabel":"Cukup Sehat","scoreBasis":"1 kalimat kenapa skor ini","monthlyData":[{"month":"Jan","income":10000000,"expense":8000000}],"insights":[{"type":"ok","icon":"✅","title":"Judul","text":"2-3 kalimat dengan angka"},{"type":"warn","icon":"⚠️","title":"Warning","text":"Masalah konkret"},{"type":"gold","icon":"💡","title":"Peluang","text":"Estimasi Rp"}],"recs":[{"priority":"critical","title":"Aksi segera","desc":"Langkah spesifik","impact":"Estimasi Rp"},{"priority":"high","title":"Aksi minggu ini","desc":"Langkah konkret","impact":"Estimasi"}],"fraudAlerts":[],"fraudSummary":"Ringkasan anomali.","trendInsight":"3 kalimat. Kondisi bisnis dan angka kunci. Kenapa bisa begitu. 1 aksi paling penting."}`;
+Return HANYA JSON valid dengan struktur ini:
+{
+  "totalIncome": ${summary.totalIncome},
+  "totalExpense": ${summary.totalExpense},
+  "profit": ${summary.profit},
+  "margin": ${summary.margin.toFixed(1)},
+  "score": 72,
+  "scoreLabel": "Cukup Sehat",
+  "scoreStatus": "ok",
+  "scoreNarrative": "2 kalimat: apakah bisnis aman atau ada masalah yang perlu diperhatiin hari ini, dengan angka konkret dan konteks tren.",
+  "profitNarrative": "3 kalimat INSIGHTFUL: kalimat 1 — profit/rugi berapa dan dibanding periode sebelumnya naik/turun berapa persen. Kalimat 2 — KENAPA bisa profit atau rugi, kategori apa yang paling berkontribusi dengan angka. Kalimat 3 — 1 aksi konkret yang bisa dilakukan hari ini berdasarkan kondisi profit ini.",
+  "fraudAlerts": [
+    {
+      "severity": "critical",
+      "type": "Nama tipe anomali",
+      "desc": "Deskripsi detail: vendor/kategori apa, tanggal, nilai Rp berapa, kenapa mencurigakan",
+      "amount": 5000000,
+      "date": "2024-01-15",
+      "action": "Langkah konkret yang harus dilakukan hari ini"
+    }
+  ],
+  "fraudSummary": "1 kalimat ringkasan kondisi fraud hari ini — aman atau ada yang perlu dicek.",
+  "dailyInsight": {
+    "type": "ok",
+    "icon": "💡",
+    "title": "Judul insight paling penting hari ini dengan angka",
+    "text": "3 kalimat insightful: temuan apa, kenapa ini penting, apa yang harus dilakukan. Gunakan angka nyata dari data."
+  }
+}`;
 
         // ── Step 4: Analisis dengan Claude ──
         const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -274,53 +301,112 @@ async function sendReportEmail(toEmail, businessName, result, sessionLabel) {
     if (a >= 1000)       return 'Rp ' + (a/1000).toFixed(0) + ' Ribu';
     return 'Rp ' + a.toFixed(0);
   };
-  const insightRows = (result.insights||[]).map(i =>
-    `<div style="margin-bottom:12px;padding:12px;border-left:3px solid ${i.type==='ok'?'#16A362':i.type==='warn'?'#D97706':'#1B3FE4'};background:#F9FAFB;border-radius:0 8px 8px 0;">
-      <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${i.icon} ${i.title}</div>
-      <div style="font-size:12px;color:#374151;">${i.text}</div>
-    </div>`
-  ).join('');
-  const recRows = (result.recs||[]).map(r =>
-    `<div style="margin-bottom:10px;padding:10px 14px;background:#F4F6FB;border-radius:8px;">
-      <div style="font-size:11px;font-weight:700;color:${r.priority==='critical'?'#DC2626':'#D97706'};margin-bottom:3px;">${r.priority.toUpperCase()}</div>
-      <div style="font-weight:600;font-size:13px;">${r.title}</div>
-      <div style="font-size:12px;color:#374151;">${r.desc}</div>
-      ${r.impact ? `<div style="font-size:11px;color:#16A362;margin-top:4px;">📈 ${r.impact}</div>` : ''}
-    </div>`
-  ).join('');
 
-  const html = `<!DOCTYPE html><html><body style="font-family:'Segoe UI',Arial,sans-serif;background:#F4F6FB;margin:0;padding:20px;">
+  const profit = result.profit || 0;
+  const isProfitable = profit >= 0;
+  const scoreStatus = result.scoreStatus || (result.score >= 75 ? 'ok' : result.score >= 55 ? 'warn' : 'bad');
+  const scoreColor = scoreStatus === 'ok' ? '#16A362' : scoreStatus === 'warn' ? '#D97706' : '#DC2626';
+  const scoreBg    = scoreStatus === 'ok' ? '#ECFDF5' : scoreStatus === 'warn' ? '#FFFBEB' : '#FEF2F2';
+  const scoreBorder= scoreStatus === 'ok' ? '#A7F3D0' : scoreStatus === 'warn' ? '#FDE68A' : '#FECACA';
+  const scoreEmoji = scoreStatus === 'ok' ? '✅' : scoreStatus === 'warn' ? '⚠️' : '🚨';
+
+  // Fraud section
+  const fraudAlerts = result.fraudAlerts || [];
+  const hasFraud = fraudAlerts.length > 0;
+  const fraudSection = hasFraud
+    ? `<div style="margin-bottom:24px;">
+        <div style="font-size:13px;font-weight:700;color:#DC2626;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+          🚨 Transaksi yang Perlu Dicek Hari Ini
+        </div>
+        ${fraudAlerts.slice(0,3).map(f => `
+        <div style="padding:12px 14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <span style="font-size:11px;font-weight:700;color:#DC2626;background:#FEE2E2;padding:2px 8px;border-radius:4px;">${f.severity === 'critical' ? '🔴 KRITIS' : '⚠️ PERHATIAN'}</span>
+            ${f.amount ? `<span style="font-size:12px;font-weight:700;color:#DC2626;">${formatRp(f.amount)}</span>` : ''}
+          </div>
+          <div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:4px;">${f.type}</div>
+          <div style="font-size:12px;color:#374151;margin-bottom:6px;">${f.desc}</div>
+          <div style="font-size:11px;color:#6B7280;background:white;border:1px solid #FECACA;border-radius:6px;padding:6px 10px;">
+            💡 <strong>Tindakan:</strong> ${f.action}
+          </div>
+        </div>`).join('')}
+      </div>`
+    : `<div style="margin-bottom:24px;padding:12px 14px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">✅</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#16A362;">Tidak Ada Anomali Hari Ini</div>
+          <div style="font-size:12px;color:#065F46;margin-top:2px;">${result.fraudSummary || 'Data keuangan bersih — tidak ditemukan pola mencurigakan.'}</div>
+        </div>
+      </div>`;
+
+  // Daily insight
+  const insight = result.dailyInsight || {};
+  const insightBorderColor = insight.type === 'ok' ? '#16A362' : insight.type === 'warn' ? '#D97706' : '#1B3FE4';
+  const insightBg = insight.type === 'ok' ? '#F0FDF4' : insight.type === 'warn' ? '#FFFBEB' : '#EEF1FD';
+
+  const html = `<!DOCTYPE html>
+<html>
+<body style="font-family:'Segoe UI',Arial,sans-serif;background:#F4F6FB;margin:0;padding:20px;">
 <div style="max-width:560px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);">
-  <div style="background:linear-gradient(135deg,#1B3FE4,#1230B0);padding:28px 32px;">
-    <div style="font-size:22px;font-weight:800;color:white;margin-bottom:4px;">Findible</div>
-    <div style="font-size:14px;color:rgba(255,255,255,0.8);">${sessionLabel} — ${businessName || toEmail.split('@')[0]}</div>
+
+  <!-- HEADER -->
+  <div style="background:linear-gradient(135deg,#1B3FE4,#1230B0);padding:24px 32px;">
+    <div style="font-size:20px;font-weight:800;color:white;margin-bottom:2px;">Findible</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.75);">${sessionLabel} · ${businessName || toEmail.split('@')[0]}</div>
   </div>
+
   <div style="padding:24px 32px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px;">
-      <div style="background:#F4F6FB;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Pendapatan</div>
-        <div style="font-size:16px;font-weight:800;color:#16A362;">${formatRp(result.totalIncome)}</div>
+
+    <!-- 1. BUSINESS SCORE -->
+    <div style="margin-bottom:24px;padding:16px 18px;background:${scoreBg};border:1.5px solid ${scoreBorder};border-radius:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:${scoreColor};">${scoreEmoji} Score Kesehatan Bisnis</div>
+        <div style="font-size:24px;font-weight:800;color:${scoreColor};">${result.score}/100 <span style="font-size:13px;font-weight:600;">${result.scoreLabel || ''}</span></div>
       </div>
-      <div style="background:#F4F6FB;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Pengeluaran</div>
-        <div style="font-size:16px;font-weight:800;color:#DC2626;">${formatRp(result.totalExpense)}</div>
+      <div style="font-size:12px;color:#374151;line-height:1.65;">${result.scoreNarrative || result.scoreBasis || ''}</div>
+    </div>
+
+    <!-- 2. PROFIT HARI INI -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:10px;">💰 Profit Hari Ini</div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <div style="flex:1;background:#F0FDF4;border:1px solid #A7F3D0;border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:10px;color:#6B7280;margin-bottom:3px;">Pendapatan</div>
+          <div style="font-size:15px;font-weight:800;color:#16A362;">${formatRp(result.totalIncome)}</div>
+        </div>
+        <div style="flex:1;background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:10px;color:#6B7280;margin-bottom:3px;">Pengeluaran</div>
+          <div style="font-size:15px;font-weight:800;color:#DC2626;">${formatRp(result.totalExpense)}</div>
+        </div>
+        <div style="flex:1;background:${isProfitable ? '#EEF1FD' : '#FEF2F2'};border:1px solid ${isProfitable ? '#C7D2F8' : '#FECACA'};border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:10px;color:#6B7280;margin-bottom:3px;">Laba Bersih</div>
+          <div style="font-size:15px;font-weight:800;color:${isProfitable ? '#1B3FE4' : '#DC2626'};">${isProfitable ? '+' : ''}${formatRp(profit)}</div>
+        </div>
       </div>
-      <div style="background:#F4F6FB;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Skor Kesehatan</div>
-        <div style="font-size:16px;font-weight:800;color:#1B3FE4;">${result.score}/100</div>
+      <div style="font-size:12px;color:#374151;line-height:1.65;padding:12px 14px;background:#F9FAFB;border-radius:8px;border-left:3px solid ${isProfitable ? '#1B3FE4' : '#DC2626'};">
+        ${result.profitNarrative || ''}
       </div>
     </div>
-    ${result.trendInsight ? `<div style="background:#EEF1FD;border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px;color:#1B3FE4;line-height:1.6;">${result.trendInsight}</div>` : ''}
-    <div style="font-size:14px;font-weight:700;margin-bottom:12px;">💡 Insights</div>
-    ${insightRows}
-    <div style="font-size:14px;font-weight:700;margin-bottom:12px;margin-top:20px;">🎯 Rekomendasi</div>
-    ${recRows}
-    <div style="margin-top:24px;text-align:center;">
-      <a href="https://findible.pro" style="display:inline-block;padding:12px 28px;background:#1B3FE4;color:white;border-radius:10px;font-weight:600;font-size:14px;text-decoration:none;">Buka Dashboard Findible</a>
+
+    <!-- 3. FRAUD ALERTS -->
+    ${fraudSection}
+
+    <!-- 4. DAILY INSIGHT -->
+    <div style="margin-bottom:24px;padding:14px 16px;background:${insightBg};border-left:3px solid ${insightBorderColor};border-radius:0 10px 10px 0;">
+      <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:6px;">${insight.icon || '💡'} ${insight.title || 'Insight Hari Ini'}</div>
+      <div style="font-size:12px;color:#374151;line-height:1.65;">${insight.text || ''}</div>
     </div>
+
+    <!-- CTA -->
+    <div style="text-align:center;padding-top:4px;">
+      <a href="https://findible.pro" style="display:inline-block;padding:12px 28px;background:#1B3FE4;color:white;border-radius:10px;font-weight:600;font-size:13px;text-decoration:none;">Buka Dashboard Lengkap →</a>
+    </div>
+
   </div>
-  <div style="padding:16px 32px;background:#F4F6FB;font-size:11px;color:#9CA3AF;text-align:center;">
-    Laporan otomatis Findible · findible.pro · <a href="https://findible.pro" style="color:#9CA3AF;">Kelola notifikasi</a>
+
+  <!-- FOOTER -->
+  <div style="padding:14px 32px;background:#F4F6FB;font-size:11px;color:#9CA3AF;text-align:center;border-top:1px solid #E5E7EB;">
+    Laporan otomatis Findible · <a href="https://findible.pro" style="color:#9CA3AF;text-decoration:none;">findible.pro</a> · <a href="https://findible.pro" style="color:#9CA3AF;text-decoration:none;">Kelola notifikasi</a>
   </div>
 </div>
 </body></html>`;
@@ -331,7 +417,7 @@ async function sendReportEmail(toEmail, businessName, result, sessionLabel) {
     body: JSON.stringify({
       from: 'Findible <laporan@findible.pro>',
       to: toEmail,
-      subject: `${sessionLabel} — ${businessName || 'Bisnis Anda'} · Skor ${result.score}/100`,
+      subject: `${scoreEmoji} ${sessionLabel} — ${businessName || 'Bisnis Anda'} · Skor ${result.score}/100${hasFraud ? ` · 🚨 ${fraudAlerts.length} Anomali` : ''}`,
       html
     })
   });
