@@ -414,6 +414,118 @@
       .cta-section { padding: 56px 24px; margin: 0 16px 64px; }
       footer { flex-direction: column; align-items: flex-start; }
     }
+
+    /* ── FINDI SPOTLIGHT ── */
+    .findi-section {
+      padding: 96px 24px;
+      background: #0D1226;
+      position: relative;
+      overflow: hidden;
+    }
+    .findi-section::before {
+      content: '';
+      position: absolute;
+      top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 600px;
+      background: radial-gradient(ellipse at center, rgba(99,102,241,0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .findi-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 64px; align-items: center;
+    }
+    .findi-label { font-size: 12px; font-weight: 700; color: #818CF8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+    .findi-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(30px, 4vw, 46px);
+      color: #fff; letter-spacing: -1px; line-height: 1.15;
+      margin-bottom: 20px;
+    }
+    .findi-title em { font-style: italic; color: #818CF8; }
+    .findi-desc { font-size: 16px; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 32px; }
+    .findi-perks { display: flex; flex-direction: column; gap: 14px; margin-bottom: 36px; }
+    .findi-perk { display: flex; align-items: flex-start; gap: 12px; }
+    .findi-perk-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .findi-perk-text { font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.5; padding-top: 8px; }
+    .findi-perk-text strong { color: #fff; }
+    .btn-findi {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      color: white; font-size: 15px; font-weight: 700;
+      padding: 14px 28px; border-radius: 12px;
+      text-decoration: none; transition: all 0.2s;
+      box-shadow: 0 4px 24px rgba(99,102,241,0.4);
+    }
+    .btn-findi:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99,102,241,0.5); }
+
+    /* Chat mockup */
+    .findi-chat-mock {
+      background: #1a1f35;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+    }
+    .chat-topbar {
+      padding: 14px 20px;
+      background: #141828;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .chat-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .chat-info { flex: 1; }
+    .chat-name { font-size: 13px; font-weight: 700; color: #fff; }
+    .chat-status { font-size: 11px; color: #6EE7B7; }
+    .chat-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+    .chat-bubble {
+      max-width: 85%; padding: 12px 16px;
+      border-radius: 16px; font-size: 13px; line-height: 1.55;
+    }
+    .chat-bubble.user {
+      background: #4F46E5; color: white;
+      align-self: flex-end; border-bottom-right-radius: 4px;
+    }
+    .chat-bubble.findi {
+      background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85);
+      align-self: flex-start; border-bottom-left-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .chat-bubble.findi strong { color: #fff; }
+    .chat-bubble.findi .highlight { color: #A5B4FC; font-weight: 600; }
+
+    .chat-input-row {
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex; gap: 10px; align-items: center;
+    }
+    .chat-input {
+      flex: 1; background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 13px; color: rgba(255,255,255,0.4);
+    }
+    .chat-send {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: #4F46E5;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .findi-inner { grid-template-columns: 1fr; gap: 40px; }
+    }
   </style>
 </head>
 <body>
@@ -428,6 +540,7 @@
       <a href="#cara-kerja" class="nav-link">Cara Kerja</a>
       <a href="#fitur" class="nav-link">Fitur</a>
       <a href="#harga" class="nav-link">Harga</a>
+      <a href="login.html" class="nav-link">Masuk</a>
       <a href="waitlist.html" class="nav-cta">Daftar Gratis →</a>
     </div>
   </nav>
@@ -623,6 +736,63 @@
       </div>
     </div>
   </section>
+
+
+  <!-- FINDI SPOTLIGHT -->
+  <div class="findi-section">
+    <div class="findi-inner">
+      <div class="reveal">
+        <div class="findi-label">✨ Fitur Unggulan</div>
+        <h2 class="findi-title">Kenalan sama <em>Findi</em> —<br>CFO AI yang paham bisnis Anda.</h2>
+        <p class="findi-desc">Bukan chatbot generik. Findi baca seluruh data keuangan bisnis Anda, lalu jawab pertanyaan spesifik Anda — layaknya CFO beneran yang selalu siap 24/7.</p>
+        <div class="findi-perks">
+          <div class="findi-perk">
+            <div class="findi-perk-icon">🔍</div>
+            <div class="findi-perk-text"><strong>Jawaban berbasis data Anda sendiri</strong> — bukan jawaban copy-paste. Findi analisis angka real bisnis Anda sebelum menjawab.</div>
+          </div>
+          <div class="findi-perk">
+            <div class="findi-perk-icon">⚡</div>
+            <div class="findi-perk-text"><strong>Tanya apa saja, dapat jawaban instan</strong> — margin per produk, tren pengeluaran, proyeksi cashflow, semua bisa.</div>
+          </div>
+          <div class="findi-perk">
+            <div class="findi-perk-icon">🎯</div>
+            <div class="findi-perk-text"><strong>Rekomendasi yang bisa langsung dieksekusi</strong> — bukan saran teoritis, tapi aksi konkret yang relevan dengan kondisi bisnis Anda.</div>
+          </div>
+        </div>
+        <a href="waitlist.html" class="btn-findi">Coba Chat dengan Findi →</a>
+      </div>
+
+      <!-- CHAT MOCKUP -->
+      <div class="reveal">
+        <div class="findi-chat-mock">
+          <div class="chat-topbar">
+            <div class="chat-avatar">🤖</div>
+            <div class="chat-info">
+              <div class="chat-name">Findi — AI CFO</div>
+              <div class="chat-status">● Online sekarang</div>
+            </div>
+          </div>
+          <div class="chat-body">
+            <div class="chat-bubble user">Kenapa margin bulan Oktober turun drastis?</div>
+            <div class="chat-bubble findi">
+              Berdasarkan data Anda, margin Oktober turun dari <span class="highlight">18.2% → 11.4%</span> karena dua faktor utama:<br><br>
+              <strong>1.</strong> Biaya operasional naik <span class="highlight">+Rp 47 Jt</span> — ada pengeluaran tak terduga di kategori logistik.<br>
+              <strong>2.</strong> Revenue Produk B drop <span class="highlight">-23%</span> vs September — perlu cek apakah ada masalah stok atau kompetitor.<br><br>
+              Rekomendasi: audit biaya logistik minggu ini dan tanyakan langsung ke tim sales Produk B. 🎯
+            </div>
+            <div class="chat-bubble user">Kalau saya potong budget logistik 20%, dampaknya apa?</div>
+            <div class="chat-bubble findi">
+              Kalau dipotong <span class="highlight">20% (≈ Rp 9.4 Jt/bulan)</span>, margin Anda bisa naik ke sekitar <span class="highlight">14–15%</span>. Tapi perlu hati-hati — logistik Anda saat ini sudah di batas efisiensi. Saran saya: negosiasi tarif dengan vendor dulu sebelum potong volume. 💡
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <div class="chat-input">Tanya Findi tentang bisnis Anda...</div>
+            <div class="chat-send">→</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- TESTIMONIALS -->
   <div class="testimonials-section">
