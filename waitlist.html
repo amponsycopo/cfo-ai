@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daftar Demo Eksklusif — Findible</title>
@@ -56,10 +60,10 @@ body {
 }
 
 .logo-mark {
-  width: 36px; height: 36px; background: rgba(255,255,255,0.15);
-  border-radius: 10px; display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2);
+  width: 36px; height: 36px;
+  border-radius: 10px; overflow: hidden;
 }
+.logo-mark img { width: 36px; height: 36px; display: block; }
 
 .logo-name {
   font-family: 'Instrument Serif', serif;
@@ -320,10 +324,7 @@ footer a:hover { color: var(--blue); }
 <div class="hero">
   <a href="index.html" class="hero-logo">
     <div class="logo-mark">
-      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-        <path d="M4 14L8 10L11 13L16 7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="16" cy="7" r="1.5" fill="white"/>
-      </svg>
+      <img src="/logo_findible.png" alt="Findible">
     </div>
     <span class="logo-name">Findible</span>
   </a>
@@ -360,7 +361,7 @@ footer a:hover { color: var(--blue); }
         </div>
         <div class="field-group">
           <label class="field-label">Nomor WhatsApp</label>
-          <input type="tel" class="field-input" id="input-wa" placeholder="08xxxxxxxx">
+          <input type="tel" class="field-input" id="input-wa" placeholder="08xxxxxxxxxx">
         </div>
         <div class="field-group">
           <label class="field-label">Nama Bisnis</label>
@@ -522,7 +523,7 @@ footer a:hover { color: var(--blue); }
 <script>
 const SUPABASE_URL = 'https://pqpvtlfhewutpjwqdyqt.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxcHZ0bGZoZXd1dHBqd3FkeXF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTM4MzcsImV4cCI6MjA4ODQ4OTgzN30.cW9U7vgHV7OqJ0h3NXkiXgcos25-7y0246LDpjTITK4';
-const WA_NUMBER = '6285161165654'; // Ganti dengan nomor WA lo
+const WA_NUMBER = '62XXXXXXXXXX'; // Ganti dengan nomor WA lo
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
