@@ -3,6 +3,7 @@ const CACHE_NAME = 'findible-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
+  '/login.html',
   '/dashboard.html',
   '/manifest.json',
   '/icon-192.png',
