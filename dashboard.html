@@ -1649,7 +1649,7 @@ function addTypingIndicator() {
 async function initAuth() {
   try {
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) { window.location.href = 'index.html'; return; }
+    if (!session) { window.location.href = 'login.html'; return; }
     currentUser = session.user;
     try {
       const { data: profile, error } = await supabaseClient
@@ -1669,7 +1669,7 @@ async function initAuth() {
     const avatarEl = document.getElementById('user-avatar');
     if (avatarEl) avatarEl.textContent = currentUser.email[0].toUpperCase();
     if (userCredits <= 0) document.getElementById('no-credits-overlay').classList.add('show');
-  } catch(e) { window.location.href = 'index.html'; }
+  } catch(e) { window.location.href = 'login.html'; }
 }
 
 function updateCreditsUI() {
@@ -1682,7 +1682,7 @@ function updateCreditsUI() {
   dot.className   = 'credits-dot' + cls;
 }
 
-async function doLogout() { await supabaseClient.auth.signOut(); window.location.href = 'index.html'; }
+async function doLogout() { await supabaseClient.auth.signOut(); window.location.href = 'login.html'; }
 
 initAuth();
 initGoogleAuth();
