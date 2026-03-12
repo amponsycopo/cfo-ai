@@ -399,7 +399,7 @@ async function sendReportEmail(toEmail, businessName, result, sessionLabel) {
 
     <!-- CTA -->
     <div style="text-align:center;padding-top:4px;">
-      <a href="https://findible.pro" style="display:inline-block;padding:12px 28px;background:#1B3FE4;color:white;border-radius:10px;font-weight:600;font-size:13px;text-decoration:none;">Buka Dashboard Lengkap →</a>
+      <a href="https://findible.pro/dashboard.html" style="display:inline-block;padding:12px 28px;background:#1B3FE4;color:white;border-radius:10px;font-weight:600;font-size:13px;text-decoration:none;">Buka Dashboard Lengkap →</a>
     </div>
 
   </div>
