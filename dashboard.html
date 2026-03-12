@@ -7,7 +7,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Findible">
-  <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Findible — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,11 +78,11 @@ body {
 .nav-brand { display: flex; align-items: center; gap: 10px; }
 .nav-mark {
   width: 32px; height: 32px;
-  background: var(--blue);
   border-radius: 8px;
+  overflow: hidden;
   display: flex; align-items: center; justify-content: center;
 }
-.nav-mark svg { width: 18px; height: 18px; }
+.nav-mark img { width: 32px; height: 32px; display: block; }
 .nav-name {
   font-family: 'Instrument Serif', serif;
   font-size: 20px;
@@ -541,10 +544,7 @@ tbody tr:hover td { background: var(--bg); }
 <nav class="navbar">
   <div class="nav-brand">
     <div class="nav-mark">
-      <svg viewBox="0 0 18 18" fill="none">
-        <path d="M3 13L7 9L10 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="15" cy="6" r="1.5" fill="white"/>
-      </svg>
+      <img src="/logo_findible.png" alt="Findible">
     </div>
     <span class="nav-name">Findible</span>
   </div>
