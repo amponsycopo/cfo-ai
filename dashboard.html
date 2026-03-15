@@ -7,10 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Findible">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png">
-  <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/icon-192.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Findible — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -78,11 +75,11 @@ body {
 .nav-brand { display: flex; align-items: center; gap: 10px; }
 .nav-mark {
   width: 32px; height: 32px;
+  background: var(--blue);
   border-radius: 8px;
-  overflow: hidden;
   display: flex; align-items: center; justify-content: center;
 }
-.nav-mark img { width: 32px; height: 32px; display: block; }
+.nav-mark svg { width: 18px; height: 18px; }
 .nav-name {
   font-family: 'Instrument Serif', serif;
   font-size: 20px;
@@ -90,6 +87,91 @@ body {
   letter-spacing: -0.3px;
 }
 .nav-right { display: flex; align-items: center; gap: 12px; }
+/* Trial banner */
+.trial-banner {
+  background: linear-gradient(135deg, #1b3fe4 0%, #3b5bdb 100%);
+  color: white; font-size: 12px; font-weight: 600;
+  padding: 8px 16px; text-align: center;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  position: sticky; top: 0; z-index: 50;
+}
+.trial-banner a {
+  color: #e8ff47; text-decoration: none; font-weight: 700;
+  border: 1px solid rgba(232,255,71,0.5); border-radius: 99px;
+  padding: 2px 10px; font-size: 11px; transition: all 0.15s;
+}
+.trial-banner a:hover { background: rgba(232,255,71,0.15); }
+.trial-banner.warning { background: linear-gradient(135deg, #d97706, #f59e0b); }
+.trial-banner.danger  { background: linear-gradient(135deg, #dc2626, #ef4444); }
+
+/* Upgrade modal */
+.upgrade-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 9999;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.upgrade-modal-overlay.show { display: flex; }
+.upgrade-modal {
+  background: white; border-radius: 20px;
+  padding: 0; max-width: 480px; width: 92%;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  overflow: hidden; animation: slideUp 0.3s ease;
+}
+.upgrade-modal-header {
+  background: linear-gradient(135deg, #1b3fe4, #3b5bdb);
+  padding: 28px 28px 24px; color: white; text-align: center;
+}
+.upgrade-modal-icon { font-size: 40px; margin-bottom: 10px; }
+.upgrade-modal-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.upgrade-modal-sub { font-size: 13px; opacity: 0.85; line-height: 1.5; }
+.upgrade-modal-body { padding: 24px 28px; }
+.upgrade-value-list { list-style: none; margin: 0 0 20px; padding: 0; }
+.upgrade-value-list li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; color: #444; margin-bottom: 10px; line-height: 1.5;
+}
+.upgrade-value-list li::before { content: '✅'; flex-shrink: 0; }
+.upgrade-modal-prices {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;
+}
+.upgrade-price-card {
+  border: 1.5px solid #e5e7eb; border-radius: 12px;
+  padding: 14px 16px; cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.upgrade-price-card:hover, .upgrade-price-card.selected {
+  border-color: #1b3fe4; background: #f0f4ff;
+}
+.upgrade-price-card.popular { border-color: #1b3fe4; position: relative; }
+.upgrade-price-badge {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: #1b3fe4; color: white; font-size: 10px; font-weight: 700;
+  padding: 2px 10px; border-radius: 99px; white-space: nowrap;
+}
+.upgrade-price-name { font-size: 12px; font-weight: 700; color: #666; margin-bottom: 4px; }
+.upgrade-price-amount { font-size: 18px; font-weight: 800; color: #111; }
+.upgrade-price-period { font-size: 11px; color: #888; }
+.upgrade-price-limit { font-size: 11px; color: #555; margin-top: 4px; }
+.upgrade-cta-wa {
+  width: 100%; padding: 14px;
+  background: #25d366; color: white;
+  border: none; border-radius: 12px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  text-decoration: none; transition: all 0.15s; margin-bottom: 8px;
+}
+.upgrade-cta-wa:hover { background: #1fba58; }
+.upgrade-cta-dismiss {
+  width: 100%; padding: 10px;
+  background: none; border: none; color: #888;
+  font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.upgrade-cta-dismiss:hover { color: #444; }
+.upgrade-guarantee {
+  text-align: center; font-size: 11px; color: #888;
+  margin-top: 8px; display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+
 .credits-badge {
   display: flex; align-items: center; gap: 6px;
   padding: 5px 12px;
@@ -544,7 +626,10 @@ tbody tr:hover td { background: var(--bg); }
 <nav class="navbar">
   <div class="nav-brand">
     <div class="nav-mark">
-      <img src="/logo_findible.png" alt="Findible">
+      <svg viewBox="0 0 18 18" fill="none">
+        <path d="M3 13L7 9L10 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="15" cy="6" r="1.5" fill="white"/>
+      </svg>
     </div>
     <span class="nav-name">Findible</span>
   </div>
@@ -565,6 +650,7 @@ tbody tr:hover td { background: var(--bg); }
     </button>
   </div>
 </nav>
+<div class="trial-banner" id="trial-banner" style="display:none;"><span id="trial-banner-text">🎁 Trial Gratis — <strong id="trial-credits-left">3</strong> analisis tersisa</span> <a href="pricing.html" target="_blank">Upgrade Sekarang →</a></div>
 
 <!-- STEPS BAR -->
 <div class="steps-bar">
@@ -779,12 +865,11 @@ tbody tr:hover td { background: var(--bg); }
           <div class="chart-legend" style="margin:0;">
             <div class="legend-item"><div class="legend-dot" style="background:var(--blue);opacity:0.85;"></div>Pendapatan</div>
             <div class="legend-item"><div class="legend-dot" style="background:var(--red);opacity:0.6;"></div>Pengeluaran</div>
-            <div class="legend-item"><div style="width:20px;height:3px;background:#6366F1;border-radius:2px;margin-right:4px;"></div>Profit</div>
           </div>
         </div>
       </div>
       <div id="trend-badges" style="display:flex;gap:8px;flex-wrap:wrap;padding:0 4px 12px;"></div>
-      <div class="chart-wrap" style="height:180px;position:relative;overflow:visible;">
+      <div class="chart-wrap" style="height:160px;">
         <div class="mini-chart" id="mini-chart" style="gap:4px;"></div>
         <div class="mini-chart-labels" id="mini-chart-labels"></div>
       </div>
@@ -845,18 +930,9 @@ tbody tr:hover td { background: var(--bg); }
       <div class="insight-list" id="insight-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;padding:4px;"></div>
     </div>
 
-    <!-- Top 3 Priority Actions -->
-    <div class="card" style="margin-bottom:16px;" id="top3-card">
-      <div class="card-header" style="margin-bottom:4px;">
-        <div class="card-title"><div class="icon">🎯</div>3 Aksi Prioritas Utama</div>
-        <div style="font-size:11px;color:var(--text3);">80/20 rule — fokus di sini dulu</div>
-      </div>
-      <div id="top3-actions"></div>
-    </div>
-
     <!-- Recommendations -->
     <div class="card" style="margin-bottom:16px;">
-      <div class="card-header"><div class="card-title"><div class="icon">💡</div>Semua Rekomendasi</div></div>
+      <div class="card-header"><div class="card-title"><div class="icon">💡</div>Rekomendasi Findi</div></div>
       <div class="recs-wrap" id="recommendations"></div>
     </div>
 
@@ -933,28 +1009,74 @@ tbody tr:hover td { background: var(--bg); }
 </div>
 
 <!-- NO CREDITS OVERLAY -->
-<div class="no-credits-overlay" id="no-credits-overlay">
-  <div class="no-credits-box">
-    <div class="no-credits-icon">🔋</div>
-    <div class="no-credits-title">Kredit Habis</div>
-    <div class="no-credits-sub">Kredit demo Anda sudah habis. Hubungi kami via WhatsApp untuk mendapatkan akses penuh ke Findible.</div>
-    <a href="https://wa.me/NOMOR_WA_LO?text=Halo%2C%20saya%20ingin%20upgrade%20akses%20Findible" class="btn-wa" target="_blank">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-      </svg>
-      Chat WhatsApp
-    </a>
+<!-- UPGRADE MODAL (gantiin no-credits-overlay) -->
+<div class="upgrade-modal-overlay" id="no-credits-overlay">
+  <div class="upgrade-modal">
+    <div class="upgrade-modal-header">
+      <div class="upgrade-modal-icon">🚀</div>
+      <div class="upgrade-modal-title">Kredit Trial Habis</div>
+      <div class="upgrade-modal-sub">Lo udah liat gimana Findible bisa bantu bisnis lo.<br>Sekarang saatnya upgrade untuk akses penuh.</div>
+    </div>
+    <div class="upgrade-modal-body">
+      <ul class="upgrade-value-list">
+        <li>Analisis keuangan unlimited tiap bulan</li>
+        <li>Laporan otomatis dikirim ke email lo setiap hari</li>
+        <li>Chat dengan Findi — AI CFO lo — kapan aja</li>
+        <li>Deteksi potensi fraud & anomali transaksi</li>
+      </ul>
+      <div class="upgrade-modal-prices">
+        <div class="upgrade-price-card" onclick="selectPlan('starter', this)">
+          <div class="upgrade-price-name">STARTER</div>
+          <div class="upgrade-price-amount">99rb</div>
+          <div class="upgrade-price-period">/bulan</div>
+          <div class="upgrade-price-limit">5 analisis</div>
+        </div>
+        <div class="upgrade-price-card popular selected" onclick="selectPlan('pro', this)">
+          <div class="upgrade-price-badge">POPULER</div>
+          <div class="upgrade-price-name">PRO</div>
+          <div class="upgrade-price-amount">249rb</div>
+          <div class="upgrade-price-period">/bulan</div>
+          <div class="upgrade-price-limit">20 analisis + auto-report</div>
+        </div>
+      </div>
+      <a id="upgrade-wa-btn" href="https://wa.me/6281234567890?text=Halo%2C%20saya%20mau%20upgrade%20Findible%20ke%20paket%20Pro.%20Email%3A%20" class="upgrade-cta-wa" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Chat WhatsApp — Upgrade Sekarang
+      </a>
+      <button class="upgrade-cta-dismiss" onclick="document.getElementById('no-credits-overlay').classList.remove('show')">Nanti dulu</button>
+      <div class="upgrade-guarantee">🛡️ Garansi uang kembali 100% jika tidak ada manfaat dalam 14 hari</div>
+    </div>
   </div>
 </div>
 
 <!-- SETTINGS MODAL -->
 <div class="settings-modal" id="settings-modal">
   <div class="settings-backdrop" onclick="toggleSettings()"></div>
-  <div class="settings-box" style="max-width:320px;">
+  <div class="settings-box" style="max-width:340px;">
     <div class="settings-title">⚙️ Akun</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:16px;">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:20px;">
       Login sebagai <strong style="color:var(--text2);" id="settings-email">—</strong>
     </div>
+
+    <!-- Ganti Password -->
+    <div style="border-top:1px solid var(--border);padding-top:16px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:12px;">🔒 Ganti Password</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <input type="password" id="pwd-new" placeholder="Password baru (min. 6 karakter)"
+          style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text);background:var(--surface2);outline:none;transition:border-color 0.15s;"
+          onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        <input type="password" id="pwd-confirm" placeholder="Konfirmasi password baru"
+          style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text);background:var(--surface2);outline:none;transition:border-color 0.15s;"
+          onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+        <div id="pwd-msg" style="font-size:11px;min-height:16px;"></div>
+        <button onclick="changePassword()"
+          style="padding:9px;background:var(--blue);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity 0.15s;"
+          onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+          Simpan Password
+        </button>
+      </div>
+    </div>
+
     <button class="btn-logout" onclick="doLogout()">Keluar</button>
   </div>
 </div>
@@ -986,13 +1108,40 @@ let gsheetToken = null;
 let gsheetConnected = false;
 let gsheetSpreadsheetId = null;
 let userPlan = 'starter'; // 'starter' | 'pro' | 'business'
+let userIsNewTrial = false;
 
 
+
+let selectedUpgradePlan = 'pro';
+const WA_NUMBER = '6281234567890'; // GANTI dengan nomor WA lo
+
+function selectPlan(plan, el) {
+  selectedUpgradePlan = plan;
+  document.querySelectorAll('.upgrade-price-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const planLabels = { starter: 'Starter (Rp 99rb/bulan)', pro: 'Pro (Rp 249rb/bulan)', business: 'Business (Rp 499rb/bulan)' };
+  updateWALink();
+}
+
+function updateWALink() {
+  const btn = document.getElementById('upgrade-wa-btn');
+  if (!btn) return;
+  const email = currentUser?.email || '';
+  const planLabels = { starter: 'Starter - Rp 99rb/bulan', pro: 'Pro - Rp 249rb/bulan', business: 'Business - Rp 499rb/bulan' };
+  const label = planLabels[selectedUpgradePlan] || 'Pro';
+  const msg = encodeURIComponent(`Halo, saya mau upgrade Findible ke paket ${label}. Email saya: ${email}`);
+  btn.href = `https://wa.me/${WA_NUMBER}?text=${msg}`;
+}
+
+function showUpgradeModal() {
+  updateWALink();
+  showUpgradeModal();
+}
 
 function showUpgradePrompt(reason) {
+  // Inline toast prompt untuk fitur pro (tetap ada untuk non-credits trigger)
   const existing = document.getElementById('upgrade-prompt');
   if (existing) existing.remove();
-
   const div = document.createElement('div');
   div.id = 'upgrade-prompt';
   div.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:white;border:1.5px solid var(--blue);border-radius:16px;padding:20px 24px;max-width:320px;box-shadow:0 8px 32px rgba(27,63,228,0.2);animation:fadeUp 0.3s ease both;';
@@ -1003,7 +1152,7 @@ function showUpgradePrompt(reason) {
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">Fitur Pro</div>
         <div style="font-size:12px;color:var(--text3);line-height:1.5;margin-bottom:12px;">${reason}</div>
         <div style="display:flex;gap:8px;">
-          <a href="pricing.html" target="_blank" style="padding:8px 16px;background:var(--blue);color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;">Lihat Paket</a>
+          <button onclick="showUpgradeModal()" style="padding:8px 16px;background:var(--blue);color:white;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;">Upgrade</button>
           <button onclick="document.getElementById('upgrade-prompt').remove()" style="padding:8px 12px;background:var(--surface2);border:none;border-radius:8px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;">Nanti</button>
         </div>
       </div>
@@ -1176,99 +1325,41 @@ async function loadGoogleSheet() {
     return;
   }
   const raw = input.value.trim();
-
-  // Detect kalau URL adalah Excel file (bukan native Sheets)
-  const isExcelUrl = raw.includes('/file/d/') || raw.includes('open?id=');
-  if (isExcelUrl) {
-    showXlsxGuide();
-    return;
-  }
-
-  // Extract spreadsheet ID
+  // Extract spreadsheet ID from URL or use directly
   let spreadsheetId = raw;
   const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
   if (match) spreadsheetId = match[1];
-  spreadsheetId = spreadsheetId.split('#')[0].split('?')[0];
 
   gsheetSpreadsheetId = spreadsheetId;
   showGsheetsStatus('loading', '⏳ Memuat daftar sheet...');
 
   try {
+    // First get spreadsheet metadata to list sheets
     const metaRes = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties`,
       { headers: { Authorization: 'Bearer ' + gsheetToken } }
     );
     if (!metaRes.ok) {
       const err = await metaRes.json();
-      // Kalau 400/404, kemungkinan file Excel — tampilkan panduan
-      if (err.error?.code === 400 || err.error?.code === 404) {
-        showXlsxGuide();
-        return;
-      }
       throw new Error(err.error?.message || 'Gagal akses spreadsheet');
     }
     const meta = await metaRes.json();
     const sheets = meta.sheets?.map(s => s.properties?.title) || [];
+
     if (sheets.length === 0) throw new Error('Spreadsheet kosong atau tidak bisa diakses');
-    if (sheets.length === 1) await fetchAndLoadSheet(spreadsheetId, sheets[0]);
-    else showSheetPicker(spreadsheetId, sheets);
+
+    if (sheets.length === 1) {
+      // Only one sheet — load directly
+      await fetchAndLoadSheet(spreadsheetId, sheets[0]);
+    } else {
+      // Multiple sheets — show picker
+      showSheetPicker(spreadsheetId, sheets);
+    }
   } catch (err) {
     showGsheetsStatus('error', '❌ ' + err.message);
     console.error('GSheets error:', err);
   }
 }
-
-function showXlsxGuide() {
-  const statusEl = document.getElementById('gsheets-status');
-  if (!statusEl) return;
-  statusEl.style.display = 'block';
-  statusEl.style.background = '#FFFBEB';
-  statusEl.style.border = '1px solid #FDE68A';
-  statusEl.style.color = '#92400E';
-  statusEl.style.padding = '0';
-
-  // Remove existing guide if any
-  const existingGuide = document.getElementById('xlsx-guide');
-  if (existingGuide) existingGuide.remove();
-
-  const div = document.createElement('div');
-  div.id = 'xlsx-guide';
-  div.innerHTML = `
-    <div style="padding:16px 18px;background:#FFFBEB;border:1.5px solid #FDE68A;border-radius:12px;margin-top:8px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-        <span style="font-size:18px;">📋</span>
-        <div style="font-size:13px;font-weight:700;color:#92400E;">File ini format Excel — perlu dikonversi dulu</div>
-      </div>
-      <div style="font-size:12px;color:#78350F;line-height:1.7;margin-bottom:14px;">
-        Findible hanya bisa baca <strong>Google Sheets native</strong>. File Excel (.xlsx) yang ada di Google Drive perlu dikonversi dulu. Caranya gampang, ikuti langkah berikut:
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:white;border-radius:8px;border:1px solid #FDE68A;">
-          <div style="width:22px;height:22px;background:#F59E0B;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;margin-top:1px;">1</div>
-          <div style="font-size:12px;color:#374151;line-height:1.6;">Buka file Excel lo di <strong>Google Drive</strong> — klik dua kali file .xlsx-nya sampai terbuka di browser</div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:white;border-radius:8px;border:1px solid #FDE68A;">
-          <div style="width:22px;height:22px;background:#F59E0B;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;margin-top:1px;">2</div>
-          <div style="font-size:12px;color:#374151;line-height:1.6;">Klik menu <strong>File</strong> di pojok kiri atas → pilih <strong>"Save as Google Sheets"</strong></div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:white;border-radius:8px;border:1px solid #FDE68A;">
-          <div style="width:22px;height:22px;background:#F59E0B;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;margin-top:1px;">3</div>
-          <div style="font-size:12px;color:#374151;line-height:1.6;">File baru otomatis terbuka sebagai Google Sheets — copy URL-nya dari address bar browser</div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:white;border-radius:8px;border:1px solid #FDE68A;">
-          <div style="width:22px;height:22px;background:#F59E0B;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;margin-top:1px;">4</div>
-          <div style="font-size:12px;color:#374151;line-height:1.6;">Paste URL baru itu di kolom di atas → klik <strong>Load Sheet</strong></div>
-        </div>
-      </div>
-      <div style="padding:10px 12px;background:#FEF3C7;border-radius:8px;font-size:11px;color:#92400E;line-height:1.6;">
-        💡 <strong>Tips:</strong> Atau lo bisa langsung <strong>upload file Excel</strong>-nya lewat drag & drop di area atas — tidak perlu convert, langsung bisa dianalisis!
-      </div>
-    </div>`;
-
-  statusEl.insertAdjacentElement('afterend', div);
-  statusEl.style.display = 'none'; // hide default status, guide sudah cukup
-}
-
 
 function showSheetPicker(spreadsheetId, sheets) {
   const urlSection = document.getElementById('gsheet-url-section');
@@ -1421,47 +1512,12 @@ function initFindiChat(analysisResult, summaryData) {
   // Load default tab
   switchFindiTab('profit', document.querySelectorAll('.findi-tab')[0]);
 
-  // Build proactive alert messages
-  const alerts = [];
-
-  // Alert 1: Fraud/anomali kritis
-  const criticalFrauds = (findiContext.fraudAlerts || []).filter(f => f.severity === 'critical');
-  if (criticalFrauds.length > 0) {
-    alerts.push(`🚨 <strong>ALERT:</strong> Ditemukan <strong>${criticalFrauds.length} anomali kritis</strong> — ${criticalFrauds[0].type}. Ini butuh dicek segera sebelum bulan depan.`);
-  }
-
-  // Alert 2: Margin warning
-  if (findiContext.margin < 0) {
-    alerts.push(`🔴 <strong>Bisnis sedang rugi</strong> margin ${findiContext.margin.toFixed(1)}%. Setiap hari yang lewat tanpa aksi = kerugian makin dalam.`);
-  } else if (findiContext.margin < 10) {
-    alerts.push(`⚠️ <strong>Margin sangat tipis</strong> (${findiContext.margin.toFixed(1)}%) — sedikit kenaikan biaya bisa langsung bikin rugi.`);
-  }
-
-  // Alert 3: Revenue volatility
-  const monthly = findiContext.monthlyData || [];
-  if (monthly.length >= 3) {
-    const incomes = monthly.map(m => m.income).filter(v => v > 0);
-    const maxInc = Math.max(...incomes), minInc = Math.min(...incomes);
-    if (minInc > 0 && (maxInc - minInc) / minInc > 0.5) {
-      alerts.push(`📊 <strong>Volatilitas revenue tinggi</strong> — selisih bulan terbaik vs terburuk lebih dari 50%. Bisnis perlu revenue yang lebih stabil.`);
-    }
-  }
-
-  // Alert 4: Critical rec
-  const critRec = (findiContext.recs || []).find(r => r.priority === 'critical');
-  if (critRec) {
-    alerts.push(`💡 <strong>Aksi paling urgent:</strong> ${critRec.title}${critRec.impact ? ` — estimasi dampak ${critRec.impact}` : ''}.`);
-  }
-
-  const alertsHtml = alerts.length > 0
-    ? `<div style="display:flex;flex-direction:column;gap:6px;margin:10px 0;">${alerts.map(a => `<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:9px 12px;font-size:12px;line-height:1.6;color:#374151;">${a}</div>`).join('')}</div>`
-    : '';
-
+  // Show welcome message
   const welcomeEl = document.createElement('div');
   welcomeEl.className = 'msg-findi';
   welcomeEl.innerHTML = `Halo! Saya <strong>Findi</strong>, AI CFO kamu 👋<br><br>
-Skor kesehatan bisnis: <strong>${findiContext.score}/100 (${findiContext.scoreLabel})</strong> · Profit: <strong>${findiContext.fmtProfit}</strong>${alertsHtml}
-Mau mulai dari mana? Tanya langsung atau pilih topik di bawah.`;
+Saya sudah analisis laporan keuangan kamu. Skor kesehatan bisnis kamu <strong>${findiContext.score}/100 (${findiContext.scoreLabel})</strong> dengan profit <strong>${findiContext.fmtProfit}</strong>.<br><br>
+Mau tanya apa dulu?`;
   document.getElementById('findi-messages').appendChild(welcomeEl);
   document.getElementById('findi-chat-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -1649,14 +1705,16 @@ function addTypingIndicator() {
 async function initAuth() {
   try {
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
+    if (!session) { window.location.href = 'index.html'; return; }
     currentUser = session.user;
     try {
       const { data: profile, error } = await supabaseClient
         .from('profiles').select('credits, business_name, business_type').eq('id', currentUser.id).single();
       if (error || !profile) {
-        await supabaseClient.from('profiles').upsert({ id: currentUser.id, email: currentUser.email, business_name: '', credits: 3 }, { onConflict: 'id' });
+        // Insert only — jangan update kalau sudah ada (cegah reset kredit user existing)
+        await supabaseClient.from('profiles').insert({ id: currentUser.id, email: currentUser.email, business_name: '', credits: 3 }).onConflict('id').ignore();
         userCredits = 3;
+        userIsNewTrial = true;
       } else {
         userCredits = profile.credits ?? 3;
         userPlan = profile.plan || 'starter';
@@ -1668,8 +1726,8 @@ async function initAuth() {
     document.getElementById('settings-email').textContent = currentUser.email;
     const avatarEl = document.getElementById('user-avatar');
     if (avatarEl) avatarEl.textContent = currentUser.email[0].toUpperCase();
-    if (userCredits <= 0) document.getElementById('no-credits-overlay').classList.add('show');
-  } catch(e) { window.location.href = 'login.html'; }
+    if (userCredits <= 0) showUpgradeModal();
+  } catch(e) { window.location.href = 'index.html'; }
 }
 
 function updateCreditsUI() {
@@ -1680,9 +1738,64 @@ function updateCreditsUI() {
   const cls = userCredits === 0 ? ' danger' : userCredits === 1 ? ' warning' : '';
   badge.className = 'credits-badge' + cls;
   dot.className   = 'credits-dot' + cls;
+
+  // Update trial banner
+  const banner = document.getElementById('trial-banner');
+  const bannerText = document.getElementById('trial-credits-left');
+  if (banner && userPlan === 'starter') {
+    banner.style.display = 'flex';
+    if (bannerText) bannerText.textContent = userCredits;
+    if (userCredits <= 0) {
+      banner.className = 'trial-banner danger';
+      banner.querySelector('span').innerHTML = '🔋 Trial habis — upgrade untuk lanjut analisis';
+    } else if (userCredits === 1) {
+      banner.className = 'trial-banner warning';
+      banner.querySelector('span').innerHTML = '⚠️ Sisa <strong>1</strong> analisis gratis';
+    } else {
+      banner.className = 'trial-banner';
+      banner.querySelector('span').innerHTML = '🎁 Trial Gratis — <strong>' + userCredits + '</strong> analisis tersisa';
+    }
+  } else if (banner) {
+    banner.style.display = 'none';
+  }
 }
 
-async function doLogout() { await supabaseClient.auth.signOut(); window.location.href = 'login.html'; }
+async function doLogout() { await supabaseClient.auth.signOut(); window.location.href = 'index.html'; }
+
+async function changePassword() {
+  const newPwd  = document.getElementById('pwd-new').value.trim();
+  const confirm = document.getElementById('pwd-confirm').value.trim();
+  const msg     = document.getElementById('pwd-msg');
+
+  // Validasi
+  if (!newPwd || newPwd.length < 6) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = '❌ Password minimal 6 karakter.';
+    return;
+  }
+  if (newPwd !== confirm) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = '❌ Password tidak cocok.';
+    return;
+  }
+
+  msg.style.color = 'var(--text3)';
+  msg.textContent = 'Menyimpan...';
+
+  try {
+    const { error } = await supabaseClient.auth.updateUser({ password: newPwd });
+    if (error) throw error;
+
+    msg.style.color = 'var(--green)';
+    msg.textContent = '✅ Password berhasil diubah!';
+    document.getElementById('pwd-new').value = '';
+    document.getElementById('pwd-confirm').value = '';
+    setTimeout(() => { msg.textContent = ''; }, 3000);
+  } catch(e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = '❌ ' + (e.message || 'Gagal mengubah password.');
+  }
+}
 
 initAuth();
 initGoogleAuth();
@@ -2046,7 +2159,7 @@ function getIndustryContext() {
 }
 
 async function analyzeWithGroq(data) {
-  if (userCredits <= 0) { document.getElementById('no-credits-overlay').classList.add('show'); throw new Error('NO_CREDITS'); }
+  if (userCredits <= 0) { showUpgradeModal(); throw new Error('NO_CREDITS'); }
   if (accurateData) return await analyzeAccurateWithGroq(accurateData);
   const summary = preAggregate(data);
   const fmtM=(n)=>{const a=Math.abs(n);if(a>=1000000000)return(n/1000000000).toFixed(2)+' Miliar';if(a>=1000000)return(n/1000000).toFixed(2)+' Juta';if(a>=1000)return(n/1000).toFixed(0)+' Ribu';return String(n);};
@@ -2057,42 +2170,14 @@ async function analyzeWithGroq(data) {
   if(balanceSheetData){const b=balanceSheetData;bsAppend=`\n\nNERACA:\n- Total Aset: Rp ${Math.round(b.totalAssets).toLocaleString('id')}\n- Total Liabilitas: Rp ${Math.round(b.totalLiab).toLocaleString('id')}\n- Current Ratio: ${b.currentRatio?b.currentRatio.toFixed(2)+'x':'N/A'}`;}
   const summaryText=`RINGKASAN KEUANGAN (pre-processed dari ${summary.totalRows} baris):\nTotal Pendapatan: Rp ${summary.totalIncome}\nTotal Pengeluaran: Rp ${summary.totalExpense}\nLaba Bersih: Rp ${summary.profit}\nMargin: ${summary.margin.toFixed(1)}%\nPeriode: ${summary.dateRange}\n\nBREAKDOWN BULANAN:\n${monthStr}\n\nTOTAL PER KATEGORI:\n${catStr}\n\nANOMALI:\n${fraudStr}${bsAppend}`.trim();
   const momDeltas=(()=>{const m=summary.monthly;if(m.length<2)return'Hanya 1 bulan data.';const last=m[m.length-1];const prev=m[m.length-2];const revDelta=prev.income>0?((last.income-prev.income)/prev.income*100).toFixed(1):null;return`Bulan terakhir (${last.month}): Revenue Rp ${last.income.toLocaleString('id')} vs sebelumnya Rp ${prev.income.toLocaleString('id')} → ${revDelta!==null?revDelta+'%':'N/A'}.\nTop kategori pendapatan: ${summary.topIncomeCategories?.map(c=>c.desc+' Rp '+c.income.toLocaleString('id')).join(' | ')||'N/A'}`;})();
-  const bsNote = balanceSheetData
-    ? `\n\nData neraca tersedia — sertakan analisis Current Ratio (${balanceSheetData.currentRatio?.toFixed(2) || 'N/A'}x), D/E Ratio (${balanceSheetData.deRatio?.toFixed(2) || 'N/A'}x), dan likuiditas dalam insights dan rekomendasi.`
-    : '';
-  const prompt=`Kamu AI CFO senior Indonesia. Analisis data keuangan dengan framework 4-layer CFO.\n${getIndustryContext()}\n${summaryText}${bsNote}\n\nANALISIS MoM:\n${momDeltas}\n\nReturn HANYA JSON valid (tanpa markdown):\n{"totalIncome":${summary.totalIncome},"totalExpense":${summary.totalExpense},"profit":${summary.profit},"margin":${summary.margin.toFixed(1)},"score":72,"scoreLabel":"Cukup Sehat","scoreBasis":"1 kalimat kenapa skor ini","monthlyData":[{"month":"Jan","income":10000000,"expense":8000000}],"cfWeeks":[{"week":"W1","val":3000000}],"topTransactions":[{"desc":"kategori terbesar","amt":50000000}],"cfoLayers":[{"layer":"Volume","icon":"📦","available":true,"status":"ok","headline":"1 kalimat dengan angka","detail":"1-2 kalimat"},{"layer":"Value","icon":"💵","available":true,"status":"warn","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Customer Mix","icon":"👥","available":true,"status":"ok","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Product Mix","icon":"📊","available":false,"status":"na","headline":null,"detail":null}],"insights":[{"type":"ok","icon":"✅","title":"Judul dengan angka","text":"2-3 kalimat dengan angka nyata"},{"type":"warn","icon":"⚠️","title":"Warning","text":"Masalah dengan angka"},{"type":"gold","icon":"💡","title":"Peluang","text":"Peluang dengan estimasi Rp"},{"type":"warn","icon":"⚠️","title":"Insight keempat","text":"Temuan keempat"}],"recs":[{"priority":"critical","title":"Aksi minggu ini","desc":"Langkah spesifik","impact":"Estimasi dampak Rp"},{"priority":"high","title":"Aksi bulan ini","desc":"Langkah konkret","impact":"Estimasi dampak"},{"priority":"med","title":"Optimasi 3 bulan","desc":"Strategi menengah","impact":"Estimasi dampak"},{"priority":"low","title":"Quick win","desc":"Effort rendah","impact":"Estimasi dampak"}],"fraudAlerts":[{"severity":"critical","type":"Nama tipe anomali","desc":"Deskripsi detail anomali dengan angka","amount":5000000,"date":"2024-01-15","action":"Langkah konkret yang harus dilakukan"}],"fraudScore":75,"fraudSummary":"1 paragraf ringkasan.","trendInsight":"3 kalimat TERPISAH. Kalimat 1: kondisi bisnis dan angka kunci. Kalimat 2: kenapa bisa begitu. Kalimat 3: 1 aksi paling penting. Bahasa santai Indonesia."}`;
+  const prompt=`Kamu AI CFO senior Indonesia. Analisis data keuangan dengan framework 4-layer CFO.\n${getIndustryContext()}\n${summaryText}\n\nANALISIS MoM:\n${momDeltas}\n\nReturn HANYA JSON valid (tanpa markdown):\n{"totalIncome":${summary.totalIncome},"totalExpense":${summary.totalExpense},"profit":${summary.profit},"margin":${summary.margin.toFixed(1)},"score":72,"scoreLabel":"Cukup Sehat","scoreBasis":"1 kalimat kenapa skor ini","monthlyData":[{"month":"Jan","income":10000000,"expense":8000000}],"cfWeeks":[{"week":"W1","val":3000000}],"topTransactions":[{"desc":"kategori terbesar","amt":50000000}],"cfoLayers":[{"layer":"Volume","icon":"📦","available":true,"status":"ok","headline":"1 kalimat dengan angka","detail":"1-2 kalimat"},{"layer":"Value","icon":"💵","available":true,"status":"warn","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Customer Mix","icon":"👥","available":true,"status":"ok","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Product Mix","icon":"📊","available":false,"status":"na","headline":null,"detail":null}],"insights":[{"type":"ok","icon":"✅","title":"Judul dengan angka","text":"2-3 kalimat dengan angka nyata"},{"type":"warn","icon":"⚠️","title":"Warning","text":"Masalah dengan angka"},{"type":"gold","icon":"💡","title":"Peluang","text":"Peluang dengan estimasi Rp"},{"type":"warn","icon":"⚠️","title":"Insight keempat","text":"Temuan keempat"}],"recs":[{"priority":"critical","title":"Aksi minggu ini","desc":"Langkah spesifik","impact":"Estimasi dampak Rp"},{"priority":"high","title":"Aksi bulan ini","desc":"Langkah konkret","impact":"Estimasi dampak"},{"priority":"med","title":"Optimasi 3 bulan","desc":"Strategi menengah","impact":"Estimasi dampak"},{"priority":"low","title":"Quick win","desc":"Effort rendah","impact":"Estimasi dampak"}],"fraudAlerts":[],"fraudScore":75,"fraudSummary":"1 paragraf ringkasan.","trendInsight":"3 kalimat TERPISAH. Kalimat 1: kondisi bisnis dan angka kunci. Kalimat 2: kenapa bisa begitu. Kalimat 3: 1 aksi paling penting. Bahasa santai Indonesia."}`;
   const res=await fetch(API_BASE+'/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({summaryText:prompt,userId:currentUser.id,userToken:(await supabaseClient.auth.getSession()).data.session?.access_token})});
-  if(!res.ok){const err=await res.json();if(err.code==='NO_CREDITS'){userCredits=0;updateCreditsUI();document.getElementById('no-credits-overlay').classList.add('show');throw new Error('NO_CREDITS');}throw new Error(err.error||'Server error');}
+  if(!res.ok){const err=await res.json();if(err.code==='NO_CREDITS'){userCredits=0;updateCreditsUI();showUpgradeModal();throw new Error('NO_CREDITS');}throw new Error(err.error||'Server error');}
   const json=await res.json(); const result=json.result;
   userCredits=json.creditsRemaining; updateCreditsUI();
   result.totalIncome=summary.totalIncome; result.totalExpense=summary.totalExpense; result.profit=summary.profit; result.margin=parseFloat(summary.margin.toFixed(1));
   result.categoryBreakdown=summary.categoryBreakdown; result.topIncomeCategories=summary.topIncomeCategories; result.topExpenseCategories=summary.topExpenseCategories;
   result.topIncomeTx=summary.topIncomeTx; result.topExpenseTx=summary.topExpenseTx; result.cfWeeks=summary.cfWeeksData;
-  // Inject neraca data ke result kalau ada
-  if (balanceSheetData) {
-    result.accurateMode = true;
-    result.currentRatio = balanceSheetData.currentRatio;
-    result.cashRunway = balanceSheetData.currentRatio && summary.totalExpense > 0
-      ? parseFloat(((balanceSheetData.cash || 0) / (summary.totalExpense / (summary.monthly.length || 12))).toFixed(1))
-      : null;
-    result.deRatio = balanceSheetData.deRatio;
-    result.ebitda = result.profit; // approximation
-    result.opMargin = result.margin;
-    // Untuk render tabel top produk/expense di accurate grid
-    result.topProducts = summary.topIncomeCategories.map(c => ({ name: c.desc, val: c.income, pct: summary.totalIncome > 0 ? Math.round(c.income/summary.totalIncome*100) : 0 }));
-    result.topExpenses = summary.topExpenseCategories.map(c => ({ name: c.desc, val: c.expense, pct: summary.totalExpense > 0 ? Math.round(c.expense/summary.totalExpense*100) : 0 }));
-  }
-  // Normalize fraudAlerts dari Claude — handle kalau field names beda
-  if (result.fraudAlerts) {
-    result.fraudAlerts = result.fraudAlerts.map(a => ({
-      severity: a.severity || 'warning',
-      type: a.type || a.title || a.category || 'Anomali',
-      desc: a.desc || a.description || a.detail || a.message || a.reason || 'Transaksi mencurigakan',
-      amount: a.amount || a.value || a.total || 0,
-      date: a.date || a.tanggal || '',
-      action: a.action || a.recommendation || a.tindakan || a.rekomendasi || 'Verifikasi manual.'
-    }));
-  }
   summary.anomalies.forEach(a=>{const alreadyIn=(result.fraudAlerts||[]).some(f=>f.type===a.type&&f.date===a.date);if(!alreadyIn){result.fraudAlerts=result.fraudAlerts||[];result.fraudAlerts.push({severity:a.severity||'warning',type:a.type,desc:a.desc,amount:a.amount||0,date:a.date||'',action:a.action||'Verifikasi manual.'});}});
   return result;
 }
@@ -2102,7 +2187,7 @@ async function analyzeAccurateWithGroq(d) {
   const summaryText=`DATA AKUNTANSI LENGKAP (Accurate):\nTotal Revenue: Rp ${d.totalRevenue.toLocaleString('id')}\nGross Margin: ${d.grossMargin}%\nEBITDA: Rp ${d.ebitda.toLocaleString('id')}\nOperating Margin: ${d.opMargin}%${bsStr}\nTop Produk: ${d.topProducts.map((p,i)=>(i+1)+'. '+p.name+': Rp '+p.val.toLocaleString('id')+' ('+p.pct+'%)').join(' | ')}\nTop Customer: ${d.topCustomers.map((c,i)=>(i+1)+'. '+c.name+': Rp '+c.val.toLocaleString('id')+' ('+c.pct+'%)').join(' | ')}\nTop Pengeluaran: ${d.topExpenses.map((e,i)=>(i+1)+'. '+e.name+': Rp '+e.val.toLocaleString('id')+' ('+e.pct+'%)').join(' | ')}\nTren (6 bln): ${d.monthlyData.slice(-6).map(m=>m.month+': rev='+m.income.toLocaleString('id')+' exp='+m.expense.toLocaleString('id')).join(' | ')}`.trim();
   const prompt=`Kamu AI CFO senior Indonesia. Data dari Accurate Software.\n${getIndustryContext()}\n${summaryText}\n\nReturn HANYA JSON valid:\n{"totalIncome":${d.totalRevenue},"totalExpense":${d.totalExpense},"profit":${d.grossProfit},"margin":${d.grossMargin},"opMargin":${d.opMargin},"ebitda":${d.ebitda},"currentRatio":${d.currentRatio},"cashRunway":${d.cashRunway},"deRatio":${d.deRatio},"score":80,"scoreLabel":"Sehat","scoreBasis":"1 kalimat kenapa skor ini","monthlyData":${JSON.stringify(d.monthlyData.slice(-12))},"cfWeeks":[],"topTransactions":[{"desc":"${d.topProducts[0]?.name||'Produk Utama'}","amt":${d.topProducts[0]?.val||0}}],"insights":[{"type":"ok","icon":"✅","title":"Insight dengan angka","text":"2-3 kalimat dengan angka nyata dan benchmark"},{"type":"warn","icon":"⚠️","title":"Warning","text":"Masalah konkret"},{"type":"gold","icon":"💡","title":"Peluang","text":"Peluang dengan estimasi Rp"},{"type":"warn","icon":"⚠️","title":"Insight keempat","text":"Temuan keempat"}],"recs":[{"priority":"critical","title":"Aksi minggu ini","desc":"Langkah spesifik","impact":"Estimasi Rp"},{"priority":"high","title":"Aksi bulan ini","desc":"Langkah konkret","impact":"Estimasi"},{"priority":"med","title":"Optimasi 3 bulan","desc":"Strategi","impact":"Estimasi"},{"priority":"low","title":"Quick win","desc":"Effort rendah","impact":"Estimasi"}],"fraudAlerts":${JSON.stringify(d.fraudFlags.slice(0,5))},"fraudScore":${d.fraudFlags.length===0?95:d.fraudFlags.some(f=>f.severity==='critical')?45:70},"fraudSummary":"1 paragraf ringkasan.","cfoLayers":[{"layer":"Volume","icon":"📦","available":true,"status":"ok","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Value","icon":"💵","available":true,"status":"ok","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Customer Mix","icon":"👥","available":true,"status":"warn","headline":"1 kalimat","detail":"1-2 kalimat"},{"layer":"Product Mix","icon":"📊","available":true,"status":"ok","headline":"1 kalimat","detail":"1-2 kalimat"}],"trendInsight":"3 kalimat TERPISAH. Kalimat 1: kondisi dan angka kunci. Kalimat 2: kenapa. Kalimat 3: 1 aksi penting. Bahasa santai Indonesia."}`;
   const res=await fetch(API_BASE+'/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({summaryText:prompt,userId:currentUser.id,userToken:(await supabaseClient.auth.getSession()).data.session?.access_token})});
-  if(!res.ok){const err=await res.json();if(err.code==='NO_CREDITS'){userCredits=0;updateCreditsUI();document.getElementById('no-credits-overlay').classList.add('show');throw new Error('NO_CREDITS');}throw new Error(err.error||'Server error');}
+  if(!res.ok){const err=await res.json();if(err.code==='NO_CREDITS'){userCredits=0;updateCreditsUI();showUpgradeModal();throw new Error('NO_CREDITS');}throw new Error(err.error||'Server error');}
   const json=await res.json(); const result=json.result;
   userCredits=json.creditsRemaining; updateCreditsUI();
   result.totalIncome=d.totalRevenue; result.totalExpense=d.totalExpense; result.profit=d.grossProfit; result.margin=d.grossMargin;
@@ -2236,11 +2321,10 @@ function handleBalanceSheet(event) {
 // ==================== HELPERS ====================
 function formatRp(num) {
   const abs=Math.abs(num);
-  const prefix=num<0?'-':'';
-  if(abs>=1000000000)return prefix+'Rp '+(abs/1000000000).toFixed(1)+' Miliar';
-  if(abs>=1000000)return prefix+'Rp '+(abs/1000000).toFixed(1)+' Juta';
-  if(abs>=1000)return prefix+'Rp '+(abs/1000).toFixed(0)+' Ribu';
-  return prefix+'Rp '+abs.toFixed(0);
+  if(abs>=1000000000)return'Rp '+(abs/1000000000).toFixed(1)+' Miliar';
+  if(abs>=1000000)return'Rp '+(abs/1000000).toFixed(1)+' Juta';
+  if(abs>=1000)return'Rp '+(abs/1000).toFixed(0)+' Ribu';
+  return'Rp '+abs.toFixed(0);
 }
   
 function textToBullets(text) {
@@ -2336,103 +2420,6 @@ function renderResult(r) {
     setTimeout(()=>{b1.style.height=Math.max((m.income/maxVal*100),2)+'%';b2.style.height=Math.max((m.expense/maxVal*100),2)+'%';},80);
   });
 
-  // Profit line overlay
-  if (months.length > 1) {
-    setTimeout(() => {
-      const profits = months.map(m => (m.income||0) - (m.expense||0));
-      const maxProfit = Math.max(...profits.map(Math.abs), 1);
-      const chartRect = chartEl.getBoundingClientRect();
-      const chartH = chartEl.offsetHeight || 100;
-      const chartW = chartEl.offsetWidth || 300;
-      if (!chartW || !chartH) return;
-
-      // Remove existing SVG if any
-      const existing = chartEl.parentElement.querySelector('.profit-line-svg');
-      if (existing) existing.remove();
-
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.classList.add('profit-line-svg');
-      svg.setAttribute('width', chartW);
-      svg.setAttribute('height', chartH);
-      svg.style.cssText = `position:absolute;top:0;left:0;pointer-events:none;overflow:visible;`;
-
-      const n = months.length;
-      const barW = chartW / n;
-      const midLine = chartH * 0.5; // zero line in middle
-
-      // Build points
-      const points = profits.map((p, i) => {
-        const x = barW * i + barW / 2;
-        // Map profit to Y: positive = above mid, negative = below mid
-        const y = midLine - (p / maxProfit) * (chartH * 0.42);
-        return [x, y];
-      });
-
-      // Zero line
-      const zeroLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      zeroLine.setAttribute('x1', 0); zeroLine.setAttribute('x2', chartW);
-      zeroLine.setAttribute('y1', midLine); zeroLine.setAttribute('y2', midLine);
-      zeroLine.setAttribute('stroke', 'rgba(100,100,100,0.2)');
-      zeroLine.setAttribute('stroke-width', '1');
-      zeroLine.setAttribute('stroke-dasharray', '4,3');
-      svg.appendChild(zeroLine);
-
-      // Smooth polyline using bezier
-      const d = points.map((p, i) => {
-        if (i === 0) return `M ${p[0]},${p[1]}`;
-        const prev = points[i-1];
-        const cpx = (prev[0] + p[0]) / 2;
-        return `C ${cpx},${prev[1]} ${cpx},${p[1]} ${p[0]},${p[1]}`;
-      }).join(' ');
-
-      // Shadow path
-      const shadowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      shadowPath.setAttribute('d', d);
-      shadowPath.setAttribute('fill', 'none');
-      shadowPath.setAttribute('stroke', 'rgba(99,102,241,0.15)');
-      shadowPath.setAttribute('stroke-width', '5');
-      shadowPath.setAttribute('stroke-linecap', 'round');
-      svg.appendChild(shadowPath);
-
-      // Main profit line
-      const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      linePath.setAttribute('d', d);
-      linePath.setAttribute('fill', 'none');
-      linePath.setAttribute('stroke', '#6366F1');
-      linePath.setAttribute('stroke-width', '2.5');
-      linePath.setAttribute('stroke-linecap', 'round');
-      linePath.setAttribute('stroke-linejoin', 'round');
-      svg.appendChild(linePath);
-
-      // Dots at each point
-      points.forEach((p, i) => {
-        const profit = profits[i];
-        const color = profit >= 0 ? '#10B981' : '#EF4444';
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('cx', p[0]); circle.setAttribute('cy', p[1]);
-        circle.setAttribute('r', '4');
-        circle.setAttribute('fill', color);
-        circle.setAttribute('stroke', 'white');
-        circle.setAttribute('stroke-width', '1.5');
-        circle.style.cssText = 'cursor:pointer;';
-        // Tooltip via title
-        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-        title.textContent = `${months[i].month}: ${profit >= 0 ? '+' : ''}${formatRp(profit)}`;
-        circle.appendChild(title);
-        svg.appendChild(circle);
-      });
-
-      // Position SVG relative to chart container
-      chartEl.style.position = 'relative';
-      const wrapper = chartEl.parentElement;
-      wrapper.style.position = 'relative';
-      wrapper.appendChild(svg);
-      // Position svg to overlap chart
-      const chartTop = chartEl.offsetTop;
-      svg.style.top = chartTop + 'px';
-    }, 250);
-  }
-
   const momTbody=document.getElementById('mom-tbody');
   if(momTbody&&months.length>0){
     momTbody.innerHTML='';
@@ -2499,32 +2486,6 @@ function renderResult(r) {
   const isGenericExpense=expenseItems.length<=1||(expenseItems.length>0&&/^(pengeluaran|expense|biaya)$/i.test(expenseItems[0]?.desc||''));
   renderTopTable('top-income-table-2',isGenericIncome?(r.topIncomeTx||[]).map(t=>({desc:t.desc,income:t.income})):incomeItems,'income','#10B981','Tidak ada data pendapatan');
   renderTopTable('top-expense-table-2',isGenericExpense?(r.topExpenseTx||[]).map(t=>({desc:t.desc,expense:t.expense})):expenseItems,'expense','#EF4444','Tidak ada data pengeluaran');
-
-  // ── Top 3 Priority Actions ──
-  const top3El = document.getElementById('top3-actions');
-  if (top3El) {
-    const criticalRecs = (r.recs || []).filter(rec => rec.priority === 'critical' || rec.priority === 'high').slice(0, 3);
-    const top3 = criticalRecs.length > 0 ? criticalRecs : (r.recs || []).slice(0, 3);
-    const rankEmoji = ['🥇', '🥈', '🥉'];
-    const rankColors = ['#DC2626', '#EA580C', '#D97706'];
-    const rankBg = ['#FEF2F2', '#FFF7ED', '#FFFBEB'];
-    const rankBorder = ['#FECACA', '#FED7AA', '#FDE68A'];
-    if (top3.length === 0) {
-      top3El.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;">Tidak ada rekomendasi tersedia.</div>';
-    } else {
-      top3El.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;padding:4px 0;">
-        ${top3.map((rec, i) => `
-          <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 16px;background:${rankBg[i]};border:1.5px solid ${rankBorder[i]};border-radius:12px;">
-            <div style="flex-shrink:0;width:32px;height:32px;background:${rankColors[i]};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;margin-top:1px;">${rankEmoji[i]}</div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:13px;font-weight:700;color:${rankColors[i]};margin-bottom:3px;">${rec.title}</div>
-              <div style="font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:6px;">${rec.desc}</div>
-              ${rec.impact ? `<div style="display:inline-flex;align-items:center;gap:5px;background:white;border:1px solid ${rankBorder[i]};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:${rankColors[i]};">📈 ${rec.impact}</div>` : ''}
-            </div>
-          </div>`).join('')}
-      </div>`;
-    }
-  }
 
   // ── Recommendations ──
   const recsEl=document.getElementById('recommendations');
